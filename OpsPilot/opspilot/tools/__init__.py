@@ -9,6 +9,11 @@
 包含:
 - base: 工具基类、路由器、Schema定义
 - mcp: MCP Server 实现（ERP、合规等）
+- database: 数据库工具（MySQL/PostgreSQL）
+- http_client: HTTP API 工具（REST/GraphQL）
+- devops: 运维工具（Kubernetes/系统监控）
+- file_ops: 文件操作工具
+- notification: 通知工具（邮件/钉钉/企微）
 - internal: 内部工具（格式化、计算等）
 - indexer: 工具索引器（ToolRAG）
 - retriever: 工具检索器
@@ -36,6 +41,49 @@ from opspilot.tools.mcp import (
 )
 
 from opspilot.tools.internal import InternalToolsServer
+
+# 新增 MCP 工具
+from opspilot.tools.database import (
+    DatabaseServer,
+    DatabaseConfig,
+    DatabaseConnection,
+    MockDatabaseConnection,
+    MySQLConnection,
+    PostgreSQLConnection,
+    create_database_server,
+)
+
+from opspilot.tools.http_client import (
+    ApiServer,
+    RequestConfig,
+    AuthConfig,
+    HttpClient,
+    HttpMethod,
+    create_api_server,
+)
+
+from opspilot.tools.devops import (
+    DevOpsServer,
+    KubernetesTools,
+    SystemTools,
+    CommandExecutor,
+    create_devops_server,
+)
+
+from opspilot.tools.file_ops import (
+    FileServer,
+    FileOperations,
+    LogParser,
+    create_file_server,
+)
+
+from opspilot.tools.notification import (
+    NotificationServer,
+    NotificationConfig,
+    NotificationChannel,
+    NotificationSender,
+    create_notification_server,
+)
 
 # 工具调用优化模块
 from opspilot.tools.indexer import (
@@ -123,6 +171,38 @@ __all__ = [
     "ERPServer",
     "ComplianceServer",
     "create_default_router",
+    # 数据库工具
+    "DatabaseServer",
+    "DatabaseConfig",
+    "DatabaseConnection",
+    "MockDatabaseConnection",
+    "MySQLConnection",
+    "PostgreSQLConnection",
+    "create_database_server",
+    # HTTP API 工具
+    "ApiServer",
+    "RequestConfig",
+    "AuthConfig",
+    "HttpClient",
+    "HttpMethod",
+    "create_api_server",
+    # 运维工具
+    "DevOpsServer",
+    "KubernetesTools",
+    "SystemTools",
+    "CommandExecutor",
+    "create_devops_server",
+    # 文件工具
+    "FileServer",
+    "FileOperations",
+    "LogParser",
+    "create_file_server",
+    # 通知工具
+    "NotificationServer",
+    "NotificationConfig",
+    "NotificationChannel",
+    "NotificationSender",
+    "create_notification_server",
     # 内部工具
     "InternalToolsServer",
     # 工具索引
