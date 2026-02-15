@@ -1,0 +1,34 @@
+﻿# opspilot 配置文件模板
+# 实际配置请参考 dev/04_CONFIG/config_schema.md
+
+app:
+  name: "opspilot"
+  version: "0.1.0"
+  debug: false
+
+state_machine:
+  initial_state: "INIT"
+  max_retry: 3
+
+memory:
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+  chromadb:
+    persist_directory: "./data/chromadb"
+    collection_name: "opspilot_memory"
+
+llm:
+  # 基座模型配置（待确定）
+  provider: "sglang"
+  model_name: ""
+  api_base: ""
+
+mcp:
+  servers: []
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+

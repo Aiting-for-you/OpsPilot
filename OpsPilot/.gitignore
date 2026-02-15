@@ -1,0 +1,102 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Logs
+logs/
+*.log
+
+# Data
+data/
+*.db
+*.sqlite3
+
+# Environment
+.env
+.env.local
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.idx
+*.sample
+
+# ========================================
+# 文档目录 - 不上传到 GitHub
+# ========================================
+
+# 方法论文件夹
+methodology/
+
+# 设计文档
+docs/01_VISION.md
+docs/02_ARCHITECTURE.md
+docs/03_MODULES.md
+docs/04_DATAFLOW.md
+docs/05_API.md
+docs/06_DEPLOYMENT.md
+docs/07_TECH_DECISIONS.md
+docs/08_QUALITY.md
+docs/PRD.md
+docs/ROADMAP.md
+docs/SOP_TEMPLATE.md
+
+# 开发文档
+dev/
+!dev/.gitkeep
+
+# ========================================
+# 开发工具配置 - 不上传
+# ========================================
+
+# Codebuddy
+.codebuddy/
+
+# 开发环境配置
+.env.development
+.env.staging
