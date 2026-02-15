@@ -1,5 +1,15 @@
 import axios, { AxiosInstance } from 'axios';
-import { Task, TaskResult, Tool, ToolCallResult, SOPExecutionResult, MemoryEntry, SystemHealth } from '../types';
+import { 
+  Task, 
+  TaskResult, 
+  Tool, 
+  ToolCallResult, 
+  SOPExecutionResult, 
+  MemoryEntry, 
+  SystemHealth,
+  TraceSpan,
+  AgentCard,
+} from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -88,6 +98,45 @@ class ApiService {
     const response = await this.client.post('/knowledge/query', {
       query,
       limit,
+    });
+    return response.data;
+  }
+
+  // ==================== 追踪接口 (OpenTelemetry) ====================
+
+  async getTrace(traceId: string): Promise<{ spans: TraceSpan[] }> {
+    const response = await this.client.get(`/tracing/trace/${traceId}`);
+    return response.data;
+  }
+
+  async getTaskTrace(taskId: string): Promise<{ spans: TraceSpan[] }> {
+    const response = await this.client.get(`/tracing/task/${taskId}`);
+    return response.data;
+  }
+
+  // ==================== A2A 接口 ====================
+
+  async discoverAgents(skillId?: string, tags?: string[]): Promise<{ agents: AgentCard[] }> {
+    const params: any = {};
+    if (skillId) params.skill_id = skillId;
+    if (tags) params.tags = tags.join(',');
+    const response = await this.client.get('/a2a/agents', { params });
+    return response.data;
+  }
+
+  async getAgent(agentId: string): Promise<AgentCard> {
+    const response = await this.client.get(`/a2a/agents/${agentId}`);
+    return response.data;
+  }
+
+  async invokeAgentSkill(
+    agentId: string,
+    skillId: string,
+    input: any
+  ): Promise<{ result: any }> {
+    const response = await this.client.post(`/a2a/agents/${agentId}/invoke`, {
+      skill_id: skillId,
+      input,
     });
     return response.data;
   }

@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Plane,
+  Activity,
 } from 'lucide-react';
 import { useAppStore } from '../store';
 
@@ -23,6 +24,7 @@ const navItems = [
   { path: '/tools', icon: Wrench, label: '工具调用' },
   { path: '/sop', icon: Database, label: 'SOP 执行' },
   { path: '/agents', icon: Users, label: 'Agent 监控' },
+  { path: '/tracing', icon: Activity, label: '追踪分析' },
   { path: '/settings', icon: Settings, label: '设置' },
 ];
 

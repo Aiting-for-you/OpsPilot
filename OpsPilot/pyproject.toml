@@ -16,6 +16,11 @@ dependencies = [
     "agentscope>=0.1.0",
     "grpcio>=1.60.0",
     "grpcio-tools>=1.60.0",
+    # AgentScope Runtime - 生产级运行时
+    # - 工具沙箱：安全隔离执行
+    # - AaaS API：Agent-as-a-Service
+    # - A2A 协议：智能体间通信
+    "agentscope-runtime>=0.1.0",
     # LangChain - 工具调用与RAG（执行层）
     "langchain>=0.3.0",
     "langchain-core>=0.3.0",
@@ -28,6 +33,12 @@ dependencies = [
     # 向量检索与嵌入
     "sentence-transformers>=2.2.0",
     "numpy>=1.24.0",
+    # OpenTelemetry - 可观测性追踪
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+    "opentelemetry-exporter-otlp>=1.20.0",
+    # SSE 流式输出
+    "sse-starlette>=2.0.0",
 ]
 
 [project.optional-dependencies]

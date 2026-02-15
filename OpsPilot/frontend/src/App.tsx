@@ -6,6 +6,7 @@ import { Tasks } from './pages/Tasks';
 import { Tools } from './pages/Tools';
 import { SOP } from './pages/SOP';
 import { Agents } from './pages/Agents';
+import { Tracing } from './pages/Tracing';
 import { Settings } from './pages/Settings';
 import './index.css';
 
@@ -29,6 +30,7 @@ function App() {
             <Route path="/tools" element={<Tools />} />
             <Route path="/sop" element={<SOP />} />
             <Route path="/agents" element={<Agents />} />
+            <Route path="/tracing" element={<Tracing />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </Layout>
