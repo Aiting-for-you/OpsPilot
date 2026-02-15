@@ -12,6 +12,7 @@ dependencies = [
     "jsonschema>=4.0.0",
     "fastapi>=0.100.0",
     "uvicorn>=0.23.0",
+    "httpx>=0.24.0",  # HTTP 客户端（用于 LLM 连接测试）
     # AgentScope - 多智能体调度核心（决策层）
     "agentscope>=0.1.0",
     "grpcio>=1.60.0",

@@ -1,0 +1,46 @@
+# OpsPilot 生产环境配置 (CloudBase)
+# 环境ID: luojia-database-0g5ou3l00b9fc6ce
+
+app:
+  name: "opspilot"
+  version: "0.1.0"
+  debug: false
+
+state_machine:
+  initial_state: "INIT"
+  max_retry: 3
+
+memory:
+  redis:
+    # CloudBase 暂无 Redis，使用内存模式
+    # 如需 Redis，可使用腾讯云 Redis 产品
+    host: ""  # 留空使用内存模式
+    port: 6379
+    db: 0
+  chromadb:
+    # ChromaDB 持久化目录
+    persist_directory: "./data/chromadb"
+    collection_name: "opspilot_memory"
+
+llm:
+  # LLM 配置通过前端界面配置，存储在 data/llm_config.json
+  provider: ""
+  model_name: ""
+  api_base: ""
+
+mcp:
+  servers: []
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1
+  cors_origins:
+    - "*"
+
+# CloudBase 环境信息
+cloudbase:
+  env_id: "luojia-database-0g5ou3l00b9fc6ce"
+  region: "ap-shanghai"
+  # 静态托管域名
+  static_domain: "luojia-database-0g5ou3l00b9fc6ce.tcloudbaseapp.com"

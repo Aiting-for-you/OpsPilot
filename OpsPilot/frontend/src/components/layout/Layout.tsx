@@ -12,7 +12,7 @@ import {
   Plane,
   Activity,
 } from 'lucide-react';
-import { useAppStore } from '../store';
+import { useAppStore } from '../../store';
 
 interface LayoutProps {
   children: ReactNode;

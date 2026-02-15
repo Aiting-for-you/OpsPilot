@@ -4,6 +4,8 @@ import { api } from '../services/api';
 import { useAppStore, taskStateLabels } from '../store';
 import { TaskState } from '../types';
 
+const terminalStates = [TaskState.SUCCESS, TaskState.FAILED, TaskState.REJECTED];
+
 export function Dashboard() {
   const { agents, tasks } = useAppStore();
 
@@ -17,7 +19,7 @@ export function Dashboard() {
     {
       label: '活跃任务',
       value: tasks.filter((t) => 
-        ![TaskState.SUCCESS, TaskState.FAILED, TaskState.REJECTED].includes(t.state)
+        !terminalStates.includes(t.state as typeof terminalStates[number])
       ).length,
       icon: Activity,
       color: 'text-blue-400',

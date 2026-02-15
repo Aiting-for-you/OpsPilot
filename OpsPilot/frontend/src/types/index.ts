@@ -8,17 +8,19 @@ export interface Task {
   updated_at: string;
 }
 
-export enum TaskState {
-  INIT = 'INIT',
-  PLANNING = 'PLANNING',
-  AUDITING = 'AUDITING',
-  EXECUTING = 'EXECUTING',
-  VERIFYING = 'VERIFYING',
-  SUCCESS = 'SUCCESS',
-  FAILED = 'FAILED',
-  REJECTED = 'REJECTED',
-  RETRY = 'RETRY',
-}
+export const TaskState = {
+  INIT: 'INIT',
+  PLANNING: 'PLANNING',
+  AUDITING: 'AUDITING',
+  EXECUTING: 'EXECUTING',
+  VERIFYING: 'VERIFYING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  REJECTED: 'REJECTED',
+  RETRY: 'RETRY',
+} as const;
+
+export type TaskState = typeof TaskState[keyof typeof TaskState];
 
 export interface TaskResult {
   task_id: string;
@@ -151,22 +153,24 @@ export interface ToolCallTrace {
 // SSE Streaming Types (AgentScope Runtime 兼容)
 // ========================================
 
-export enum StreamEventType {
-  TASK_START = 'task_start',
-  TASK_PROGRESS = 'task_progress',
-  TASK_COMPLETE = 'task_complete',
-  TASK_ERROR = 'task_error',
-  AGENT_START = 'agent_start',
-  AGENT_MESSAGE = 'agent_message',
-  AGENT_TOOL_CALL = 'agent_tool_call',
-  AGENT_TOOL_RESULT = 'agent_tool_result',
-  AGENT_COMPLETE = 'agent_complete',
-  LLM_TOKEN = 'llm_token',
-  LLM_COMPLETE = 'llm_complete',
-  HEARTBEAT = 'heartbeat',
-  INTERRUPT = 'interrupt',
-  RESUME = 'resume',
-}
+export const StreamEventType = {
+  TASK_START: 'task_start',
+  TASK_PROGRESS: 'task_progress',
+  TASK_COMPLETE: 'task_complete',
+  TASK_ERROR: 'task_error',
+  AGENT_START: 'agent_start',
+  AGENT_MESSAGE: 'agent_message',
+  AGENT_TOOL_CALL: 'agent_tool_call',
+  AGENT_TOOL_RESULT: 'agent_tool_result',
+  AGENT_COMPLETE: 'agent_complete',
+  LLM_TOKEN: 'llm_token',
+  LLM_COMPLETE: 'llm_complete',
+  HEARTBEAT: 'heartbeat',
+  INTERRUPT: 'interrupt',
+  RESUME: 'resume',
+} as const;
+
+export type StreamEventType = typeof StreamEventType[keyof typeof StreamEventType];
 
 export interface StreamEvent {
   event_type: StreamEventType;
@@ -210,4 +214,96 @@ export interface A2AMessage {
   metadata: Record<string, any>;
   timestamp: number;
   ttl: number;
+}
+
+// ========================================
+// LLM Configuration Types
+// ========================================
+
+export type LLMProviderType = 
+  | 'openai' 
+  | 'azure_openai' 
+  | 'claude' 
+  | 'qwen' 
+  | 'ernie' 
+  | 'zhipu' 
+  | 'deepseek' 
+  | 'custom';
+
+export interface LLMProviderConfig {
+  provider: LLMProviderType;
+  name: string;
+  api_key_masked?: string;
+  api_base: string;
+  model_name: string;
+  default_model: string;
+  available_models: string[];
+  temperature: number;
+  max_tokens: number;
+  top_p: number;
+  is_enabled: boolean;
+  is_default: boolean;
+  last_used?: string;
+}
+
+export interface LLMConfigList {
+  success: boolean;
+  providers: LLMProviderConfig[];
+  default_provider?: string;
+}
+
+export interface LLMConfigUpdateRequest {
+  provider: LLMProviderType;
+  api_key: string;
+  api_base?: string;
+  model_name?: string;
+  temperature?: number;
+  max_tokens?: number;
+  top_p?: number;
+  is_enabled?: boolean;
+  is_default?: boolean;
+  available_models?: string[];
+}
+
+export interface LLMTestResult {
+  success: boolean;
+  message: string;
+  latency_ms?: number;
+}
+
+// 模型获取相关
+export interface ModelInfo {
+  id: string;
+  name?: string;
+  owned_by?: string;
+  object?: string;
+}
+
+export interface FetchModelsRequest {
+  api_base: string;
+  api_key: string;
+  provider_type?: string;
+}
+
+export interface FetchModelsResponse {
+  success: boolean;
+  models: ModelInfo[];
+  error?: string;
+}
+
+export interface BatchAddModelsRequest {
+  provider: LLMProviderType;
+  api_key: string;
+  api_base: string;
+  models: string[];
+  temperature?: number;
+  max_tokens?: number;
+  set_default?: string;
+}
+
+export interface BatchAddModelsResponse {
+  success: boolean;
+  added_count: number;
+  default_model?: string;
+  error?: string;
 }

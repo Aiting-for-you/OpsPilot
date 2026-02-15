@@ -9,6 +9,15 @@ import {
   SystemHealth,
   TraceSpan,
   AgentCard,
+  LLMConfigList,
+  LLMProviderConfig,
+  LLMConfigUpdateRequest,
+  LLMTestResult,
+  LLMProviderType,
+  FetchModelsRequest,
+  FetchModelsResponse,
+  BatchAddModelsRequest,
+  BatchAddModelsResponse,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -145,6 +154,45 @@ class ApiService {
 
   async healthCheck(): Promise<SystemHealth> {
     const response = await this.client.get('/health');
+    return response.data;
+  }
+
+  // ==================== LLM 配置接口 ====================
+
+  async getLLMConfigs(): Promise<LLMConfigList> {
+    const response = await this.client.get('/llm/config');
+    return response.data;
+  }
+
+  async getLLMProviderConfig(provider: LLMProviderType): Promise<LLMProviderConfig> {
+    const response = await this.client.get(`/llm/config/${provider}`);
+    return response.data;
+  }
+
+  async updateLLMConfig(config: LLMConfigUpdateRequest): Promise<LLMProviderConfig> {
+    const response = await this.client.put(`/llm/config/${config.provider}`, config);
+    return response.data;
+  }
+
+  async testLLMConnection(provider: LLMProviderType): Promise<LLMTestResult> {
+    const response = await this.client.post(`/llm/config/${provider}/test`);
+    return response.data;
+  }
+
+  async setDefaultLLM(provider: LLMProviderType): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.post(`/llm/config/${provider}/set-default`);
+    return response.data;
+  }
+
+  // ==================== 模型列表获取 ====================
+
+  async fetchModels(request: FetchModelsRequest): Promise<FetchModelsResponse> {
+    const response = await this.client.post('/llm/models/fetch', request);
+    return response.data;
+  }
+
+  async batchAddModels(request: BatchAddModelsRequest): Promise<BatchAddModelsResponse> {
+    const response = await this.client.post('/llm/models/batch-add', request);
     return response.data;
   }
 }

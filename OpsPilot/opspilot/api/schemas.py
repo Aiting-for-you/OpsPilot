@@ -180,6 +180,139 @@ class HealthCheckResponse(BaseModel):
     )
 
 
+# ==================== LLM 配置相关 ====================
+
+class LLMProviderEnum(str, Enum):
+    """LLM 提供商枚举"""
+    OPENAI = "openai"
+    AZURE_OPENAI = "azure_openai"
+    CLAUDE = "claude"
+    QWEN = "qwen"
+    ERNIE = "ernie"
+    ZHIPU = "zhipu"
+    DEEPSEEK = "deepseek"
+    CUSTOM = "custom"
+
+
+class LLMProviderConfigRequest(BaseModel):
+    """LLM 提供商配置请求"""
+    provider: LLMProviderEnum = Field(..., description="提供商类型")
+    api_key: str = Field(..., description="API Key")
+    api_base: Optional[str] = Field(default=None, description="API 基础 URL")
+    model_name: Optional[str] = Field(default=None, description="模型名称")
+    temperature: Optional[float] = Field(default=0.7, ge=0, le=2, description="温度参数")
+    max_tokens: Optional[int] = Field(default=4096, ge=1, description="最大 Token 数")
+    top_p: Optional[float] = Field(default=1.0, ge=0, le=1, description="Top-p 参数")
+    is_enabled: Optional[bool] = Field(default=True, description="是否启用")
+    is_default: Optional[bool] = Field(default=False, description="是否设为默认")
+    available_models: Optional[List[str]] = Field(default=None, description="可用模型列表（自定义提供商）")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "provider": "openai",
+                "api_key": "sk-xxxxx",
+                "model_name": "gpt-4o",
+                "temperature": 0.7,
+                "max_tokens": 4096,
+                "is_enabled": True,
+                "is_default": True
+            }
+        }
+
+
+class LLMProviderConfigResponse(BaseModel):
+    """LLM 提供商配置响应"""
+    provider: str = Field(..., description="提供商类型")
+    name: str = Field(..., description="显示名称")
+    api_key_masked: Optional[str] = Field(default=None, description="脱敏后的 API Key")
+    api_base: str = Field(..., description="API 基础 URL")
+    model_name: str = Field(..., description="当前模型")
+    default_model: str = Field(..., description="默认模型")
+    available_models: List[str] = Field(default_factory=list, description="可用模型列表")
+    temperature: float = Field(..., description="温度参数")
+    max_tokens: int = Field(..., description="最大 Token 数")
+    top_p: float = Field(..., description="Top-p 参数")
+    is_enabled: bool = Field(..., description="是否启用")
+    is_default: bool = Field(..., description="是否为默认")
+    last_used: Optional[str] = Field(default=None, description="最后使用时间")
+
+
+class LLMConfigListResponse(BaseModel):
+    """LLM 配置列表响应"""
+    success: bool = True
+    providers: List[LLMProviderConfigResponse] = Field(default_factory=list, description="提供商列表")
+    default_provider: Optional[str] = Field(default=None, description="默认提供商")
+
+
+class LLMTestConnectionResponse(BaseModel):
+    """LLM 连接测试响应"""
+    success: bool = Field(..., description="是否成功")
+    message: str = Field(..., description="结果消息")
+    latency_ms: Optional[int] = Field(default=None, description="延迟毫秒")
+
+
+class FetchModelsRequest(BaseModel):
+    """获取模型列表请求"""
+    api_base: str = Field(..., description="API 基础 URL")
+    api_key: str = Field(..., description="API Key")
+    provider_type: str = Field(default="openai", description="提供商类型")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "api_base": "https://api.openai.com/v1",
+                "api_key": "sk-xxxxx",
+                "provider_type": "openai"
+            }
+        }
+
+
+class ModelInfo(BaseModel):
+    """模型信息"""
+    id: str = Field(..., description="模型 ID")
+    name: Optional[str] = Field(default=None, description="模型名称")
+    owned_by: Optional[str] = Field(default=None, description="所有者")
+    object: Optional[str] = Field(default=None, description="对象类型")
+
+
+class FetchModelsResponse(BaseModel):
+    """获取模型列表响应"""
+    success: bool = Field(..., description="是否成功")
+    models: List[ModelInfo] = Field(default_factory=list, description="模型列表")
+    error: Optional[str] = Field(default=None, description="错误信息")
+
+
+class BatchAddModelsRequest(BaseModel):
+    """批量添加模型请求"""
+    provider: LLMProviderEnum = Field(..., description="提供商类型")
+    api_key: str = Field(..., description="API Key")
+    api_base: str = Field(..., description="API 基础 URL")
+    models: List[str] = Field(..., description="模型名称列表")
+    temperature: Optional[float] = Field(default=0.7, ge=0, le=2, description="温度参数")
+    max_tokens: Optional[int] = Field(default=4096, ge=1, description="最大 Token 数")
+    set_default: Optional[str] = Field(default=None, description="设置为默认的模型名称")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "provider": "custom",
+                "api_key": "sk-xxxxx",
+                "api_base": "https://api.example.com/v1",
+                "models": ["gpt-4", "gpt-3.5-turbo", "claude-3"],
+                "set_default": "gpt-4"
+            }
+        }
+
+
+class BatchAddModelsResponse(BaseModel):
+    """批量添加模型响应"""
+    success: bool = Field(..., description="是否成功")
+    added_count: int = Field(default=0, description="添加的模型数量")
+    default_model: Optional[str] = Field(default=None, description="默认模型")
+    error: Optional[str] = Field(default=None, description="错误信息")
+
+
 # ==================== 错误响应 ====================
 
 class ErrorResponse(BaseModel):

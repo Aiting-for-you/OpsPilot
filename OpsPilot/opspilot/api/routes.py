@@ -27,6 +27,16 @@ from opspilot.api.schemas import (
     HealthCheckResponse,
     ErrorResponse,
     TaskStatus,
+    LLMProviderConfigRequest,
+    LLMProviderConfigResponse,
+    LLMConfigListResponse,
+    LLMTestConnectionResponse,
+    LLMProviderEnum,
+    FetchModelsRequest,
+    FetchModelsResponse,
+    ModelInfo,
+    BatchAddModelsRequest,
+    BatchAddModelsResponse,
 )
 from opspilot.core.orchestrator import Orchestrator
 from opspilot.core.sop_executor import SOPExecutor, SOPDefinition, create_order_sop, query_supplier_sop
@@ -333,4 +343,266 @@ async def query_knowledge(
 async def health_check():
     """健康检查"""
     return HealthCheckResponse()
+
+
+# ==================== LLM 配置接口 ====================
+
+from opspilot.core.llm_config import (
+    get_llm_config_manager,
+    fetch_available_models,
+    batch_add_custom_models,
+    LLMProvider,
+)
+
+
+def get_llm_config():
+    """获取 LLM 配置管理器"""
+    return get_llm_config_manager()
+
+
+@router.get(
+    "/llm/config",
+    response_model=LLMConfigListResponse,
+    summary="获取 LLM 配置列表",
+    description="获取所有 LLM 提供商的配置信息"
+)
+async def get_llm_configs(
+    manager = Depends(get_llm_config)
+):
+    """获取所有 LLM 配置"""
+    providers = []
+    default_provider = None
+    
+    for provider, config in manager.get_all_providers().items():
+        config_dict = config.to_dict()
+        providers.append(LLMProviderConfigResponse(
+            provider=config_dict["provider"],
+            name=config_dict["name"],
+            api_key_masked=config_dict.get("api_key_masked"),
+            api_base=config_dict["api_base"],
+            model_name=config_dict["model_name"],
+            default_model=config_dict["default_model"],
+            available_models=config_dict["available_models"],
+            temperature=config_dict["temperature"],
+            max_tokens=config_dict["max_tokens"],
+            top_p=config_dict["top_p"],
+            is_enabled=config_dict["is_enabled"],
+            is_default=config_dict["is_default"],
+            last_used=config_dict["last_used"],
+        ))
+        
+        if config.is_default:
+            default_provider = config.provider.value
+    
+    return LLMConfigListResponse(
+        success=True,
+        providers=providers,
+        default_provider=default_provider
+    )
+
+
+@router.get(
+    "/llm/config/{provider}",
+    response_model=LLMProviderConfigResponse,
+    summary="获取单个 LLM 配置",
+    description="获取指定提供商的配置信息"
+)
+async def get_llm_provider_config(
+    provider: LLMProviderEnum,
+    manager = Depends(get_llm_config)
+):
+    """获取单个 LLM 配置"""
+    try:
+        p = LLMProvider(provider.value)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"不支持的提供商: {provider}")
+    
+    config = manager.get_provider_config(p)
+    if not config:
+        raise HTTPException(status_code=404, detail=f"提供商配置不存在: {provider}")
+    
+    config_dict = config.to_dict()
+    return LLMProviderConfigResponse(
+        provider=config_dict["provider"],
+        name=config_dict["name"],
+        api_key_masked=config_dict.get("api_key_masked"),
+        api_base=config_dict["api_base"],
+        model_name=config_dict["model_name"],
+        default_model=config_dict["default_model"],
+        available_models=config_dict["available_models"],
+        temperature=config_dict["temperature"],
+        max_tokens=config_dict["max_tokens"],
+        top_p=config_dict["top_p"],
+        is_enabled=config_dict["is_enabled"],
+        is_default=config_dict["is_default"],
+        last_used=config_dict["last_used"],
+    )
+
+
+@router.put(
+    "/llm/config/{provider}",
+    response_model=LLMProviderConfigResponse,
+    summary="更新 LLM 配置",
+    description="更新指定提供商的配置，包括 API Key、模型选择等"
+)
+async def update_llm_config(
+    provider: LLMProviderEnum,
+    request: LLMProviderConfigRequest,
+    manager = Depends(get_llm_config)
+):
+    """更新 LLM 配置"""
+    try:
+        p = LLMProvider(provider.value)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"不支持的提供商: {provider}")
+    
+    try:
+        config = manager.update_provider_config(
+            provider=p,
+            api_key=request.api_key,
+            api_base=request.api_base,
+            model_name=request.model_name,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+            top_p=request.top_p,
+            is_enabled=request.is_enabled,
+            is_default=request.is_default,
+            available_models=request.available_models,
+        )
+        
+        config_dict = config.to_dict()
+        return LLMProviderConfigResponse(
+            provider=config_dict["provider"],
+            name=config_dict["name"],
+            api_key_masked=config_dict.get("api_key_masked"),
+            api_base=config_dict["api_base"],
+            model_name=config_dict["model_name"],
+            default_model=config_dict["default_model"],
+            available_models=config_dict["available_models"],
+            temperature=config_dict["temperature"],
+            max_tokens=config_dict["max_tokens"],
+            top_p=config_dict["top_p"],
+            is_enabled=config_dict["is_enabled"],
+            is_default=config_dict["is_default"],
+            last_used=config_dict["last_used"],
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"更新配置失败: {str(e)}")
+
+
+@router.post(
+    "/llm/config/{provider}/test",
+    response_model=LLMTestConnectionResponse,
+    summary="测试 LLM 连接",
+    description="测试指定提供商的 API 连接是否正常"
+)
+async def test_llm_connection(
+    provider: LLMProviderEnum,
+    manager = Depends(get_llm_config)
+):
+    """测试 LLM 连接"""
+    try:
+        p = LLMProvider(provider.value)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"不支持的提供商: {provider}")
+    
+    result = manager.test_provider_connection(p)
+    
+    return LLMTestConnectionResponse(
+        success=result["success"],
+        message=result["message"],
+        latency_ms=result.get("latency_ms")
+    )
+
+
+@router.post(
+    "/llm/config/{provider}/set-default",
+    summary="设置默认 LLM",
+    description="将指定提供商设置为默认"
+)
+async def set_default_llm(
+    provider: LLMProviderEnum,
+    manager = Depends(get_llm_config)
+):
+    """设置默认 LLM"""
+    try:
+        p = LLMProvider(provider.value)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"不支持的提供商: {provider}")
+    
+    success = manager.set_default_provider(p)
+    
+    if not success:
+        raise HTTPException(
+            status_code=400, 
+            detail="设置失败，请确保提供商已启用"
+        )
+    
+    return {"success": True, "message": f"已将 {provider.value} 设为默认提供商"}
+
+
+@router.post(
+    "/llm/models/fetch",
+    response_model=FetchModelsResponse,
+    summary="获取可用模型列表",
+    description="从 API 端点获取支持的模型列表（OpenAI 兼容格式）"
+)
+async def fetch_models(request: FetchModelsRequest):
+    """
+    获取 API 端点支持的模型列表
+    
+    支持 OpenAI 兼容格式的 API，如：
+    - OpenAI
+    - DeepSeek
+    - 通义千问（兼容模式）
+    - 其他 OpenAI 兼容服务
+    """
+    result = fetch_available_models(
+        api_base=request.api_base,
+        api_key=request.api_key,
+        provider_type=request.provider_type,
+    )
+    
+    return FetchModelsResponse(
+        success=result["success"],
+        models=[ModelInfo(**m) for m in result["models"]],
+        error=result.get("error"),
+    )
+
+
+@router.post(
+    "/llm/models/batch-add",
+    response_model=BatchAddModelsResponse,
+    summary="批量添加模型",
+    description="批量添加模型到指定提供商配置"
+)
+async def batch_add_models(request: BatchAddModelsRequest):
+    """
+    批量添加模型配置
+    
+    用于快速配置多个模型，适用于：
+    - 自定义 API 端点
+    - 批量导入模型列表
+    """
+    try:
+        p = LLMProvider(request.provider.value)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"不支持的提供商: {request.provider}")
+    
+    result = batch_add_custom_models(
+        provider=p,
+        api_key=request.api_key,
+        api_base=request.api_base,
+        models=request.models,
+        temperature=request.temperature or 0.7,
+        max_tokens=request.max_tokens or 4096,
+        set_default=request.set_default,
+    )
+    
+    return BatchAddModelsResponse(
+        success=result["success"],
+        added_count=result["added_count"],
+        default_model=result["default_model"],
+        error=result.get("error"),
+    )
 

@@ -5,6 +5,8 @@ import { api } from '../services/api';
 import { useAppStore, taskStateLabels, taskStateColors } from '../store';
 import { TaskState, Task, TaskResult } from '../types';
 
+const terminalStates = [TaskState.SUCCESS, TaskState.FAILED, TaskState.REJECTED] as const;
+
 export function Tasks() {
   const [input, setInput] = useState('');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -32,8 +34,9 @@ export function Tasks() {
     queryKey: ['task', selectedTask?.task_id],
     queryFn: () => api.getTaskStatus(selectedTask?.task_id || ''),
     enabled: !!selectedTask,
-    refetchInterval: (data) => {
-      if (data?.state && ![TaskState.SUCCESS, TaskState.FAILED, TaskState.REJECTED].includes(data.state)) {
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data && 'state' in data && !terminalStates.includes((data as any).state)) {
         return 2000;
       }
       return false;
@@ -44,7 +47,7 @@ export function Tasks() {
   const { data: taskResult } = useQuery({
     queryKey: ['task-result', selectedTask?.task_id],
     queryFn: () => api.getTaskResult(selectedTask?.task_id || ''),
-    enabled: !!selectedTask && [TaskState.SUCCESS, TaskState.FAILED].includes(selectedTask.state),
+    enabled: !!selectedTask && (selectedTask.state === TaskState.SUCCESS || selectedTask.state === TaskState.FAILED),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
