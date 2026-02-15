@@ -100,3 +100,23 @@ dev/
 # 开发环境配置
 .env.development
 .env.staging
+
+# ========================================
+# 前端 - 不上传
+# ========================================
+
+# 依赖目录
+frontend/node_modules/
+
+# 构建输出
+frontend/dist/
+frontend/build/
+
+# 环境变量
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# 缓存
+frontend/.vite/
+frontend/.cache/
