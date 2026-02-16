@@ -20,6 +20,8 @@ from functools import wraps
 from opspilot.utils.exceptions import (
     ToolNotFoundError,
     ToolExecutionError,
+    ToolTimeoutError,
+    ToolValidationError,
     MCPConnectionError,
 )
 
@@ -235,7 +237,8 @@ class BaseToolServer(ABC):
         self,
         tool_name: str,
         params: Dict[str, Any],
-        context: ToolContext
+        context: ToolContext,
+        raise_on_error: bool = False
     ) -> ToolResult:
         """
         执行工具
@@ -244,12 +247,21 @@ class BaseToolServer(ABC):
             tool_name: 工具名称
             params: 工具参数
             context: 执行上下文
+            raise_on_error: 是否在错误时抛出异常（默认返回 ToolResult.error）
 
         Returns:
             ToolResult: 执行结果
+
+        Raises:
+            ToolNotFoundError: 工具不存在
+            ToolValidationError: 参数校验失败
+            ToolTimeoutError: 工具执行超时
+            ToolExecutionError: 工具执行失败
         """
         # 检查工具是否存在
         if tool_name not in self._tools:
+            if raise_on_error:
+                raise ToolNotFoundError(tool_name)
             return ToolResult.error(
                 error=f"工具不存在: {tool_name}",
                 error_code="TOOL_NOT_FOUND"
@@ -260,6 +272,12 @@ class BaseToolServer(ABC):
 
         # 参数校验
         if not schema.validate_input(params):
+            if raise_on_error:
+                raise ToolValidationError(
+                    tool_name=tool_name,
+                    reason="参数校验失败",
+                    params=params
+                )
             return ToolResult.error(
                 error="参数校验失败",
                 error_code="INVALID_PARAMS"
@@ -277,10 +295,18 @@ class BaseToolServer(ABC):
 
         except asyncio.TimeoutError:
             latency_ms = int((time.time() - start_time) * 1000)
+            if raise_on_error:
+                raise ToolTimeoutError(tool_name, schema.timeout_seconds)
             return ToolResult.timeout(latency_ms)
 
         except Exception as e:
             latency_ms = int((time.time() - start_time) * 1000)
+            if raise_on_error:
+                raise ToolExecutionError(
+                    tool_name=tool_name,
+                    reason=str(e),
+                    params=params
+                )
             return ToolResult.error(
                 error=str(e),
                 error_code="EXECUTION_ERROR",
@@ -379,7 +405,8 @@ class ToolRouter:
         self,
         tool_name: str,
         params: Dict[str, Any],
-        context: ToolContext
+        context: ToolContext,
+        raise_on_error: bool = False
     ) -> ToolResult:
         """
         单次工具调用
@@ -388,26 +415,36 @@ class ToolRouter:
             tool_name: 工具名称
             params: 工具参数
             context: 执行上下文
+            raise_on_error: 是否在错误时抛出异常
 
         Returns:
             ToolResult: 执行结果
+
+        Raises:
+            ToolNotFoundError: 工具不存在
+            ToolValidationError: 参数校验失败
+            ToolTimeoutError: 工具执行超时
+            ToolExecutionError: 工具执行失败
         """
         server = self.get_server(tool_name)
 
         if not server:
+            if raise_on_error:
+                raise ToolNotFoundError(tool_name)
             return ToolResult.error(
                 error=f"工具不存在: {tool_name}",
                 error_code="TOOL_NOT_FOUND"
             )
 
-        return await server.execute_tool(tool_name, params, context)
+        return await server.execute_tool(tool_name, params, context, raise_on_error)
 
     async def call_tool_with_retry(
         self,
         tool_name: str,
         params: Dict[str, Any],
         context: ToolContext,
-        max_retries: Optional[int] = None
+        max_retries: Optional[int] = None,
+        raise_on_error: bool = False
     ) -> ToolResult:
         """
         带重试的工具调用
@@ -417,28 +454,58 @@ class ToolRouter:
             params: 工具参数
             context: 执行上下文
             max_retries: 最大重试次数（None 使用默认值）
+            raise_on_error: 是否在错误时抛出异常
 
         Returns:
             ToolResult: 执行结果
+
+        Raises:
+            ToolNotFoundError: 工具不存在
+            ToolValidationError: 参数校验失败
+            ToolTimeoutError: 工具执行超时（重试后仍失败）
+            ToolExecutionError: 工具执行失败（重试后仍失败）
         """
         retries = max_retries if max_retries is not None else self.max_retries
         last_result = None
+        last_error = None
 
         for attempt in range(retries + 1):
-            result = await self.call_tool(tool_name, params, context)
-            last_result = result
+            try:
+                result = await self.call_tool(tool_name, params, context, raise_on_error=False)
+                last_result = result
 
-            # 成功直接返回
-            if result.is_success():
-                return result
+                # 成功直接返回
+                if result.is_success():
+                    return result
 
-            # 不可重试的错误直接返回
-            if not result.retry_suggested:
-                return result
+                # 不可重试的错误直接返回
+                if not result.retry_suggested:
+                    return result
+
+            except (ToolNotFoundError, ToolValidationError) as e:
+                # 这些错误不应该重试
+                if raise_on_error:
+                    raise
+                return ToolResult.error(
+                    error=str(e),
+                    error_code=e.code,
+                    retry_suggested=False
+                )
+            except (ToolTimeoutError, ToolExecutionError) as e:
+                last_error = e
+                last_result = ToolResult.error(
+                    error=str(e),
+                    error_code=e.code,
+                    retry_suggested=True
+                )
 
             # 最后一次尝试不等待
             if attempt < retries:
                 await asyncio.sleep(self.retry_delay * (attempt + 1))
+
+        # 重试后仍失败
+        if raise_on_error and last_error:
+            raise last_error
 
         return last_result
 

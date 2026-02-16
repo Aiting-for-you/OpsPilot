@@ -13,6 +13,12 @@ from opspilot.tools.base import (
     BaseToolServer,
     ToolRouter,
 )
+from opspilot.utils.exceptions import (
+    ToolNotFoundError,
+    ToolExecutionError,
+    ToolTimeoutError,
+    ToolValidationError,
+)
 
 
 class TestToolSchema:
@@ -317,4 +323,95 @@ class TestToolRouter:
         """测试注销服务器"""
         router.unregister_server("mock-server")
         assert router.has_tool("echo") is False
+
+
+class TestToolExceptions:
+    """工具异常测试 - 测试 raise_on_error 参数"""
+
+    @pytest.fixture
+    def server(self):
+        return MockToolServer()
+
+    @pytest.fixture
+    def router(self):
+        router = ToolRouter()
+        router.register_server(MockToolServer())
+        return router
+
+    @pytest.mark.asyncio
+    async def test_raise_tool_not_found(self, server):
+        """测试工具不存在时抛出异常"""
+        context = ToolContext(task_id="test")
+        with pytest.raises(ToolNotFoundError) as exc_info:
+            await server.execute_tool("nonexistent", {}, context, raise_on_error=True)
+        assert "nonexistent" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_raise_tool_timeout(self, server):
+        """测试工具超时时抛出异常"""
+        context = ToolContext(task_id="test")
+        with pytest.raises(ToolTimeoutError) as exc_info:
+            await server.execute_tool("slow_tool", {}, context, raise_on_error=True)
+        assert exc_info.value.details["timeout"] == 1
+
+    @pytest.mark.asyncio
+    async def test_raise_tool_execution_error(self, server):
+        """测试工具执行失败时抛出异常"""
+        context = ToolContext(task_id="test")
+        with pytest.raises(ToolExecutionError) as exc_info:
+            await server.execute_tool("error_tool", {}, context, raise_on_error=True)
+        assert "error_tool" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_raise_validation_error(self, server):
+        """测试参数验证失败时抛出异常"""
+        schema = ToolSchema(
+            name="validation_test_tool",
+            description="验证测试工具",
+            input_schema={
+                "type": "object",
+                "required": ["required_field"],
+                "properties": {
+                    "required_field": {"type": "string"}
+                }
+            }
+        )
+
+        @server.register_tool(schema)
+        async def validation_tool(params: dict, context: ToolContext) -> ToolResult:
+            return ToolResult.success({})
+
+        context = ToolContext(task_id="test")
+        with pytest.raises(ToolValidationError) as exc_info:
+            await server.execute_tool("validation_test_tool", {}, context, raise_on_error=True)
+        assert exc_info.value.details["tool_name"] == "validation_test_tool"
+
+    @pytest.mark.asyncio
+    async def test_router_raise_tool_not_found(self, router):
+        """测试路由器工具不存在时抛出异常"""
+        context = ToolContext(task_id="test")
+        with pytest.raises(ToolNotFoundError):
+            await router.call_tool("nonexistent", {}, context, raise_on_error=True)
+
+    @pytest.mark.asyncio
+    async def test_router_call_with_retry_raise_on_error(self, router):
+        """测试带重试的调用最终抛出异常"""
+        context = ToolContext(task_id="test")
+        # slow_tool 会超时，重试后仍失败
+        with pytest.raises(ToolTimeoutError):
+            await router.call_tool_with_retry(
+                "slow_tool",
+                {},
+                context,
+                max_retries=2,
+                raise_on_error=True
+            )
+
+    @pytest.mark.asyncio
+    async def test_no_raise_returns_error_result(self, server):
+        """测试不抛出异常时返回错误结果"""
+        context = ToolContext(task_id="test")
+        result = await server.execute_tool("nonexistent", {}, context, raise_on_error=False)
+        assert result.status == ToolStatus.ERROR
+        assert result.error_code == "TOOL_NOT_FOUND"
 

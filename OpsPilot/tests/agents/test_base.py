@@ -2,6 +2,7 @@
 Agent 基础模块单元测试
 """
 import pytest
+import asyncio
 
 from opspilot.agents.base import (
     AgentRole,
@@ -10,8 +11,13 @@ from opspilot.agents.base import (
     AgentOutput,
     MockLLMClient,
     AgentRegistry,
+    BaseAgent,
 )
 from opspilot.core.state_machine import State
+from opspilot.utils.exceptions import (
+    AgentTimeoutError,
+    AgentExecutionError,
+)
 
 
 class TestAgentRole:
@@ -224,4 +230,113 @@ class TestAgentRegistry:
         names = registry.list_all()
 
         assert "IntentAgent" in names
+
+
+class TestAgentExceptions:
+    """Agent 异常测试 - 测试 raise_on_error 参数"""
+
+    @pytest.fixture
+    def slow_agent(self):
+        """创建超时 Agent"""
+        config = AgentConfig(
+            name="SlowAgent",
+            role=AgentRole.INTENT,
+            description="超时测试 Agent",
+            timeout=1  # 1秒超时
+        )
+
+        class SlowMockLLMClient(MockLLMClient):
+            async def generate(self, prompt, system_prompt=None, temperature=0.7, max_tokens=4096):
+                await asyncio.sleep(2)  # 模拟慢响应
+                return "slow response"
+
+        agent = BaseAgent.__new__(BaseAgent)
+        agent.config = config
+        agent._llm = SlowMockLLMClient()
+        agent._event_bus = None
+
+        # 手动设置 _event_bus
+        from opspilot.core.events import EventBus
+        agent._event_bus = EventBus.get_instance()
+
+        return agent
+
+    @pytest.fixture
+    def error_agent(self):
+        """创建错误 Agent"""
+        config = AgentConfig(
+            name="ErrorAgent",
+            role=AgentRole.INTENT,
+            description="错误测试 Agent"
+        )
+
+        class ErrorMockLLMClient(MockLLMClient):
+            async def generate(self, prompt, system_prompt=None, temperature=0.7, max_tokens=4096):
+                raise ValueError("LLM 调用失败")
+
+        agent = BaseAgent.__new__(BaseAgent)
+        agent.config = config
+        agent._llm = ErrorMockLLMClient()
+
+        from opspilot.core.events import EventBus
+        agent._event_bus = EventBus.get_instance()
+
+        return agent
+
+    @pytest.mark.asyncio
+    async def test_raise_agent_timeout(self, slow_agent):
+        """测试 Agent 超时时抛出异常"""
+        context = AgentContext(
+            task_id="test-timeout",
+            state=State.INIT,
+            user_input="测试超时"
+        )
+
+        # 创建一个会超时的 _execute 方法
+        async def slow_execute(ctx):
+            await asyncio.sleep(2)
+            return AgentOutput(success=True, result={})
+
+        slow_agent._execute = slow_execute
+
+        with pytest.raises(AgentTimeoutError) as exc_info:
+            await slow_agent.execute(context, raise_on_error=True)
+        assert slow_agent.name in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_raise_agent_execution_error(self, error_agent):
+        """测试 Agent 执行失败时抛出异常"""
+        context = AgentContext(
+            task_id="test-error",
+            state=State.INIT,
+            user_input="测试错误"
+        )
+
+        # 创建一个会抛出异常的 _execute 方法
+        async def error_execute(ctx):
+            raise ValueError("执行失败")
+
+        error_agent._execute = error_execute
+
+        with pytest.raises(AgentExecutionError) as exc_info:
+            await error_agent.execute(context, raise_on_error=True)
+        assert error_agent.name in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_no_raise_returns_error_output(self, error_agent):
+        """测试不抛出异常时返回错误输出"""
+        context = AgentContext(
+            task_id="test-no-raise",
+            state=State.INIT,
+            user_input="测试"
+        )
+
+        async def error_execute(ctx):
+            raise ValueError("执行失败")
+
+        error_agent._execute = error_execute
+
+        output = await error_agent.execute(context, raise_on_error=False)
+        assert output.success is False
+        assert "执行失败" in output.error
 

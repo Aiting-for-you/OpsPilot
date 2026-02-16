@@ -12,6 +12,11 @@ from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field
 from enum import Enum
 
+from opspilot.utils.exceptions import (
+    MemoryConnectionError,
+    MemoryQueryError,
+)
+
 
 class MemoryType(str, Enum):
     """记忆类型"""
@@ -215,21 +220,30 @@ class MemoryManager:
     def short_term(self) -> BaseMemoryStore:
         """获取短期记忆存储"""
         if self._short_term is None:
-            raise RuntimeError("短期记忆存储未配置")
+            raise MemoryConnectionError(
+                storage_type="short_term",
+                reason="短期记忆存储未配置，请先调用 set_short_term_store()"
+            )
         return self._short_term
 
     @property
     def long_term(self) -> BaseMemoryStore:
         """获取长期记忆存储"""
         if self._long_term is None:
-            raise RuntimeError("长期记忆存储未配置")
+            raise MemoryConnectionError(
+                storage_type="long_term",
+                reason="长期记忆存储未配置，请先调用 set_long_term_store()"
+            )
         return self._long_term
 
     @property
     def knowledge(self) -> BaseMemoryStore:
         """获取知识库存储"""
         if self._knowledge is None:
-            raise RuntimeError("知识库存储未配置")
+            raise MemoryConnectionError(
+                storage_type="knowledge",
+                reason="知识库存储未配置，请先调用 set_knowledge_store()"
+            )
         return self._knowledge
 
     async def multi_recall(

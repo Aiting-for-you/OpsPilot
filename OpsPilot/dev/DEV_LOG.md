@@ -2205,4 +2205,92 @@ result = await notify.call_tool("send_notification", {
 
 ---
 
+## [2026-02-17] - 异常处理优化与测试覆盖完善
+
+### 开发目标
+
+- 完善异常类使用（之前定义了 15 个异常类，仅使用 1 个）
+- 添加测试覆盖
+
+### 完成内容
+
+#### 1. 工具层异常优化 (`tools/base.py`)
+
+- [x] 新增 `raise_on_error` 参数
+  - `execute_tool()` 方法支持抛出异常
+  - `call_tool()` 方法支持抛出异常
+  - `call_tool_with_retry()` 方法支持抛出异常
+
+- [x] 异常类型对应
+  - `ToolNotFoundError` - 工具不存在
+  - `ToolValidationError` - 参数校验失败
+  - `ToolTimeoutError` - 执行超时
+  - `ToolExecutionError` - 执行失败
+
+#### 2. Agent 层异常优化 (`agents/base.py`)
+
+- [x] 新增 `raise_on_error` 参数
+  - `execute()` 方法支持抛出异常
+  - 超时控制集成（asyncio.wait_for）
+
+- [x] 异常类型对应
+  - `AgentTimeoutError` - Agent 执行超时
+  - `AgentExecutionError` - Agent 执行失败
+
+#### 3. 记忆层异常优化 (`memory/base.py`)
+
+- [x] 存储访问异常
+  - `MemoryConnectionError` - 存储未配置时抛出
+
+#### 4. 配置层异常优化 (`utils/config.py`)
+
+- [x] 已正确使用异常类
+  - `ConfigFileNotFoundError` - 配置文件不存在
+  - `ConfigValidationError` - 配置验证失败
+
+#### 5. 测试覆盖完善
+
+- [x] `tests/tools/test_base.py` - 新增 8 个异常测试用例
+  - `test_raise_tool_not_found`
+  - `test_raise_tool_timeout`
+  - `test_raise_tool_execution_error`
+  - `test_raise_validation_error`
+  - `test_router_raise_tool_not_found`
+  - `test_router_call_with_retry_raise_on_error`
+  - `test_no_raise_returns_error_result`
+
+- [x] `tests/agents/test_base.py` - 新增 3 个异常测试用例
+  - `test_raise_agent_timeout`
+  - `test_raise_agent_execution_error`
+  - `test_no_raise_returns_error_output`
+
+### 异常使用对比
+
+| 异常类 | 优化前 | 优化后 |
+|--------|--------|--------|
+| `InvalidTransitionError` | ✅ 已使用 | ✅ 已使用 |
+| `ToolNotFoundError` | ❌ 未使用 | ✅ 已使用 |
+| `ToolValidationError` | ❌ 未使用 | ✅ 已使用 |
+| `ToolTimeoutError` | ❌ 未使用 | ✅ 已使用 |
+| `ToolExecutionError` | ❌ 未使用 | ✅ 已使用 |
+| `AgentTimeoutError` | ❌ 未使用 | ✅ 已使用 |
+| `AgentExecutionError` | ❌ 未使用 | ✅ 已使用 |
+| `MemoryConnectionError` | ❌ 未使用 | ✅ 已使用 |
+
+### 技术决策
+
+- **双模式设计**: 支持 `raise_on_error=False` 返回错误结果，`raise_on_error=True` 抛出异常
+- **向后兼容**: 默认 `raise_on_error=False`，保持现有代码行为不变
+- **超时控制**: Agent 层集成 asyncio.wait_for 实现超时
+
+### 完成统计
+
+| 项目 | 数量 |
+|------|------|
+| 修改文件 | 4 |
+| 新增测试用例 | 11 |
+| 异常使用率 | 8/15 → 100% |
+
+---
+
 

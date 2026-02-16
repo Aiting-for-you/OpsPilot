@@ -12,9 +12,15 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, field
 from enum import Enum
 import uuid
+import asyncio
 
 from opspilot.core.state_machine import State
 from opspilot.core.events import EventBus, AgentStartedEvent, AgentCompletedEvent, AgentFailedEvent
+from opspilot.utils.exceptions import (
+    AgentTimeoutError,
+    AgentExecutionError,
+    PromptLoadError,
+)
 
 
 class AgentRole(str, Enum):
@@ -213,15 +219,24 @@ class BaseAgent(ABC):
         """设置 LLM 客户端"""
         self._llm = client
 
-    async def execute(self, context: AgentContext) -> AgentOutput:
+    async def execute(
+        self,
+        context: AgentContext,
+        raise_on_error: bool = False
+    ) -> AgentOutput:
         """
         执行 Agent
 
         Args:
             context: 执行上下文
+            raise_on_error: 是否在错误时抛出异常（默认返回 AgentOutput.error）
 
         Returns:
             AgentOutput: 执行结果
+
+        Raises:
+            AgentTimeoutError: Agent 执行超时
+            AgentExecutionError: Agent 执行失败
         """
         start_time = datetime.now()
 
@@ -233,8 +248,11 @@ class BaseAgent(ABC):
         ))
 
         try:
-            # 执行具体逻辑
-            output = await self._execute(context)
+            # 执行具体逻辑（带超时控制）
+            output = await asyncio.wait_for(
+                self._execute(context),
+                timeout=self.config.timeout
+            )
 
             # 发布完成事件
             self._event_bus.publish(AgentCompletedEvent(
@@ -245,6 +263,22 @@ class BaseAgent(ABC):
 
             return output
 
+        except asyncio.TimeoutError:
+            # 发布失败事件
+            self._event_bus.publish(AgentFailedEvent(
+                task_id=context.task_id,
+                agent_name=self.name,
+                error=f"Agent 执行超时: {self.config.timeout}s"
+            ))
+
+            if raise_on_error:
+                raise AgentTimeoutError(self.name, self.config.timeout)
+
+            return AgentOutput(
+                success=False,
+                error=f"Agent 执行超时: {self.config.timeout}s"
+            )
+
         except Exception as e:
             # 发布失败事件
             self._event_bus.publish(AgentFailedEvent(
@@ -252,6 +286,9 @@ class BaseAgent(ABC):
                 agent_name=self.name,
                 error=str(e)
             ))
+
+            if raise_on_error:
+                raise AgentExecutionError(self.name, str(e))
 
             return AgentOutput(
                 success=False,
