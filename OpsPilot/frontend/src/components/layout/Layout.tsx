@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Wrench,
@@ -14,24 +15,27 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import { useAppStore } from '../../store';
+import { LanguageSwitcher } from '../LanguageSwitcher';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
-  { path: '/', icon: LayoutDashboard, label: '仪表盘', section: 'monitor' },
-  { path: '/tasks', icon: GitBranch, label: '任务管理', section: 'operate' },
-  { path: '/tools', icon: Wrench, label: '工具调用', section: 'operate' },
-  { path: '/sop', icon: Database, label: 'SOP 执行', section: 'operate' },
-  { path: '/agents', icon: Users, label: 'Agent 监控', section: 'monitor' },
-  { path: '/tracing', icon: Activity, label: '追踪分析', section: 'monitor' },
-  { path: '/settings', icon: Settings, label: '设置', section: 'system' },
-];
-
 export function Layout({ children }: LayoutProps) {
+  const { t } = useTranslation();
   const { sidebarOpen, setSidebarOpen } = useAppStore();
   const location = useLocation();
+
+  const navItems = [
+    { path: '/', icon: LayoutDashboard, labelKey: 'nav.dashboard' },
+    { path: '/tasks', icon: GitBranch, labelKey: 'nav.tasks' },
+    { path: '/tools', icon: Wrench, labelKey: 'nav.tools' },
+    { path: '/sop', icon: Database, labelKey: 'nav.sop' },
+    { path: '/agents', icon: Users, labelKey: 'nav.agents' },
+    { path: '/tracing', icon: Activity, labelKey: 'nav.tracing' },
+    { path: '/settings', icon: Settings, labelKey: 'nav.settings' },
+  ];
+
   const currentNav = navItems.find((item) => item.path === location.pathname);
 
   return (
@@ -68,10 +72,10 @@ export function Layout({ children }: LayoutProps) {
             {sidebarOpen && (
               <div className="animate-fade-in">
                 <span className="font-display text-lg font-bold text-text-primary tracking-tight">
-                  OpsPilot
+                  {t('common.appName')}
                 </span>
                 <div className="text-[10px] text-steel-500 tracking-widest uppercase -mt-1">
-                  Control Center
+                  {t('common.controlCenter')}
                 </div>
               </div>
             )}
@@ -123,7 +127,7 @@ export function Layout({ children }: LayoutProps) {
                   
                   {/* Label */}
                   {sidebarOpen && (
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate">{t(item.labelKey)}</span>
                   )}
                   
                   {/* Hover Glow */}
@@ -142,7 +146,7 @@ export function Layout({ children }: LayoutProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                <span className="text-xs text-steel-500">System Online</span>
+                <span className="text-xs text-steel-500">{t('common.systemOnline')}</span>
               </div>
               <span className="font-mono text-xs text-steel-600">v0.1.0</span>
             </div>
@@ -167,21 +171,24 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex items-center gap-3">
             <div className="w-1 h-6 bg-electric rounded-full" />
             <h1 className="font-display text-sm font-semibold text-text-primary tracking-wide uppercase">
-              {currentNav?.label || 'OpsPilot'}
+              {currentNav ? t(currentNav.labelKey) : t('common.appName')}
             </h1>
           </div>
           
           {/* Right Section */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+            
             {/* System Status */}
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-steel-900/50 border border-steel-800/50">
               <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-              <span className="text-xs text-steel-400 font-medium">All Systems Operational</span>
+              <span className="text-xs text-steel-400 font-medium">{t('common.allSystemsOperational')}</span>
             </div>
             
             {/* Current Time */}
             <div className="font-mono text-xs text-steel-500">
-              {new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+              {new Date().toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
           

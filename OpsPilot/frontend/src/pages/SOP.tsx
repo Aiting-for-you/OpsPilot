@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { GitBranch, Play, Loader2, CheckCircle, XCircle, ChevronRight, Zap, Terminal, CheckSquare } from 'lucide-react';
 import { api } from '../services/api';
@@ -35,6 +36,7 @@ const SOP_DETAILS: Record<string, SOPInfo> = {
 };
 
 export function SOP() {
+  const { t } = useTranslation();
   const [selectedSOP, setSelectedSOP] = useState<string | null>(null);
   const [variables, setVariables] = useState<string>('{}');
   const [executedSteps, setExecutedSteps] = useState<number>(0);
@@ -81,9 +83,9 @@ export function SOP() {
             </div>
             <div>
               <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-                SOP Registry
+                {t('sop.sopLibrary')}
               </h2>
-              <p className="text-xs text-steel-500">Standard Operating Procedures</p>
+              <p className="text-xs text-steel-500">{t('sop.availableSOPs')}</p>
             </div>
           </div>
 
@@ -115,7 +117,7 @@ export function SOP() {
                     </span>
                   </div>
                   <p className="text-xs text-steel-500 ml-3.5">
-                    {info?.description || 'No description'}
+                    {info?.description || t('sop.description')}
                   </p>
                 </div>
               );
@@ -130,14 +132,14 @@ export function SOP() {
               <Terminal className="w-4 h-4 text-success" />
             </div>
             <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-              SOP Execution
+              {t('sop.executeSOP')}
             </h2>
           </div>
 
           {!sopInfo ? (
             <div className="flex flex-col items-center justify-center py-16 text-steel-500">
               <GitBranch className="w-12 h-12 mb-3 opacity-20" />
-              <p className="text-sm">Select an SOP to execute</p>
+              <p className="text-sm">{t('sop.noSOPSelected')}</p>
             </div>
           ) : (
             <div className="space-y-5">
@@ -156,7 +158,7 @@ export function SOP() {
 
               {/* Steps Visualization */}
               <div>
-                <div className="label mb-4">Execution Steps</div>
+                <div className="label mb-4">{t('sop.steps')}</div>
                 <div className="relative">
                   {/* Vertical Line */}
                   <div className="absolute left-3.5 top-2 bottom-2 w-px bg-steel-800" />
@@ -208,7 +210,7 @@ export function SOP() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Zap className="w-4 h-4 text-steel-500" />
-                  <span className="label mb-0">Variables (JSON)</span>
+                  <span className="label mb-0">{t('tools.parameters')} (JSON)</span>
                 </div>
                 <textarea
                   value={variables}
@@ -227,12 +229,12 @@ export function SOP() {
                 {executeSOPMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Executing...
+                    {t('common.loading')}
                   </>
                 ) : (
                   <>
                     <Play className="w-4 h-4" />
-                    Execute SOP
+                    {t('sop.startExecution')}
                   </>
                 )}
               </button>
@@ -251,7 +253,7 @@ export function SOP() {
                     </span>
                   </div>
                   <div className="text-xs text-steel-500 mb-3">
-                    Executed {executeSOPMutation.data.steps_executed} steps
+                    {t('sop.steps')} {executeSOPMutation.data.steps_executed}
                   </div>
                   {executeSOPMutation.data.results.length > 0 && (
                     <pre className="code-block text-xs max-h-40">

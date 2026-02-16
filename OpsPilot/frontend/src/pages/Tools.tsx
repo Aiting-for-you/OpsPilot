@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Wrench, Play, Loader2, CheckCircle, AlertCircle, Zap, Terminal, Code, Clock } from 'lucide-react';
+import { Wrench, Play, Loader2, CheckCircle, AlertCircle, Zap, Terminal, Code } from 'lucide-react';
 import { api } from '../services/api';
 import { useAppStore } from '../store';
 import { Tool } from '../types';
 
 export function Tools() {
+  const { t } = useTranslation();
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [params, setParams] = useState<string>('{}');
   const { tools, setTools } = useAppStore();
@@ -50,9 +52,9 @@ export function Tools() {
             </div>
             <div>
               <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-                Tool Registry
+                {t('tools.toolLibrary')}
               </h2>
-              <p className="text-xs text-steel-500">{tools.length} tools available</p>
+              <p className="text-xs text-steel-500">{tools.length} {t('tools.availableTools').toLowerCase()}</p>
             </div>
           </div>
 
@@ -65,7 +67,7 @@ export function Tools() {
               {tools.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-steel-500">
                   <Wrench className="w-8 h-8 mb-2 opacity-30" />
-                  <p className="text-sm">No tools registered</p>
+                  <p className="text-sm">{t('tools.noTools')}</p>
                 </div>
               ) : (
                 tools.map((tool) => (
@@ -108,14 +110,14 @@ export function Tools() {
               <Terminal className="w-4 h-4 text-success" />
             </div>
             <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-              Tool Execution
+              {t('tools.executeTool')}
             </h2>
           </div>
 
           {!selectedTool ? (
             <div className="flex flex-col items-center justify-center py-16 text-steel-500">
               <Wrench className="w-12 h-12 mb-3 opacity-20" />
-              <p className="text-sm">Select a tool to execute</p>
+              <p className="text-sm">{t('tools.noToolSelected')}</p>
             </div>
           ) : (
             <div className="space-y-5">
@@ -149,7 +151,7 @@ export function Tools() {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Zap className="w-4 h-4 text-steel-500" />
-                  <span className="label mb-0">Parameters (JSON)</span>
+                  <span className="label mb-0">{t('tools.parameters')} (JSON)</span>
                 </div>
                 <textarea
                   value={params}
@@ -168,12 +170,12 @@ export function Tools() {
                 {callToolMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Executing...
+                    {t('common.loading')}
                   </>
                 ) : (
                   <>
                     <Play className="w-4 h-4" />
-                    Execute Tool
+                    {t('tools.executeTool')}
                   </>
                 )}
               </button>
@@ -187,13 +189,13 @@ export function Tools() {
                     ) : (
                       <AlertCircle className="w-4 h-4 text-error" />
                     )}
-                    <span className="label mb-0">Execution Result</span>
+                    <span className="label mb-0">{t('tools.result')}</span>
                   </div>
                   
                   <div className="p-4 rounded-lg bg-navy-1000/50 border border-steel-800/50 space-y-3">
                     {/* Latency */}
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-steel-500">Execution Time</span>
+                      <span className="text-xs text-steel-500">{t('tools.executionTime')}</span>
                       <span className="font-mono text-xs text-electric">
                         {callToolMutation.data.latency_ms}ms
                       </span>
@@ -222,7 +224,7 @@ export function Tools() {
                 <div className="p-4 rounded-lg bg-error/10 border border-error/30 text-error text-sm">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertCircle className="w-4 h-4" />
-                    <span className="font-medium">Execution Failed</span>
+                    <span className="font-medium">{t('common.error')}</span>
                   </div>
                   <pre className="text-xs opacity-80 overflow-auto">
                     {String(callToolMutation.error)}

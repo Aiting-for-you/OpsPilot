@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Play, RefreshCw, ChevronRight, Clock, CheckCircle, XCircle, Terminal, Zap, ArrowRight } from 'lucide-react';
 import { api } from '../services/api';
@@ -8,6 +9,7 @@ import { TaskState, Task, TaskResult } from '../types';
 const terminalStates = [TaskState.SUCCESS, TaskState.FAILED, TaskState.REJECTED] as const;
 
 export function Tasks() {
+  const { t, i18n } = useTranslation();
   const [input, setInput] = useState('');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const queryClient = useQueryClient();
@@ -69,9 +71,9 @@ export function Tasks() {
           </div>
           <div>
             <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-              Create Task
+              {t('tasks.createTask')}
             </h2>
-            <p className="text-xs text-steel-500">Execute natural language commands</p>
+            <p className="text-xs text-steel-500">{t('tasks.enterTask')}</p>
           </div>
         </div>
 
@@ -81,7 +83,7 @@ export function Tasks() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="输入任务指令，如：查询供应商库存、创建采购订单..."
+              placeholder={t('tasks.placeholder')}
               className="input pr-10"
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-steel-600">
@@ -98,7 +100,7 @@ export function Tasks() {
             ) : (
               <>
                 <Play className="w-4 h-4" />
-                Execute
+                {t('common.create')}
               </>
             )}
           </button>
@@ -118,7 +120,7 @@ export function Tasks() {
                 <Clock className="w-4 h-4 text-warning" />
               </div>
               <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-                Task Queue
+                {t('tasks.taskQueue')}
               </h2>
             </div>
             <button
@@ -133,7 +135,7 @@ export function Tasks() {
             {tasks.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-steel-500">
                 <Terminal className="w-8 h-8 mb-2 opacity-30" />
-                <p className="text-sm">No tasks yet</p>
+                <p className="text-sm">{t('tasks.noActiveTasks')}</p>
               </div>
             ) : (
               tasks.map((task, idx) => (
@@ -165,7 +167,7 @@ export function Tasks() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-steel-500 font-mono">
-                      {new Date(task.created_at).toLocaleTimeString('zh-CN', { 
+                      {new Date(task.created_at).toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
                       })}
@@ -187,27 +189,27 @@ export function Tasks() {
               <ArrowRight className="w-4 h-4 text-success" />
             </div>
             <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-              Task Detail
+              {t('tasks.taskDetails')}
             </h2>
           </div>
 
           {!selectedTask ? (
             <div className="flex flex-col items-center justify-center py-16 text-steel-500">
               <Terminal className="w-12 h-12 mb-3 opacity-20" />
-              <p className="text-sm">Select a task to view details</p>
+              <p className="text-sm">{t('tools.noToolSelected')}</p>
             </div>
           ) : (
             <div className="space-y-5">
               {/* Basic Info Grid */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-                  <div className="label">Task ID</div>
+                  <div className="label">{t('dashboard.taskId')}</div>
                   <div className="font-mono text-sm text-electric break-all">
                     {selectedTask.task_id}
                   </div>
                 </div>
                 <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-                  <div className="label">Status</div>
+                  <div className="label">{t('dashboard.status')}</div>
                   <span className={`badge badge-${
                     selectedTask.state === TaskState.SUCCESS ? 'success' :
                     selectedTask.state === TaskState.FAILED ? 'error' :
@@ -217,15 +219,15 @@ export function Tasks() {
                   </span>
                 </div>
                 <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-                  <div className="label">Intent</div>
+                  <div className="label">{t('dashboard.intent')}</div>
                   <div className="text-text-secondary">
                     {selectedTask.intent || '—'}
                   </div>
                 </div>
                 <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-                  <div className="label">Created At</div>
+                  <div className="label">{t('dashboard.created')}</div>
                   <div className="font-mono text-sm text-text-secondary">
-                    {new Date(selectedTask.created_at).toLocaleString('zh-CN')}
+                    {new Date(selectedTask.created_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US')}
                   </div>
                 </div>
               </div>
@@ -233,7 +235,7 @@ export function Tasks() {
               {/* Execution Trace */}
               {taskResult?.execution_trace && taskResult.execution_trace.length > 0 && (
                 <div>
-                  <div className="label mb-3">Execution Trace</div>
+                  <div className="label mb-3">{t('tasks.steps')}</div>
                   <div className="space-y-2">
                     {taskResult.execution_trace.map((trace, idx) => (
                       <div
@@ -255,7 +257,7 @@ export function Tasks() {
                         <div className="flex-1 min-w-0">
                           <div className="text-text-primary text-sm">{trace.action}</div>
                           <div className="font-mono text-xs text-steel-500 mt-1">
-                            {new Date(trace.timestamp).toLocaleTimeString('zh-CN')}
+                            {new Date(trace.timestamp).toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US')}
                           </div>
                         </div>
                       </div>
@@ -267,7 +269,7 @@ export function Tasks() {
               {/* Result */}
               {taskResult?.result && (
                 <div>
-                  <div className="label mb-3">Result</div>
+                  <div className="label mb-3">{t('tasks.results')}</div>
                   <pre className="code-block max-h-60 overflow-auto">
                     {JSON.stringify(taskResult.result, null, 2)}
                   </pre>

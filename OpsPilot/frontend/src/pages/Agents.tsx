@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { useAppStore } from '../store';
 import { GitBranch, MessageSquare, Activity, ArrowRight, Cpu, Network, Zap } from 'lucide-react';
 
 export function Agents() {
+  const { t } = useTranslation();
   const { agents } = useAppStore();
 
   // Mock message flow
@@ -100,7 +102,7 @@ export function Agents() {
               <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
                 Message Hub (MsgHub)
               </h2>
-              <p className="text-xs text-steel-500">Real-time event stream</p>
+              <p className="text-xs text-steel-500">{t('common.live')} event stream</p>
             </div>
           </div>
 
@@ -109,12 +111,12 @@ export function Agents() {
               <Network className="w-8 h-8 opacity-30" />
             </div>
             <p className="text-sm font-medium">WebSocket Connection</p>
-            <p className="text-xs text-steel-600 mt-1">Real-time messages will appear here</p>
+            <p className="text-xs text-steel-600 mt-1">{t('tracing.noTraces')}</p>
             
             {/* Connection Status */}
             <div className="flex items-center gap-2 mt-4 px-3 py-1.5 rounded-md bg-steel-900/50 border border-steel-800/50">
               <div className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
-              <span className="text-xs text-steel-400">Connecting...</span>
+              <span className="text-xs text-steel-400">{t('common.loading')}</span>
             </div>
           </div>
         </div>
@@ -130,9 +132,9 @@ export function Agents() {
           </div>
           <div>
             <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-              Agent Details
+              {t('agents.agentList')}
             </h2>
-            <p className="text-xs text-steel-500">Full status overview</p>
+            <p className="text-xs text-steel-500">{t('agents.statistics')}</p>
           </div>
         </div>
 
@@ -141,19 +143,19 @@ export function Agents() {
             <thead>
               <tr className="border-b border-steel-800/50">
                 <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
-                  Agent
+                  {t('agents.agentName')}
                 </th>
                 <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
-                  Role
+                  {t('agents.role')}
                 </th>
                 <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
-                  Status
+                  {t('agents.status')}
                 </th>
                 <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
-                  Current Task
+                  {t('agents.currentTask')}
                 </th>
                 <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3">
-                  Last Activity
+                  {t('agents.lastActivity')}
                 </th>
               </tr>
             </thead>

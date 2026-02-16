@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Activity, CheckCircle, Clock, AlertTriangle, Zap, Database, TrendingUp, Cpu, Server } from 'lucide-react';
 import { api } from '../services/api';
@@ -7,6 +8,7 @@ import { TaskState } from '../types';
 const terminalStates = [TaskState.SUCCESS, TaskState.FAILED, TaskState.REJECTED];
 
 export function Dashboard() {
+  const { t, i18n } = useTranslation();
   const { agents, tasks } = useAppStore();
 
   const { data: health, isLoading: healthLoading } = useQuery({
@@ -27,28 +29,28 @@ export function Dashboard() {
 
   const stats = [
     {
-      label: 'Active Tasks',
+      labelKey: 'dashboard.activeTasks',
       value: activeTasks,
       icon: Activity,
       color: 'text-electric',
       trend: '+12%',
     },
     {
-      label: 'Completed',
+      labelKey: 'dashboard.completed',
       value: completedTasks,
       icon: CheckCircle,
       color: 'text-success',
       trend: '+8%',
     },
     {
-      label: 'Avg Time',
+      labelKey: 'dashboard.avgTime',
       value: '2.3s',
       icon: Clock,
       color: 'text-warning',
       trend: '-15%',
     },
     {
-      label: 'Success Rate',
+      labelKey: 'dashboard.successRate',
       value: `${successRate}%`,
       icon: TrendingUp,
       color: 'text-success',
@@ -83,14 +85,14 @@ export function Dashboard() {
               <div className="stat-value">{stat.value}</div>
               
               {/* Label */}
-              <div className="stat-label">{stat.label}</div>
+              <div className="stat-label">{t(stat.labelKey)}</div>
               
               {/* Trend */}
               <div className="flex items-center gap-1 mt-2">
                 <span className={`text-xs font-mono ${stat.trend.startsWith('+') ? 'text-success' : 'text-error'}`}>
                   {stat.trend}
                 </span>
-                <span className="text-xs text-steel-600">vs last hour</span>
+                <span className="text-xs text-steel-600">{t('common.lastHour')}</span>
               </div>
             </div>
           );
@@ -111,14 +113,14 @@ export function Dashboard() {
               </div>
               <div>
                 <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-                  Agent Status
+                  {t('dashboard.agentStatus')}
                 </h2>
-                <p className="text-xs text-steel-500">{agents.length} agents active</p>
+                <p className="text-xs text-steel-500">{t('dashboard.agentsActive', { count: agents.length })}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-              <span className="text-xs text-steel-400 font-mono">LIVE</span>
+              <span className="text-xs text-steel-400 font-mono">{t('common.live')}</span>
             </div>
           </div>
 
@@ -161,9 +163,9 @@ export function Dashboard() {
               </div>
               <div>
                 <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-                  System Health
+                  {t('dashboard.systemHealth')}
                 </h2>
-                <p className="text-xs text-steel-500">All services running</p>
+                <p className="text-xs text-steel-500">{t('dashboard.allServicesRunning')}</p>
               </div>
             </div>
           </div>
@@ -176,7 +178,7 @@ export function Dashboard() {
             <div className="space-y-4">
               {/* Overall Status */}
               <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-                <span className="text-steel-400 text-sm">Overall Status</span>
+                <span className="text-steel-400 text-sm">{t('dashboard.overallStatus')}</span>
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full ${
                     health?.status === 'healthy' ? 'bg-success' : 
@@ -186,14 +188,15 @@ export function Dashboard() {
                     health?.status === 'healthy' ? 'text-success' : 
                     health?.status === 'degraded' ? 'text-warning' : 'text-error'
                   }`}>
-                    {health?.status?.toUpperCase() || 'HEALTHY'}
+                    {health?.status === 'healthy' ? t('dashboard.healthy') :
+                     health?.status === 'degraded' ? t('dashboard.degraded') : t('dashboard.unhealthy')}
                   </span>
                 </div>
               </div>
 
               {/* Version */}
               <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-                <span className="text-steel-400 text-sm">Version</span>
+                <span className="text-steel-400 text-sm">{t('common.version')}</span>
                 <span className="font-mono text-sm text-text-secondary">
                   {health?.version || 'v0.1.0'}
                 </span>
@@ -215,7 +218,7 @@ export function Dashboard() {
                       <span className="text-steel-400 text-sm capitalize">{name.replace(/_/g, ' ')}</span>
                     </div>
                     <span className={`font-mono text-xs ${status ? 'text-success' : 'text-error'}`}>
-                      {status ? 'ONLINE' : 'OFFLINE'}
+                      {status ? t('common.online').toUpperCase() : t('common.offline').toUpperCase()}
                     </span>
                   </div>
                 ))
@@ -236,9 +239,9 @@ export function Dashboard() {
             </div>
             <div>
               <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-                Recent Tasks
+                {t('dashboard.recentTasks')}
               </h2>
-              <p className="text-xs text-steel-500">Last {Math.min(tasks.length, 10)} operations</p>
+              <p className="text-xs text-steel-500">{t('dashboard.lastOperations', { count: Math.min(tasks.length, 10) })}</p>
             </div>
           </div>
         </div>
@@ -246,8 +249,8 @@ export function Dashboard() {
         {tasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-steel-500">
             <Activity className="w-10 h-10 mb-3 opacity-30" />
-            <p className="text-sm">No tasks recorded yet</p>
-            <p className="text-xs text-steel-600 mt-1">Create a new task to get started</p>
+            <p className="text-sm">{t('dashboard.noTasksRecorded')}</p>
+            <p className="text-xs text-steel-600 mt-1">{t('dashboard.createTaskToStart')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -255,16 +258,16 @@ export function Dashboard() {
               <thead>
                 <tr className="border-b border-steel-800/50">
                   <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
-                    Task ID
+                    {t('dashboard.taskId')}
                   </th>
                   <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
-                    Intent
+                    {t('dashboard.intent')}
                   </th>
                   <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
-                    Status
+                    {t('dashboard.status')}
                   </th>
                   <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3">
-                    Created
+                    {t('dashboard.created')}
                   </th>
                 </tr>
               </thead>
@@ -298,7 +301,7 @@ export function Dashboard() {
                     </td>
                     <td className="py-3">
                       <span className="font-mono text-xs text-steel-500">
-                        {new Date(task.created_at).toLocaleTimeString('zh-CN', {
+                        {new Date(task.created_at).toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US', {
                           hour: '2-digit',
                           minute: '2-digit',
                           second: '2-digit'

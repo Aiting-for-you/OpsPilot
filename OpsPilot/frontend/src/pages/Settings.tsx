@@ -1,21 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, RefreshCw, Check, X, Eye, EyeOff, Zap, Server, Key, Plus, List, Download, Cpu, Shield, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Settings as SettingsIcon, Save, RefreshCw, Check, X, Eye, EyeOff, Zap, Server, Key, Plus, List, Download, Cpu, Shield, Info, Globe } from 'lucide-react';
 import { api } from '../services/api';
 import { LLMProviderConfig, LLMProviderType, LLMTestResult, ModelInfo } from '../types';
 
 // Provider display info
-const PROVIDER_INFO: Record<LLMProviderType, { name: string; color: string }> = {
-  openai: { name: 'OpenAI', color: '#10a37f' },
-  azure_openai: { name: 'Azure OpenAI', color: '#0078d4' },
-  claude: { name: 'Anthropic Claude', color: '#d97706' },
-  qwen: { name: 'Tongyi Qwen', color: '#ff6a00' },
-  ernie: { name: 'Wenxin Yiyan', color: '#2932e1' },
-  zhipu: { name: 'Zhipu AI', color: '#3b82f6' },
-  deepseek: { name: 'DeepSeek', color: '#8b5cf6' },
-  custom: { name: 'Custom Model', color: '#6b7280' },
+const PROVIDER_INFO: Record<LLMProviderType, { nameKey: string; color: string }> = {
+  openai: { nameKey: 'settings.providers.openai', color: '#10a37f' },
+  azure_openai: { nameKey: 'settings.providers.azure', color: '#0078d4' },
+  claude: { nameKey: 'settings.providers.claude', color: '#d97706' },
+  qwen: { nameKey: 'settings.providers.qwen', color: '#ff6a00' },
+  ernie: { nameKey: 'settings.providers.wenxin', color: '#2932e1' },
+  zhipu: { nameKey: 'settings.providers.zhipu', color: '#3b82f6' },
+  deepseek: { nameKey: 'settings.providers.deepseek', color: '#8b5cf6' },
+  custom: { nameKey: 'settings.providers.custom', color: '#6b7280' },
 };
 
 export function Settings() {
+  const { t } = useTranslation();
   const [providers, setProviders] = useState<LLMProviderConfig[]>([]);
   const [defaultProvider, setDefaultProvider] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -123,7 +125,7 @@ export function Settings() {
       setTestResult(result);
     } catch (error) {
       console.error('Test failed:', error);
-      setTestResult({ success: false, message: 'Connection test failed' });
+      setTestResult({ success: false, message: t('settings.connectionFailed') });
     } finally {
       setTesting(null);
     }
@@ -150,7 +152,7 @@ export function Settings() {
 
   const handleFetchModels = async () => {
     if (!fetchApiBase || !fetchApiKey) {
-      setFetchError('Please fill in API Base URL and API Key');
+      setFetchError(t('errors.validationError'));
       return;
     }
 
@@ -172,11 +174,11 @@ export function Settings() {
         setSelectedModels(defaultSelected);
         setDefaultModelSelect(result.models[0].id);
       } else {
-        setFetchError(result.error || 'No models found');
+        setFetchError(result.error || t('common.noData'));
       }
     } catch (error) {
       console.error('Failed to fetch models:', error);
-      setFetchError('Failed to fetch model list');
+      setFetchError(t('errors.serverError'));
     } finally {
       setFetching(false);
     }
@@ -250,9 +252,9 @@ export function Settings() {
           </div>
           <div>
             <h1 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-              LLM Configuration
+              {t('settings.llmConfig')}
             </h1>
-            <p className="text-xs text-steel-500">Configure AI model providers</p>
+            <p className="text-xs text-steel-500">{t('settings.provider')}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -268,11 +270,11 @@ export function Settings() {
             className="btn-secondary"
           >
             <Download className="w-4 h-4" />
-            Fetch Models
+            {t('settings.fetchModels')}
           </button>
           <button onClick={loadConfigs} className="btn-secondary">
             <RefreshCw className="w-4 h-4" />
-            Refresh
+            {t('common.refresh') || 'Refresh'}
           </button>
         </div>
       </div>
@@ -282,8 +284,7 @@ export function Settings() {
         <div className="flex items-start gap-3">
           <Info className="w-5 h-5 text-electric flex-shrink-0 mt-0.5" />
           <p className="text-sm text-steel-400">
-            Configure your LLM API keys. Supports OpenAI, Claude, Tongyi Qwen, and other providers.
-            Use "Fetch Models" to automatically discover available models from your API endpoint.
+            {t('settings.llmConfig')} - {t('settings.apiKey')} & {t('settings.model')}
           </p>
         </div>
       </div>
@@ -312,7 +313,7 @@ export function Settings() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-display text-sm font-semibold text-text-primary">
-                      {info.name}
+                      {t(info.nameKey)}
                     </span>
                     {provider.is_default && (
                       <span className="px-2 py-0.5 bg-electric/20 text-electric text-xs rounded font-mono">
@@ -321,7 +322,7 @@ export function Settings() {
                     )}
                     {provider.is_enabled && provider.api_key_masked && (
                       <span className="px-2 py-0.5 bg-success/20 text-success text-xs rounded font-mono">
-                        CONFIGURED
+                        {t('settings.enabled').toUpperCase()}
                       </span>
                     )}
                     <span className="text-xs text-steel-600">
@@ -329,7 +330,7 @@ export function Settings() {
                     </span>
                   </div>
                   <p className="text-xs text-steel-500 mt-0.5">
-                    {provider.api_key_masked || 'Not configured'}
+                    {provider.api_key_masked || t('common.noData')}
                   </p>
                 </div>
               </div>
@@ -345,14 +346,14 @@ export function Settings() {
                 <div>
                   <label className="label">
                     <Key className="w-3 h-3 inline mr-1" />
-                    API Key
+                    {t('settings.apiKey')}
                   </label>
                   <div className="relative">
                     <input
                       type={showApiKey[provider.provider] ? 'text' : 'password'}
                       value={config.api_key || ''}
                       onChange={(e) => updateEditConfig(provider.provider, 'api_key', e.target.value)}
-                      placeholder={provider.api_key_masked || 'Enter API Key'}
+                      placeholder={provider.api_key_masked || t('settings.apiKey')}
                       className="input pr-10"
                     />
                     <button
@@ -369,14 +370,14 @@ export function Settings() {
                 <div>
                   <label className="label">
                     <Server className="w-3 h-3 inline mr-1" />
-                    API Base URL
+                    {t('settings.apiBase')}
                     {provider.provider === 'custom' && <span className="text-error ml-1">*</span>}
                   </label>
                   <input
                     type="text"
                     value={config.api_base || ''}
                     onChange={(e) => updateEditConfig(provider.provider, 'api_base', e.target.value)}
-                    placeholder={provider.api_base || 'Custom API endpoint'}
+                    placeholder={provider.api_base || t('settings.apiBase')}
                     className="input"
                   />
                 </div>
@@ -385,7 +386,7 @@ export function Settings() {
                 <div>
                   <label className="label">
                     <Zap className="w-3 h-3 inline mr-1" />
-                    Model
+                    {t('settings.model')}
                   </label>
                   <select
                     value={config.model_name || provider.default_model}
@@ -397,7 +398,7 @@ export function Settings() {
                         <option key={model} value={model}>{model}</option>
                       ))
                     ) : (
-                      <option value={config.model_name || ''}>{config.model_name || 'Enter model name'}</option>
+                      <option value={config.model_name || ''}>{config.model_name || t('settings.model')}</option>
                     )}
                   </select>
                 </div>
@@ -405,7 +406,7 @@ export function Settings() {
                 {/* Parameters */}
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="label">Temperature</label>
+                    <label className="label">{t('settings.temperature')}</label>
                     <input
                       type="number"
                       step="0.1"
@@ -417,7 +418,7 @@ export function Settings() {
                     />
                   </div>
                   <div>
-                    <label className="label">Max Tokens</label>
+                    <label className="label">{t('settings.maxTokens')}</label>
                     <input
                       type="number"
                       min="1"
@@ -427,7 +428,7 @@ export function Settings() {
                     />
                   </div>
                   <div>
-                    <label className="label">Top P</label>
+                    <label className="label">{t('settings.topP')}</label>
                     <input
                       type="number"
                       step="0.1"
@@ -442,7 +443,7 @@ export function Settings() {
 
                 {/* Enable Toggle */}
                 <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-                  <span className="text-sm text-steel-400">Enable Provider</span>
+                  <span className="text-sm text-steel-400">{t('settings.enabled')}</span>
                   <button
                     onClick={() => updateEditConfig(provider.provider, 'is_enabled', !config.is_enabled)}
                     className={`w-11 h-6 rounded-full transition-colors relative ${
@@ -463,7 +464,7 @@ export function Settings() {
                     testResult.success ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
                   }`}>
                     {testResult.success ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-                    <span className="text-sm">{testResult.message}</span>
+                    <span className="text-sm">{testResult.success ? t('settings.connectionSuccess') : t('settings.connectionFailed')}</span>
                     {testResult.latency_ms && (
                       <span className="text-xs opacity-70 ml-auto font-mono">{testResult.latency_ms}ms</span>
                     )}
@@ -483,7 +484,7 @@ export function Settings() {
                       ) : (
                         <Zap className="w-4 h-4" />
                       )}
-                      Test
+                      {t('settings.testConnection')}
                     </button>
                     {!provider.is_default && config.is_enabled && (
                       <button
@@ -491,7 +492,7 @@ export function Settings() {
                         className="btn-secondary"
                       >
                         <Shield className="w-4 h-4" />
-                        Set Default
+                        {t('settings.setDefault')}
                       </button>
                     )}
                   </div>
@@ -505,7 +506,7 @@ export function Settings() {
                     ) : (
                       <Save className="w-4 h-4" />
                     )}
-                    Save
+                    {t('common.save')}
                   </button>
                 </div>
               </div>
@@ -524,7 +525,7 @@ export function Settings() {
                   <List className="w-4 h-4 text-electric" />
                 </div>
                 <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-                  Fetch Models
+                  {t('settings.fetchModels')}
                 </h2>
               </div>
               <button
@@ -550,7 +551,7 @@ export function Settings() {
                 </select>
               </div>
               <div>
-                <label className="label">API Base URL</label>
+                <label className="label">{t('settings.apiBase')}</label>
                 <input
                   type="text"
                   value={fetchApiBase}
@@ -560,7 +561,7 @@ export function Settings() {
                 />
               </div>
               <div>
-                <label className="label">API Key</label>
+                <label className="label">{t('settings.apiKey')}</label>
                 <input
                   type="password"
                   value={fetchApiKey}
@@ -579,7 +580,7 @@ export function Settings() {
                 ) : (
                   <Download className="w-4 h-4" />
                 )}
-                Fetch Models
+                {t('settings.fetchModels')}
               </button>
             </div>
 
@@ -595,7 +596,7 @@ export function Settings() {
               <div className="flex-1 overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs text-steel-500">
-                    Found {fetchedModels.length} models, {selectedModels.size} selected
+                    {fetchedModels.length} models, {selectedModels.size} selected
                   </span>
                   <button
                     onClick={toggleSelectAll}
@@ -607,7 +608,7 @@ export function Settings() {
 
                 {/* Default Model */}
                 <div className="mb-3">
-                  <label className="label">Default Model</label>
+                  <label className="label">{t('settings.model')} (Default)</label>
                   <select
                     value={defaultModelSelect}
                     onChange={(e) => setDefaultModelSelect(e.target.value)}
@@ -660,7 +661,7 @@ export function Settings() {
                     ) : (
                       <Plus className="w-4 h-4" />
                     )}
-                    Add {selectedModels.size} Models
+                    {t('settings.batchAdd')} ({selectedModels.size})
                   </button>
                 </div>
               </div>
@@ -668,6 +669,37 @@ export function Settings() {
           </div>
         </div>
       )}
+
+      {/* Language Settings */}
+      <div className="card">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
+            <Globe className="w-4 h-4 text-electric" />
+          </div>
+          <div>
+            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              {t('settings.languageSettings')}
+            </h2>
+            <p className="text-xs text-steel-500">{t('settings.selectLanguage')}</p>
+          </div>
+        </div>
+        
+        <div className="p-4 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+          <p className="text-sm text-steel-400 mb-3">
+            {t('settings.selectLanguage')}
+          </p>
+          <div className="flex items-center gap-2 text-sm text-steel-500">
+            <span>🌐</span>
+            <span>{t('settings.language')}: </span>
+            <span className="text-electric">
+              {t('settings.selectLanguage') === '选择语言' ? '简体中文' : 'English'}
+            </span>
+          </div>
+          <p className="text-xs text-steel-600 mt-2">
+            {t('settings.languageSettings')} - {t('settings.selectLanguage')}
+          </p>
+        </div>
+      </div>
 
       {/* About Section */}
       <div className="card">
@@ -681,12 +713,12 @@ export function Settings() {
         </div>
         <div className="grid grid-cols-3 gap-4">
           <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-            <div className="text-xs text-steel-500 mb-1">Version</div>
+            <div className="text-xs text-steel-500 mb-1">{t('common.version')}</div>
             <div className="font-mono text-sm text-electric">v0.1.0</div>
           </div>
           <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
             <div className="text-xs text-steel-500 mb-1">Build Date</div>
-            <div className="font-mono text-sm text-text-secondary">2026-02-15</div>
+            <div className="font-mono text-sm text-text-secondary">2026-02-16</div>
           </div>
           <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
             <div className="text-xs text-steel-500 mb-1">Tech Stack</div>

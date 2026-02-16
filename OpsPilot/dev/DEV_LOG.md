@@ -2025,6 +2025,123 @@ result = await notify.call_tool("send_notification", {
 
 ---
 
+## [2026-02-16] - 前端国际化 (i18n) 实现
+
+### 开发目标
+
+- 添加前端国际化支持
+- 实现中英文一键切换
+- 替换所有硬编码文本
+
+### 完成内容
+
+#### 核心模块
+
+- [x] `frontend/src/i18n/index.ts` - i18n 配置
+  - react-i18next 集成
+  - 浏览器语言自动检测
+  - localStorage 持久化
+  - 中文默认 fallback
+
+- [x] `frontend/src/i18n/locales/zh-CN.json` - 中文翻译
+  - common: 通用文本（应用名、按钮、状态）
+  - nav: 导航菜单
+  - dashboard: 仪表盘
+  - tasks: 任务管理
+  - tools: 工具调用
+  - sop: SOP 执行
+  - agents: Agent 监控
+  - tracing: 追踪分析
+  - settings: 系统设置
+  - errors: 错误消息
+
+- [x] `frontend/src/i18n/locales/en-US.json` - 英文翻译
+  - 与中文完整对应
+
+#### 组件更新
+
+- [x] `frontend/src/components/LanguageSwitcher.tsx` - 语言切换器
+  - 下拉菜单样式
+  - 国旗图标 + 语言名称
+  - 当前语言高亮
+
+- [x] `frontend/src/main.tsx` - 入口文件
+  - 导入 i18n 配置
+
+- [x] `frontend/src/components/layout/Layout.tsx` - 主布局
+  - useTranslation hook
+  - 导航文本国际化
+  - 集成语言切换器
+
+#### 页面国际化
+
+- [x] `frontend/src/pages/Dashboard.tsx` - 仪表盘
+  - 统计标签、表格头、状态文本
+
+- [x] `frontend/src/pages/Tasks.tsx` - 任务管理
+  - 任务创建、队列、详情
+
+- [x] `frontend/src/pages/Tools.tsx` - 工具调用
+  - 工具库、执行面板
+
+- [x] `frontend/src/pages/SOP.tsx` - SOP 执行
+  - SOP 库、步骤执行
+
+- [x] `frontend/src/pages/Agents.tsx` - Agent 监控
+  - Agent 列表、协作流程
+
+- [x] `frontend/src/pages/Tracing.tsx` - 追踪分析
+  - 追踪列表、Span 详情
+
+- [x] `frontend/src/pages/Settings.tsx` - 系统设置
+  - LLM 配置、提供商名称、表单标签
+  - 语言设置提示
+
+### 翻译键结构
+
+```
+{
+  "common": { "appName", "loading", "save", "cancel", ... },
+  "nav": { "dashboard", "tasks", "tools", ... },
+  "dashboard": { "activeTasks", "completedTasks", ... },
+  "tasks": { "newTask", "taskQueue", ... },
+  "tools": { "toolLibrary", "executionPanel", ... },
+  "sop": { "sopLibrary", "stepExecution", ... },
+  "agents": { "agentList", "collaborationFlow", ... },
+  "tracing": { "traceAnalysis", "spanDetails", ... },
+  "settings": { "llmConfig", "providers", ... },
+  "errors": { "networkError", "serverError", ... }
+}
+```
+
+### 技术决策
+
+- **react-i18next**: React 生态最成熟的 i18n 方案
+- **浏览器检测**: 自动检测用户浏览器语言
+- **持久化**: localStorage 保存用户语言偏好
+- **嵌套键**: 使用 `nav.dashboard` 格式组织翻译
+
+### 依赖更新
+
+```json
+{
+  "i18next": "^24.2.3",
+  "react-i18next": "^15.4.1",
+  "i18next-browser-languagedetector": "^8.0.4"
+}
+```
+
+### 完成统计
+
+| 项目 | 数量 |
+|------|------|
+| 新增文件 | 4 |
+| 更新文件 | 9 |
+| 翻译键 | 100+ |
+| 支持语言 | 2（中文、英文）|
+
+---
+
 ## [2026-02-16] - 优化方案实施确认
 
 ### 开发目标

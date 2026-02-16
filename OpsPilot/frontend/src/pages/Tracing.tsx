@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Activity, 
   Clock, 
@@ -93,6 +94,7 @@ const mockSpans: TraceSpan[] = [
 ];
 
 export function Tracing() {
+  const { t } = useTranslation();
   const [spans] = useState<TraceSpan[]>(mockSpans);
   const [selectedSpan, setSelectedSpan] = useState<TraceSpan | null>(null);
   const [expandedSpans, setExpandedSpans] = useState<Set<string>>(new Set());
@@ -167,11 +169,11 @@ export function Tracing() {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-          <div className="text-xs text-steel-500 mb-1">Span ID</div>
+          <div className="text-xs text-steel-500 mb-1">{t('tracing.spanName')}</div>
           <div className="font-mono text-xs text-electric">{span.span_id}</div>
         </div>
         <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-          <div className="text-xs text-steel-500 mb-1">Duration</div>
+          <div className="text-xs text-steel-500 mb-1">{t('tracing.duration')}</div>
           <div className="font-mono text-xs text-text-secondary">{span.duration_ms.toFixed(2)}ms</div>
         </div>
       </div>
@@ -179,7 +181,7 @@ export function Tracing() {
       {/* Attributes */}
       {Object.keys(span.attributes).length > 0 && (
         <div>
-          <div className="label mb-2">Attributes</div>
+          <div className="label mb-2">{t('tracing.attributes')}</div>
           <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50 font-mono text-xs space-y-1">
             {Object.entries(span.attributes).map(([key, value]) => (
               <div key={key} className="flex">
@@ -196,7 +198,7 @@ export function Tracing() {
       {/* Events */}
       {span.events.length > 0 && (
         <div>
-          <div className="label mb-2">Events</div>
+          <div className="label mb-2">{t('tracing.details')}</div>
           <div className="space-y-2">
             {span.events.map((event, idx) => (
               <div key={idx} className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
@@ -287,9 +289,9 @@ export function Tracing() {
           </div>
           <div>
             <h1 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-              Tracing Analysis
+              {t('tracing.title')}
             </h1>
-            <p className="text-xs text-steel-500">OpenTelemetry integration · LLM/Agent/Tool traces</p>
+            <p className="text-xs text-steel-500">OpenTelemetry · LLM/Agent/Tool traces</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -312,11 +314,11 @@ export function Tracing() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
         <div className="stat-card">
-          <div className="stat-label">Total Spans</div>
+          <div className="stat-label">{t('tracing.spans')}</div>
           <div className="stat-value">{spans.length}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Duration</div>
+          <div className="stat-label">{t('tracing.duration')}</div>
           <div className="stat-value">{spans.find(s => !s.parent_id)?.duration_ms.toFixed(0) || 0}ms</div>
         </div>
         <div className="stat-card">
@@ -355,7 +357,7 @@ export function Tracing() {
               <Zap className="w-4 h-4 text-warning" />
             </div>
             <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-              Details
+              {t('tracing.details')}
             </h2>
           </div>
           {selectedSpan ? (
@@ -363,7 +365,7 @@ export function Tracing() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-steel-500">
               <Activity className="w-10 h-10 mb-3 opacity-20" />
-              <p className="text-sm">Select a span to view details</p>
+              <p className="text-sm">{t('tracing.noTraces')}</p>
             </div>
           )}
         </div>
@@ -376,7 +378,7 @@ export function Tracing() {
             <Clock className="w-4 h-4 text-electric" />
           </div>
           <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-            Timeline View
+            {t('tracing.timeline')}
           </h2>
         </div>
         
