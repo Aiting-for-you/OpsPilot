@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, RefreshCw, Check, X, Eye, EyeOff, Zap, Server, Key, Plus, List, Download } from 'lucide-react';
+import { Settings as SettingsIcon, Save, RefreshCw, Check, X, Eye, EyeOff, Zap, Server, Key, Plus, List, Download, Cpu, Shield, Info } from 'lucide-react';
 import { api } from '../services/api';
 import { LLMProviderConfig, LLMProviderType, LLMTestResult, ModelInfo } from '../types';
 
-// 提供商显示信息
-const PROVIDER_INFO: Record<LLMProviderType, { name: string; icon: string; color: string }> = {
-  openai: { name: 'OpenAI', icon: '🤖', color: '#10a37f' },
-  azure_openai: { name: 'Azure OpenAI', icon: '☁️', color: '#0078d4' },
-  claude: { name: 'Anthropic Claude', icon: '🧠', color: '#d97706' },
-  qwen: { name: '通义千问', icon: '🔮', color: '#ff6a00' },
-  ernie: { name: '文心一言', icon: '📝', color: '#2932e1' },
-  zhipu: { name: '智谱AI', icon: '🎯', color: '#3b82f6' },
-  deepseek: { name: 'DeepSeek', icon: '🚀', color: '#8b5cf6' },
-  custom: { name: '自定义模型', icon: '⚙️', color: '#6b7280' },
+// Provider display info
+const PROVIDER_INFO: Record<LLMProviderType, { name: string; color: string }> = {
+  openai: { name: 'OpenAI', color: '#10a37f' },
+  azure_openai: { name: 'Azure OpenAI', color: '#0078d4' },
+  claude: { name: 'Anthropic Claude', color: '#d97706' },
+  qwen: { name: 'Tongyi Qwen', color: '#ff6a00' },
+  ernie: { name: 'Wenxin Yiyan', color: '#2932e1' },
+  zhipu: { name: 'Zhipu AI', color: '#3b82f6' },
+  deepseek: { name: 'DeepSeek', color: '#8b5cf6' },
+  custom: { name: 'Custom Model', color: '#6b7280' },
 };
 
 export function Settings() {
@@ -24,7 +24,6 @@ export function Settings() {
   const [testResult, setTestResult] = useState<LLMTestResult | null>(null);
   const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
   
-  // 编辑状态
   const [editConfig, setEditConfig] = useState<Record<string, {
     api_key: string;
     api_base: string;
@@ -35,10 +34,7 @@ export function Settings() {
     is_enabled: boolean;
   }>>({});
   
-  // 显示密码状态
   const [showApiKey, setShowApiKey] = useState<Record<string, boolean>>({});
-  
-  // 模型获取相关状态
   const [showFetchModal, setShowFetchModal] = useState(false);
   const [fetchApiBase, setFetchApiBase] = useState('');
   const [fetchApiKey, setFetchApiKey] = useState('');
@@ -50,7 +46,6 @@ export function Settings() {
   const [batchAdding, setBatchAdding] = useState(false);
   const [defaultModelSelect, setDefaultModelSelect] = useState<string>('');
 
-  // 加载配置
   useEffect(() => {
     loadConfigs();
   }, []);
@@ -62,7 +57,6 @@ export function Settings() {
       setProviders(data.providers);
       setDefaultProvider(data.default_provider || null);
       
-      // 初始化编辑状态
       const editState: Record<string, any> = {};
       data.providers.forEach((p) => {
         editState[p.provider] = {
@@ -77,7 +71,7 @@ export function Settings() {
       });
       setEditConfig(editState);
     } catch (error) {
-      console.error('加载配置失败:', error);
+      console.error('Failed to load configs:', error);
     } finally {
       setLoading(false);
     }
@@ -103,8 +97,7 @@ export function Settings() {
       await loadConfigs();
       setTestResult(null);
     } catch (error) {
-      console.error('保存配置失败:', error);
-      alert('保存配置失败');
+      console.error('Failed to save config:', error);
     } finally {
       setSaving(false);
     }
@@ -129,8 +122,8 @@ export function Settings() {
       const result = await api.testLLMConnection(provider);
       setTestResult(result);
     } catch (error) {
-      console.error('测试连接失败:', error);
-      setTestResult({ success: false, message: '测试连接失败' });
+      console.error('Test failed:', error);
+      setTestResult({ success: false, message: 'Connection test failed' });
     } finally {
       setTesting(null);
     }
@@ -141,7 +134,7 @@ export function Settings() {
       await api.setDefaultLLM(provider);
       setDefaultProvider(provider);
     } catch (error) {
-      console.error('设置默认失败:', error);
+      console.error('Failed to set default:', error);
     }
   };
 
@@ -155,10 +148,9 @@ export function Settings() {
     }));
   };
 
-  // 获取模型列表
   const handleFetchModels = async () => {
     if (!fetchApiBase || !fetchApiKey) {
-      setFetchError('请填写 API Base URL 和 API Key');
+      setFetchError('Please fill in API Base URL and API Key');
       return;
     }
 
@@ -176,22 +168,20 @@ export function Settings() {
 
       if (result.success && result.models.length > 0) {
         setFetchedModels(result.models);
-        // 默认选中前 5 个模型
         const defaultSelected = new Set(result.models.slice(0, 5).map(m => m.id));
         setSelectedModels(defaultSelected);
         setDefaultModelSelect(result.models[0].id);
       } else {
-        setFetchError(result.error || '未获取到模型列表');
+        setFetchError(result.error || 'No models found');
       }
     } catch (error) {
-      console.error('获取模型列表失败:', error);
-      setFetchError('获取模型列表失败');
+      console.error('Failed to fetch models:', error);
+      setFetchError('Failed to fetch model list');
     } finally {
       setFetching(false);
     }
   };
 
-  // 切换模型选择
   const toggleModelSelection = (modelId: string) => {
     setSelectedModels((prev) => {
       const newSet = new Set(prev);
@@ -204,7 +194,6 @@ export function Settings() {
     });
   };
 
-  // 全选/取消全选
   const toggleSelectAll = () => {
     if (selectedModels.size === fetchedModels.length) {
       setSelectedModels(new Set());
@@ -213,10 +202,8 @@ export function Settings() {
     }
   };
 
-  // 批量添加模型
   const handleBatchAddModels = async () => {
     if (selectedModels.size === 0) {
-      alert('请至少选择一个模型');
       return;
     }
 
@@ -232,19 +219,14 @@ export function Settings() {
       });
 
       if (result.success) {
-        alert(`成功添加 ${result.added_count} 个模型`);
         setShowFetchModal(false);
         setFetchedModels([]);
         setSelectedModels(new Set());
         await loadConfigs();
-        // 展开自定义模型配置
         setExpandedProvider('custom');
-      } else {
-        alert(result.error || '添加失败');
       }
     } catch (error) {
-      console.error('批量添加失败:', error);
-      alert('批量添加失败');
+      console.error('Batch add failed:', error);
     } finally {
       setBatchAdding(false);
     }
@@ -253,18 +235,25 @@ export function Settings() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-8 h-8 animate-spin text-primary-400" />
+        <div className="w-8 h-8 border-2 border-electric border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <SettingsIcon className="w-5 h-5 text-primary-400" />
-          <h1 className="text-lg font-semibold text-white">大模型配置</h1>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
+            <Cpu className="w-4 h-4 text-electric" />
+          </div>
+          <div>
+            <h1 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              LLM Configuration
+            </h1>
+            <p className="text-xs text-steel-500">Configure AI model providers</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <button
@@ -276,27 +265,27 @@ export function Settings() {
               setFetchError(null);
               setShowFetchModal(true);
             }}
-            className="btn-secondary flex items-center gap-2"
+            className="btn-secondary"
           >
             <Download className="w-4 h-4" />
-            获取模型列表
+            Fetch Models
           </button>
-          <button
-            onClick={loadConfigs}
-            className="btn-secondary flex items-center gap-2"
-          >
+          <button onClick={loadConfigs} className="btn-secondary">
             <RefreshCw className="w-4 h-4" />
-            刷新
+            Refresh
           </button>
         </div>
       </div>
 
-      {/* 说明 */}
-      <div className="card bg-dark-800/50 border-dark-700">
-        <p className="text-dark-300 text-sm">
-          配置您的大模型 API 密钥，支持 OpenAI、Claude、通义千问、文心一言等主流模型。
-          使用"获取模型列表"功能可自动从 API 端点获取可用模型并批量添加。
-        </p>
+      {/* Info Banner */}
+      <div className="p-4 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+        <div className="flex items-start gap-3">
+          <Info className="w-5 h-5 text-electric flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-steel-400">
+            Configure your LLM API keys. Supports OpenAI, Claude, Tongyi Qwen, and other providers.
+            Use "Fetch Models" to automatically discover available models from your API endpoint.
+          </p>
+        </div>
       </div>
 
       {/* Provider Cards */}
@@ -313,45 +302,49 @@ export function Settings() {
               className="flex items-center justify-between cursor-pointer"
               onClick={() => setExpandedProvider(isExpanded ? null : provider.provider)}
             >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{info.icon}</span>
+              <div className="flex items-center gap-4">
+                <div 
+                  className="w-10 h-10 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: `${info.color}20` }}
+                >
+                  <Zap className="w-5 h-5" style={{ color: info.color }} />
+                </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-white font-medium">{info.name}</h3>
+                    <span className="font-display text-sm font-semibold text-text-primary">
+                      {info.name}
+                    </span>
                     {provider.is_default && (
-                      <span className="px-2 py-0.5 bg-primary-600 text-white text-xs rounded">
-                        默认
+                      <span className="px-2 py-0.5 bg-electric/20 text-electric text-xs rounded font-mono">
+                        DEFAULT
                       </span>
                     )}
                     {provider.is_enabled && provider.api_key_masked && (
-                      <span className="px-2 py-0.5 bg-green-600/20 text-green-400 text-xs rounded">
-                        已配置
+                      <span className="px-2 py-0.5 bg-success/20 text-success text-xs rounded font-mono">
+                        CONFIGURED
                       </span>
                     )}
-                    <span className="text-dark-500 text-xs">
-                      {provider.available_models.length} 个模型
+                    <span className="text-xs text-steel-600">
+                      {provider.available_models.length} models
                     </span>
                   </div>
-                  <p className="text-dark-400 text-sm">
-                    {provider.api_key_masked || '未配置 API Key'}
+                  <p className="text-xs text-steel-500 mt-0.5">
+                    {provider.api_key_masked || 'Not configured'}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {!provider.is_enabled && (
-                  <span className="text-dark-500 text-sm">未启用</span>
-                )}
-                <span className="text-dark-500">{isExpanded ? '▼' : '▶'}</span>
-              </div>
+              <span className="text-steel-500 text-xs font-mono">
+                {isExpanded ? 'CLOSE' : 'EXPAND'}
+              </span>
             </div>
 
             {/* Expanded Content */}
             {isExpanded && (
-              <div className="mt-4 pt-4 border-t border-dark-700 space-y-4">
+              <div className="mt-5 pt-5 border-t border-steel-800/50 space-y-4">
                 {/* API Key */}
                 <div>
-                  <label className="block text-dark-300 text-sm mb-1">
-                    <Key className="w-4 h-4 inline mr-1" />
+                  <label className="label">
+                    <Key className="w-3 h-3 inline mr-1" />
                     API Key
                   </label>
                   <div className="relative">
@@ -359,13 +352,13 @@ export function Settings() {
                       type={showApiKey[provider.provider] ? 'text' : 'password'}
                       value={config.api_key || ''}
                       onChange={(e) => updateEditConfig(provider.provider, 'api_key', e.target.value)}
-                      placeholder={provider.api_key_masked || '输入 API Key'}
-                      className="input w-full pr-10"
+                      placeholder={provider.api_key_masked || 'Enter API Key'}
+                      className="input pr-10"
                     />
                     <button
                       type="button"
                       onClick={() => setShowApiKey((prev) => ({ ...prev, [provider.provider]: !prev[provider.provider] }))}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-dark-400 hover:text-white"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-steel-500 hover:text-electric transition-colors"
                     >
                       {showApiKey[provider.provider] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -374,62 +367,45 @@ export function Settings() {
 
                 {/* API Base URL */}
                 <div>
-                  <label className="block text-dark-300 text-sm mb-1">
-                    <Server className="w-4 h-4 inline mr-1" />
-                    API Base URL {provider.provider === 'custom' && <span className="text-red-400">*</span>}
+                  <label className="label">
+                    <Server className="w-3 h-3 inline mr-1" />
+                    API Base URL
+                    {provider.provider === 'custom' && <span className="text-error ml-1">*</span>}
                   </label>
                   <input
                     type="text"
                     value={config.api_base || ''}
                     onChange={(e) => updateEditConfig(provider.provider, 'api_base', e.target.value)}
-                    placeholder={provider.api_base || '自定义 API 端点'}
-                    className="input w-full"
+                    placeholder={provider.api_base || 'Custom API endpoint'}
+                    className="input"
                   />
-                  <p className="text-dark-500 text-xs mt-1">
-                    {provider.provider === 'custom' 
-                      ? '自定义模型需要填写完整的 API 端点地址'
-                      : '留空使用默认地址，可填写代理地址'}
-                  </p>
                 </div>
 
                 {/* Model Selection */}
                 <div>
-                  <label className="block text-dark-300 text-sm mb-1">
-                    <Zap className="w-4 h-4 inline mr-1" />
-                    模型
+                  <label className="label">
+                    <Zap className="w-3 h-3 inline mr-1" />
+                    Model
                   </label>
                   <select
                     value={config.model_name || provider.default_model}
                     onChange={(e) => updateEditConfig(provider.provider, 'model_name', e.target.value)}
-                    className="input w-full"
+                    className="input"
                   >
                     {provider.available_models.length > 0 ? (
                       provider.available_models.map((model) => (
-                        <option key={model} value={model}>
-                          {model}
-                        </option>
+                        <option key={model} value={model}>{model}</option>
                       ))
                     ) : (
-                      <option value={config.model_name || ''}>
-                        {config.model_name || '请输入模型名称'}
-                      </option>
+                      <option value={config.model_name || ''}>{config.model_name || 'Enter model name'}</option>
                     )}
                   </select>
-                  {provider.provider === 'custom' && (
-                    <input
-                      type="text"
-                      value={config.model_name || ''}
-                      onChange={(e) => updateEditConfig(provider.provider, 'model_name', e.target.value)}
-                      placeholder="输入模型名称"
-                      className="input w-full mt-2"
-                    />
-                  )}
                 </div>
 
                 {/* Parameters */}
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-dark-300 text-sm mb-1">Temperature</label>
+                    <label className="label">Temperature</label>
                     <input
                       type="number"
                       step="0.1"
@@ -437,21 +413,21 @@ export function Settings() {
                       max="2"
                       value={config.temperature ?? 0.7}
                       onChange={(e) => updateEditConfig(provider.provider, 'temperature', parseFloat(e.target.value))}
-                      className="input w-full"
+                      className="input"
                     />
                   </div>
                   <div>
-                    <label className="block text-dark-300 text-sm mb-1">Max Tokens</label>
+                    <label className="label">Max Tokens</label>
                     <input
                       type="number"
                       min="1"
                       value={config.max_tokens ?? 4096}
                       onChange={(e) => updateEditConfig(provider.provider, 'max_tokens', parseInt(e.target.value))}
-                      className="input w-full"
+                      className="input"
                     />
                   </div>
                   <div>
-                    <label className="block text-dark-300 text-sm mb-1">Top P</label>
+                    <label className="label">Top P</label>
                     <input
                       type="number"
                       step="0.1"
@@ -459,23 +435,23 @@ export function Settings() {
                       max="1"
                       value={config.top_p ?? 1}
                       onChange={(e) => updateEditConfig(provider.provider, 'top_p', parseFloat(e.target.value))}
-                      className="input w-full"
+                      className="input"
                     />
                   </div>
                 </div>
 
                 {/* Enable Toggle */}
-                <div className="flex items-center justify-between">
-                  <label className="text-dark-300">启用此提供商</label>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                  <span className="text-sm text-steel-400">Enable Provider</span>
                   <button
                     onClick={() => updateEditConfig(provider.provider, 'is_enabled', !config.is_enabled)}
-                    className={`w-12 h-6 rounded-full transition-colors ${
-                      config.is_enabled ? 'bg-primary-600' : 'bg-dark-600'
+                    className={`w-11 h-6 rounded-full transition-colors relative ${
+                      config.is_enabled ? 'bg-electric' : 'bg-steel-700'
                     }`}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                        config.is_enabled ? 'translate-x-6' : 'translate-x-0.5'
+                      className={`w-5 h-5 rounded-full bg-text-primary absolute top-0.5 transition-transform ${
+                        config.is_enabled ? 'translate-x-5' : 'translate-x-0.5'
                       }`}
                     />
                   </button>
@@ -483,17 +459,13 @@ export function Settings() {
 
                 {/* Test Result */}
                 {testResult && (
-                  <div
-                    className={`p-3 rounded flex items-center gap-2 ${
-                      testResult.success
-                        ? 'bg-green-900/20 text-green-400'
-                        : 'bg-red-900/20 text-red-400'
-                    }`}
-                  >
+                  <div className={`p-3 rounded-lg flex items-center gap-2 ${
+                    testResult.success ? 'bg-success/10 text-success' : 'bg-error/10 text-error'
+                  }`}>
                     {testResult.success ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-                    <span>{testResult.message}</span>
+                    <span className="text-sm">{testResult.message}</span>
                     {testResult.latency_ms && (
-                      <span className="text-dark-400 text-sm">({testResult.latency_ms}ms)</span>
+                      <span className="text-xs opacity-70 ml-auto font-mono">{testResult.latency_ms}ms</span>
                     )}
                   </div>
                 )}
@@ -504,35 +476,36 @@ export function Settings() {
                     <button
                       onClick={() => handleTestConnection(provider.provider)}
                       disabled={isTesting || saving}
-                      className="btn-secondary flex items-center gap-2"
+                      className="btn-secondary"
                     >
                       {isTesting ? (
                         <RefreshCw className="w-4 h-4 animate-spin" />
                       ) : (
                         <Zap className="w-4 h-4" />
                       )}
-                      测试连接
+                      Test
                     </button>
                     {!provider.is_default && config.is_enabled && (
                       <button
                         onClick={() => handleSetDefault(provider.provider)}
                         className="btn-secondary"
                       >
-                        设为默认
+                        <Shield className="w-4 h-4" />
+                        Set Default
                       </button>
                     )}
                   </div>
                   <button
                     onClick={() => handleSaveConfig(provider.provider)}
                     disabled={saving}
-                    className="btn-primary flex items-center gap-2"
+                    className="btn-primary"
                   >
                     {saving ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
                     ) : (
                       <Save className="w-4 h-4" />
                     )}
-                    保存配置
+                    Save
                   </button>
                 </div>
               </div>
@@ -543,72 +516,76 @@ export function Settings() {
 
       {/* Fetch Models Modal */}
       {showFetchModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-dark-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <List className="w-5 h-5" />
-                获取模型列表
-              </h2>
+        <div className="fixed inset-0 bg-navy-1000/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-navy-950 border border-steel-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
+                  <List className="w-4 h-4 text-electric" />
+                </div>
+                <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+                  Fetch Models
+                </h2>
+              </div>
               <button
                 onClick={() => setShowFetchModal(false)}
-                className="text-dark-400 hover:text-white"
+                className="p-1 rounded text-steel-500 hover:text-electric transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Input Fields */}
-            <div className="space-y-4 mb-4">
+            <div className="space-y-4 mb-5">
               <div>
-                <label className="block text-dark-300 text-sm mb-1">API 类型</label>
+                <label className="label">API Type</label>
                 <select
                   value={fetchProviderType}
                   onChange={(e) => setFetchProviderType(e.target.value)}
-                  className="input w-full"
+                  className="input"
                 >
-                  <option value="openai">OpenAI 兼容格式</option>
+                  <option value="openai">OpenAI Compatible</option>
                   <option value="deepseek">DeepSeek</option>
-                  <option value="qwen">通义千问</option>
+                  <option value="qwen">Tongyi Qwen</option>
                 </select>
               </div>
               <div>
-                <label className="block text-dark-300 text-sm mb-1">API Base URL</label>
+                <label className="label">API Base URL</label>
                 <input
                   type="text"
                   value={fetchApiBase}
                   onChange={(e) => setFetchApiBase(e.target.value)}
                   placeholder="https://api.openai.com/v1"
-                  className="input w-full"
+                  className="input"
                 />
               </div>
               <div>
-                <label className="block text-dark-300 text-sm mb-1">API Key</label>
+                <label className="label">API Key</label>
                 <input
                   type="password"
                   value={fetchApiKey}
                   onChange={(e) => setFetchApiKey(e.target.value)}
                   placeholder="sk-xxxxx"
-                  className="input w-full"
+                  className="input"
                 />
               </div>
               <button
                 onClick={handleFetchModels}
                 disabled={fetching}
-                className="btn-primary w-full flex items-center justify-center gap-2"
+                className="btn-primary w-full"
               >
                 {fetching ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />
                 ) : (
                   <Download className="w-4 h-4" />
                 )}
-                获取模型列表
+                Fetch Models
               </button>
             </div>
 
             {/* Error */}
             {fetchError && (
-              <div className="p-3 rounded bg-red-900/20 text-red-400 mb-4">
+              <div className="p-3 rounded-lg bg-error/10 text-error text-sm mb-4">
                 {fetchError}
               </div>
             )}
@@ -616,85 +593,74 @@ export function Settings() {
             {/* Model List */}
             {fetchedModels.length > 0 && (
               <div className="flex-1 overflow-hidden flex flex-col">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-dark-300 text-sm">
-                    找到 {fetchedModels.length} 个模型，已选择 {selectedModels.size} 个
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs text-steel-500">
+                    Found {fetchedModels.length} models, {selectedModels.size} selected
                   </span>
                   <button
                     onClick={toggleSelectAll}
-                    className="text-primary-400 text-sm hover:underline"
+                    className="text-xs text-electric hover:underline"
                   >
-                    {selectedModels.size === fetchedModels.length ? '取消全选' : '全选'}
+                    {selectedModels.size === fetchedModels.length ? 'Deselect All' : 'Select All'}
                   </button>
                 </div>
 
-                {/* Default Model Selection */}
-                <div className="mb-2">
-                  <label className="block text-dark-300 text-sm mb-1">默认模型</label>
+                {/* Default Model */}
+                <div className="mb-3">
+                  <label className="label">Default Model</label>
                   <select
                     value={defaultModelSelect}
                     onChange={(e) => setDefaultModelSelect(e.target.value)}
-                    className="input w-full"
+                    className="input"
                   >
-                    <option value="">不设置默认</option>
+                    <option value="">No default</option>
                     {Array.from(selectedModels).map((modelId) => (
-                      <option key={modelId} value={modelId}>
-                        {modelId}
-                      </option>
+                      <option key={modelId} value={modelId}>{modelId}</option>
                     ))}
                   </select>
                 </div>
 
                 {/* Model Grid */}
-                <div className="flex-1 overflow-y-auto border border-dark-700 rounded p-2">
+                <div className="flex-1 overflow-y-auto border border-steel-800/50 rounded-lg p-3 scrollbar-custom">
                   <div className="grid grid-cols-2 gap-2">
                     {fetchedModels.map((model) => (
                       <div
                         key={model.id}
                         onClick={() => toggleModelSelection(model.id)}
-                        className={`p-2 rounded cursor-pointer border transition-colors ${
+                        className={`p-2 rounded-lg cursor-pointer border transition-all ${
                           selectedModels.has(model.id)
-                            ? 'border-primary-500 bg-primary-500/10'
-                            : 'border-dark-600 hover:border-dark-500'
+                            ? 'border-electric bg-electric/5'
+                            : 'border-steel-800/50 hover:border-steel-700'
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <div
-                            className={`w-4 h-4 rounded border flex items-center justify-center ${
-                              selectedModels.has(model.id)
-                                ? 'border-primary-500 bg-primary-500'
-                                : 'border-dark-500'
-                            }`}
-                          >
-                            {selectedModels.has(model.id) && (
-                              <Check className="w-3 h-3 text-white" />
-                            )}
+                          <div className={`w-4 h-4 rounded border flex items-center justify-center ${
+                            selectedModels.has(model.id)
+                              ? 'border-electric bg-electric'
+                              : 'border-steel-600'
+                          }`}>
+                            {selectedModels.has(model.id) && <Check className="w-3 h-3 text-navy-950" />}
                           </div>
-                          <span className="text-dark-100 text-sm truncate">{model.id}</span>
+                          <span className="text-xs text-text-secondary truncate font-mono">{model.id}</span>
                         </div>
-                        {model.owned_by && (
-                          <p className="text-dark-500 text-xs ml-6 truncate">
-                            {model.owned_by}
-                          </p>
-                        )}
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Batch Add Button */}
+                {/* Batch Add */}
                 <div className="mt-4">
                   <button
                     onClick={handleBatchAddModels}
                     disabled={batchAdding || selectedModels.size === 0}
-                    className="btn-primary w-full flex items-center justify-center gap-2"
+                    className="btn-primary w-full"
                   >
                     {batchAdding ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
                     ) : (
                       <Plus className="w-4 h-4" />
                     )}
-                    批量添加 {selectedModels.size} 个模型到自定义配置
+                    Add {selectedModels.size} Models
                   </button>
                 </div>
               </div>
@@ -705,19 +671,26 @@ export function Settings() {
 
       {/* About Section */}
       <div className="card">
-        <h2 className="text-lg font-medium text-white mb-4">关于</h2>
-        <div className="space-y-2 text-dark-300">
-          <div className="flex justify-between">
-            <span>版本</span>
-            <span className="text-dark-100">v0.1.0</span>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-steel-800/50 flex items-center justify-center">
+            <Info className="w-4 h-4 text-steel-500" />
           </div>
-          <div className="flex justify-between">
-            <span>构建日期</span>
-            <span className="text-dark-100">2026-02-15</span>
+          <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            About
+          </h2>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+            <div className="text-xs text-steel-500 mb-1">Version</div>
+            <div className="font-mono text-sm text-electric">v0.1.0</div>
           </div>
-          <div className="flex justify-between">
-            <span>技术栈</span>
-            <span className="text-dark-100">React + TypeScript + Tailwind CSS</span>
+          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+            <div className="text-xs text-steel-500 mb-1">Build Date</div>
+            <div className="font-mono text-sm text-text-secondary">2026-02-15</div>
+          </div>
+          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+            <div className="text-xs text-steel-500 mb-1">Tech Stack</div>
+            <div className="font-mono text-xs text-text-secondary">React + TypeScript</div>
           </div>
         </div>
       </div>

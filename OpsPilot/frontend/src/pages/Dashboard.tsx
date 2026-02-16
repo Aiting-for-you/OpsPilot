@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Activity, CheckCircle, Clock, AlertTriangle, Zap, Database } from 'lucide-react';
+import { Activity, CheckCircle, Clock, AlertTriangle, Zap, Database, TrendingUp, Cpu, Server } from 'lucide-react';
 import { api } from '../services/api';
 import { useAppStore, taskStateLabels } from '../store';
 import { TaskState } from '../types';
@@ -15,93 +15,136 @@ export function Dashboard() {
     refetchInterval: 30000,
   });
 
+  // Calculate stats
+  const activeTasks = tasks.filter((t) => 
+    !terminalStates.includes(t.state as typeof terminalStates[number])
+  ).length;
+  const completedTasks = tasks.filter((t) => t.state === TaskState.SUCCESS).length;
+  const failedTasks = tasks.filter((t) => t.state === TaskState.FAILED).length;
+  const successRate = tasks.length > 0 
+    ? Math.round((completedTasks / tasks.length) * 100) 
+    : 100;
+
   const stats = [
     {
-      label: '活跃任务',
-      value: tasks.filter((t) => 
-        !terminalStates.includes(t.state as typeof terminalStates[number])
-      ).length,
+      label: 'Active Tasks',
+      value: activeTasks,
       icon: Activity,
-      color: 'text-blue-400',
+      color: 'text-electric',
+      trend: '+12%',
     },
     {
-      label: '完成任务',
-      value: tasks.filter((t) => t.state === TaskState.SUCCESS).length,
+      label: 'Completed',
+      value: completedTasks,
       icon: CheckCircle,
-      color: 'text-green-400',
+      color: 'text-success',
+      trend: '+8%',
     },
     {
-      label: '平均耗时',
+      label: 'Avg Time',
       value: '2.3s',
       icon: Clock,
-      color: 'text-yellow-400',
+      color: 'text-warning',
+      trend: '-15%',
     },
     {
-      label: '失败率',
-      value: '3.2%',
-      icon: AlertTriangle,
-      color: 'text-red-400',
+      label: 'Success Rate',
+      value: `${successRate}%`,
+      icon: TrendingUp,
+      color: 'text-success',
+      trend: '+5%',
     },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Stats Grid */}
+    <div className="space-y-6 animate-fade-in">
+      {/* ============================================
+          Stats Grid - Key Metrics
+          ============================================ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="stat-card">
-              <Icon className={`w-8 h-8 ${stat.color} mb-2`} />
+            <div 
+              key={index} 
+              className="stat-card group"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              {/* Icon */}
+              <div className={`
+                w-10 h-10 rounded-lg flex items-center justify-center mb-3
+                bg-navy-1000 border border-steel-800
+                group-hover:border-electric/30 transition-colors
+              `}>
+                <Icon className={`w-5 h-5 ${stat.color}`} />
+              </div>
+              
+              {/* Value */}
               <div className="stat-value">{stat.value}</div>
+              
+              {/* Label */}
               <div className="stat-label">{stat.label}</div>
+              
+              {/* Trend */}
+              <div className="flex items-center gap-1 mt-2">
+                <span className={`text-xs font-mono ${stat.trend.startsWith('+') ? 'text-success' : 'text-error'}`}>
+                  {stat.trend}
+                </span>
+                <span className="text-xs text-steel-600">vs last hour</span>
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Agent Status */}
-        <div className="lg:col-span-2 card">
-          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-primary-400" />
-            Agent 状态
-          </h2>
-          <div className="space-y-3">
-            {agents.map((agent) => (
+      {/* ============================================
+          Main Content Grid
+          ============================================ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Agent Status Panel */}
+        <div className="lg:col-span-7 card">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
+                <Zap className="w-4 h-4 text-electric" />
+              </div>
+              <div>
+                <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+                  Agent Status
+                </h2>
+                <p className="text-xs text-steel-500">{agents.length} agents active</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+              <span className="text-xs text-steel-400 font-mono">LIVE</span>
+            </div>
+          </div>
+
+          {/* Agent List */}
+          <div className="space-y-2">
+            {agents.map((agent, idx) => (
               <div
                 key={agent.name}
-                className="flex items-center justify-between p-3 bg-dark-700 rounded-lg"
+                className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50 hover:border-steel-700 transition-all"
+                style={{ animationDelay: `${idx * 30}ms` }}
               >
                 <div className="flex items-center gap-3">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      agent.status === 'idle'
-                        ? 'bg-gray-400'
-                        : agent.status === 'processing'
-                        ? 'bg-yellow-400 animate-pulse'
-                        : agent.status === 'success'
-                        ? 'bg-green-400'
-                        : 'bg-red-400'
-                    }`}
-                  />
+                  {/* Status Dot */}
+                  <div className={`status-dot status-${agent.status}`} />
+                  
+                  {/* Agent Info */}
                   <div>
-                    <div className="text-white font-medium">{agent.name}</div>
-                    <div className="text-sm text-dark-400">{agent.role}</div>
+                    <div className="font-display text-sm font-medium text-text-primary">
+                      {agent.name}
+                    </div>
+                    <div className="text-xs text-steel-500">{agent.role}</div>
                   </div>
                 </div>
-                <span
-                  className={`px-2 py-1 rounded text-xs ${
-                    agent.status === 'idle'
-                      ? 'bg-gray-700 text-gray-400'
-                      : agent.status === 'processing'
-                      ? 'bg-yellow-900 text-yellow-400'
-                      : agent.status === 'success'
-                      ? 'bg-green-900 text-green-400'
-                      : 'bg-red-900 text-red-400'
-                  }`}
-                >
+                
+                {/* Status Badge */}
+                <span className={`badge badge-${agent.status}`}>
                   {agent.status}
                 </span>
               </div>
@@ -109,80 +152,158 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* System Health */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-            <Database className="w-5 h-5 text-primary-400" />
-            系统状态
-          </h2>
+        {/* System Health Panel */}
+        <div className="lg:col-span-5 card">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+                <Database className="w-4 h-4 text-success" />
+              </div>
+              <div>
+                <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+                  System Health
+                </h2>
+                <p className="text-xs text-steel-500">All services running</p>
+              </div>
+            </div>
+          </div>
+
           {healthLoading ? (
-            <div className="text-dark-400">加载中...</div>
+            <div className="flex items-center justify-center py-8">
+              <div className="w-6 h-6 border-2 border-electric border-t-transparent rounded-full animate-spin" />
+            </div>
           ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-dark-300">状态</span>
-                <span
-                  className={`font-medium ${
-                    health?.status === 'healthy'
-                      ? 'text-green-400'
-                      : health?.status === 'degraded'
-                      ? 'text-yellow-400'
-                      : 'text-red-400'
-                  }`}
-                >
-                  {health?.status || 'healthy'}
+            <div className="space-y-4">
+              {/* Overall Status */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                <span className="text-steel-400 text-sm">Overall Status</span>
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${
+                    health?.status === 'healthy' ? 'bg-success' : 
+                    health?.status === 'degraded' ? 'bg-warning' : 'bg-error'
+                  }`} />
+                  <span className={`font-display text-sm font-medium ${
+                    health?.status === 'healthy' ? 'text-success' : 
+                    health?.status === 'degraded' ? 'text-warning' : 'text-error'
+                  }`}>
+                    {health?.status?.toUpperCase() || 'HEALTHY'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Version */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                <span className="text-steel-400 text-sm">Version</span>
+                <span className="font-mono text-sm text-text-secondary">
+                  {health?.version || 'v0.1.0'}
                 </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-dark-300">版本</span>
-                <span className="text-dark-100">{health?.version || 'v0.1.0'}</span>
-              </div>
-              {health?.components?.map((comp, idx) => (
-                <div key={idx} className="flex items-center justify-between text-sm">
-                  <span className="text-dark-400">{comp.name}</span>
-                  <span className="text-dark-100">{comp.status}</span>
-                </div>
-              ))}
+
+              {/* Components */}
+              {health?.components && typeof health.components === 'object' && (
+                Object.entries(health.components).map(([name, status]) => (
+                  <div
+                    key={name}
+                    className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50"
+                  >
+                    <div className="flex items-center gap-2">
+                      {name.includes('redis') || name.includes('memory') ? (
+                        <Server className="w-4 h-4 text-steel-500" />
+                      ) : (
+                        <Cpu className="w-4 h-4 text-steel-500" />
+                      )}
+                      <span className="text-steel-400 text-sm capitalize">{name.replace(/_/g, ' ')}</span>
+                    </div>
+                    <span className={`font-mono text-xs ${status ? 'text-success' : 'text-error'}`}>
+                      {status ? 'ONLINE' : 'OFFLINE'}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* Recent Tasks */}
+      {/* ============================================
+          Recent Tasks Table
+          ============================================ */}
       <div className="card">
-        <h2 className="text-lg font-semibold text-white mb-4">最近任务</h2>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+              <Activity className="w-4 h-4 text-warning" />
+            </div>
+            <div>
+              <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+                Recent Tasks
+              </h2>
+              <p className="text-xs text-steel-500">Last {Math.min(tasks.length, 10)} operations</p>
+            </div>
+          </div>
+        </div>
+
         {tasks.length === 0 ? (
-          <div className="text-center py-8 text-dark-400">
-            暂无任务记录
+          <div className="flex flex-col items-center justify-center py-12 text-steel-500">
+            <Activity className="w-10 h-10 mb-3 opacity-30" />
+            <p className="text-sm">No tasks recorded yet</p>
+            <p className="text-xs text-steel-600 mt-1">Create a new task to get started</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-dark-400 text-sm border-b border-dark-700">
-                  <th className="pb-3">任务ID</th>
-                  <th className="pb-3">意图</th>
-                  <th className="pb-3">状态</th>
-                  <th className="pb-3">创建时间</th>
+                <tr className="border-b border-steel-800/50">
+                  <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
+                    Task ID
+                  </th>
+                  <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
+                    Intent
+                  </th>
+                  <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
+                    Status
+                  </th>
+                  <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3">
+                    Created
+                  </th>
                 </tr>
               </thead>
-              <tbody>
-                {tasks.slice(0, 5).map((task) => (
-                  <tr
+              <tbody className="divide-y divide-steel-800/30">
+                {tasks.slice(0, 10).map((task) => (
+                  <tr 
                     key={task.task_id}
-                    className="border-b border-dark-700 last:border-0"
+                    className="hover:bg-navy-1000/30 transition-colors"
                   >
-                    <td className="py-3 font-mono text-sm text-dark-100">
-                      {task.task_id.slice(0, 8)}...
+                    <td className="py-3 pr-4">
+                      <span className="font-mono text-sm text-electric">
+                        {task.task_id.slice(0, 8)}
+                      </span>
+                      <span className="font-mono text-sm text-steel-600">
+                        {task.task_id.slice(8, 12)}
+                      </span>
                     </td>
-                    <td className="py-3 text-dark-300">{task.intent || '-'}</td>
-                    <td className="py-3">
-                      <span className="px-2 py-1 rounded bg-dark-700 text-sm">
+                    <td className="py-3 pr-4">
+                      <span className="text-sm text-text-secondary">
+                        {task.intent || '—'}
+                      </span>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <span className={`badge badge-${
+                        task.state === TaskState.SUCCESS ? 'success' :
+                        task.state === TaskState.FAILED ? 'error' :
+                        task.state === TaskState.RUNNING ? 'processing' : 'idle'
+                      }`}>
                         {taskStateLabels[task.state]}
                       </span>
                     </td>
-                    <td className="py-3 text-dark-400 text-sm">
-                      {new Date(task.created_at).toLocaleString()}
+                    <td className="py-3">
+                      <span className="font-mono text-xs text-steel-500">
+                        {new Date(task.created_at).toLocaleTimeString('zh-CN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        })}
+                      </span>
                     </td>
                   </tr>
                 ))}

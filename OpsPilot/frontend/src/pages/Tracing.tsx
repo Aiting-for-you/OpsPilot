@@ -1,21 +1,20 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { 
   Activity, 
   Clock, 
   Zap, 
-  ArrowRight, 
   ChevronDown, 
   ChevronRight,
   Cpu,
   MessageSquare,
   Wrench,
-  AlertCircle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Network
 } from 'lucide-react';
-import type { TraceSpan, LLMCallTrace, AgentCallTrace, ToolCallTrace, TraceEvent } from '../types';
+import type { TraceSpan } from '../types';
 
-// 模拟追踪数据
+// Mock trace data
 const mockSpans: TraceSpan[] = [
   {
     span_id: 'span-1',
@@ -39,7 +38,7 @@ const mockSpans: TraceSpan[] = [
     parent_id: 'span-1',
     attributes: { agent_name: 'IntentAgent', model: 'gpt-4' },
     events: [
-      { name: 'agent.input', timestamp: Date.now() - 4800, attributes: { data: '查询库存' } },
+      { name: 'agent.input', timestamp: Date.now() - 4800, attributes: { data: 'Query inventory' } },
       { name: 'agent.output', timestamp: Date.now() - 4600, attributes: { intent: 'query_stock' } },
     ],
   },
@@ -94,12 +93,12 @@ const mockSpans: TraceSpan[] = [
 ];
 
 export function Tracing() {
-  const [spans, setSpans] = useState<TraceSpan[]>(mockSpans);
+  const [spans] = useState<TraceSpan[]>(mockSpans);
   const [selectedSpan, setSelectedSpan] = useState<TraceSpan | null>(null);
   const [expandedSpans, setExpandedSpans] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<'all' | 'llm' | 'agent' | 'tool'>('all');
 
-  // 过滤 spans
+  // Filter spans
   const filteredSpans = spans.filter(span => {
     if (filter === 'all') return true;
     if (filter === 'llm') return span.name.startsWith('llm.');
@@ -108,15 +107,15 @@ export function Tracing() {
     return true;
   });
 
-  // 获取顶层 spans
+  // Get root spans
   const rootSpans = filteredSpans.filter(s => !s.parent_id);
 
-  // 获取子 spans
+  // Get child spans
   const getChildSpans = (parentId: string): TraceSpan[] => {
     return filteredSpans.filter(s => s.parent_id === parentId);
   };
 
-  // 切换展开状态
+  // Toggle expand
   const toggleExpand = (spanId: string) => {
     const newExpanded = new Set(expandedSpans);
     if (newExpanded.has(spanId)) {
@@ -127,7 +126,7 @@ export function Tracing() {
     setExpandedSpans(newExpanded);
   };
 
-  // 计算时间轴位置
+  // Calculate timeline position
   const getTimelinePosition = (span: TraceSpan): { left: number; width: number } => {
     const rootSpan = spans.find(s => !s.parent_id);
     if (!rootSpan) return { left: 0, width: 100 };
@@ -140,52 +139,52 @@ export function Tracing() {
     return { left: Math.max(0, left), width: Math.min(100 - left, width) };
   };
 
-  // 获取 span 图标
+  // Get span icon
   const getSpanIcon = (name: string) => {
-    if (name.startsWith('llm.')) return <MessageSquare className="w-4 h-4 text-purple-400" />;
-    if (name.startsWith('agent.')) return <Cpu className="w-4 h-4 text-blue-400" />;
-    if (name.startsWith('tool.')) return <Wrench className="w-4 h-4 text-green-400" />;
-    return <Activity className="w-4 h-4 text-gray-400" />;
+    if (name.startsWith('llm.')) return <MessageSquare className="w-4 h-4 text-warning" />;
+    if (name.startsWith('agent.')) return <Cpu className="w-4 h-4 text-electric" />;
+    if (name.startsWith('tool.')) return <Wrench className="w-4 h-4 text-success" />;
+    return <Activity className="w-4 h-4 text-steel-500" />;
   };
 
-  // 获取状态图标
+  // Get status icon
   const getStatusIcon = (status: string) => {
-    if (status === 'OK') return <CheckCircle className="w-4 h-4 text-green-400" />;
-    if (status === 'ERROR') return <XCircle className="w-4 h-4 text-red-400" />;
-    return <Clock className="w-4 h-4 text-gray-400" />;
+    if (status === 'OK') return <CheckCircle className="w-4 h-4 text-success" />;
+    if (status === 'ERROR') return <XCircle className="w-4 h-4 text-error" />;
+    return <Clock className="w-4 h-4 text-steel-500" />;
   };
 
-  // Span 详情面板
+  // Span detail panel
   const SpanDetail = ({ span }: { span: TraceSpan }) => (
-    <div className="p-4 bg-dark-800 rounded-lg space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
         <div className="flex items-center gap-2">
           {getSpanIcon(span.name)}
-          <span className="text-white font-medium">{span.name}</span>
+          <span className="font-display text-sm font-medium text-text-primary">{span.name}</span>
         </div>
         {getStatusIcon(span.status)}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <span className="text-dark-400">Span ID</span>
-          <p className="text-dark-200 font-mono text-xs">{span.span_id}</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+          <div className="text-xs text-steel-500 mb-1">Span ID</div>
+          <div className="font-mono text-xs text-electric">{span.span_id}</div>
         </div>
-        <div>
-          <span className="text-dark-400">Duration</span>
-          <p className="text-dark-200">{span.duration_ms.toFixed(2)}ms</p>
+        <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+          <div className="text-xs text-steel-500 mb-1">Duration</div>
+          <div className="font-mono text-xs text-text-secondary">{span.duration_ms.toFixed(2)}ms</div>
         </div>
       </div>
 
       {/* Attributes */}
       {Object.keys(span.attributes).length > 0 && (
         <div>
-          <h4 className="text-dark-400 text-sm mb-2">Attributes</h4>
-          <div className="bg-dark-900 rounded p-2 font-mono text-xs space-y-1">
+          <div className="label mb-2">Attributes</div>
+          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50 font-mono text-xs space-y-1">
             {Object.entries(span.attributes).map(([key, value]) => (
               <div key={key} className="flex">
-                <span className="text-primary-400">{key}:</span>
-                <span className="text-dark-300 ml-2">
+                <span className="text-electric">{key}:</span>
+                <span className="text-steel-400 ml-2">
                   {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                 </span>
               </div>
@@ -197,16 +196,16 @@ export function Tracing() {
       {/* Events */}
       {span.events.length > 0 && (
         <div>
-          <h4 className="text-dark-400 text-sm mb-2">Events</h4>
+          <div className="label mb-2">Events</div>
           <div className="space-y-2">
             {span.events.map((event, idx) => (
-              <div key={idx} className="bg-dark-900 rounded p-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <Zap className="w-3 h-3 text-yellow-400" />
-                  <span className="text-dark-200">{event.name}</span>
+              <div key={idx} className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-3 h-3 text-warning" />
+                  <span className="text-xs text-text-primary">{event.name}</span>
                 </div>
                 {Object.keys(event.attributes).length > 0 && (
-                  <div className="mt-1 font-mono text-xs text-dark-400">
+                  <div className="mt-2 font-mono text-xs text-steel-500">
                     {JSON.stringify(event.attributes)}
                   </div>
                 )}
@@ -218,18 +217,22 @@ export function Tracing() {
     </div>
   );
 
-  // Span 树节点
+  // Span tree node
   const SpanNode = ({ span, depth = 0 }: { span: TraceSpan; depth?: number }) => {
     const children = getChildSpans(span.span_id);
     const isExpanded = expandedSpans.has(span.span_id);
     const timeline = getTimelinePosition(span);
 
     return (
-      <div className="border-l-2 border-dark-700 ml-2">
+      <div className="border-l border-steel-800/50 ml-3">
         <div
-          className={`flex items-center gap-2 py-2 px-3 hover:bg-dark-700 cursor-pointer ${
-            selectedSpan?.span_id === span.span_id ? 'bg-dark-700' : ''
-          }`}
+          className={`
+            flex items-center gap-3 py-2.5 px-3 cursor-pointer transition-all
+            ${selectedSpan?.span_id === span.span_id 
+              ? 'bg-electric/5 border-l-2 border-l-electric -ml-0.5 pl-2.5' 
+              : 'hover:bg-navy-1000/30'
+            }
+          `}
           style={{ paddingLeft: `${depth * 16 + 12}px` }}
           onClick={() => setSelectedSpan(span)}
         >
@@ -239,32 +242,28 @@ export function Tracing() {
                 e.stopPropagation();
                 toggleExpand(span.span_id);
               }}
-              className="text-dark-400 hover:text-white"
+              className="text-steel-500 hover:text-electric transition-colors"
             >
-              {isExpanded ? (
-                <ChevronDown className="w-4 h-4" />
-              ) : (
-                <ChevronRight className="w-4 h-4" />
-              )}
+              {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </button>
           )}
           {children.length === 0 && <div className="w-4" />}
           
           {getSpanIcon(span.name)}
-          <span className="text-dark-200 text-sm flex-1">{span.name}</span>
-          <span className="text-dark-400 text-xs">{span.duration_ms.toFixed(1)}ms</span>
+          <span className="text-sm text-text-secondary flex-1 truncate">{span.name}</span>
+          <span className="font-mono text-xs text-steel-500">{span.duration_ms.toFixed(1)}ms</span>
           {getStatusIcon(span.status)}
         </div>
 
         {/* Timeline bar */}
         <div 
-          className="h-1 bg-dark-800 relative mb-1"
-          style={{ marginLeft: `${depth * 16 + 24}px`, marginRight: '12px' }}
+          className="h-1 bg-navy-1000/50 relative mb-1 rounded-full overflow-hidden"
+          style={{ marginLeft: `${depth * 16 + 28}px`, marginRight: '16px' }}
         >
           <div
-            className={`absolute h-full rounded ${
-              span.status === 'OK' ? 'bg-primary-500' : 
-              span.status === 'ERROR' ? 'bg-red-500' : 'bg-gray-500'
+            className={`absolute h-full rounded-full ${
+              span.status === 'OK' ? 'bg-electric' : 
+              span.status === 'ERROR' ? 'bg-error' : 'bg-steel-600'
             }`}
             style={{ left: `${timeline.left}%`, width: `${timeline.width}%` }}
           />
@@ -279,27 +278,32 @@ export function Tracing() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">追踪分析</h1>
-          <p className="text-dark-400 text-sm mt-1">
-            OpenTelemetry 集成 · LLM/Agent/Tool 调用链追踪
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
+            <Network className="w-4 h-4 text-electric" />
+          </div>
+          <div>
+            <h1 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              Tracing Analysis
+            </h1>
+            <p className="text-xs text-steel-500">OpenTelemetry integration · LLM/Agent/Tool traces</p>
+          </div>
         </div>
         <div className="flex gap-2">
           {(['all', 'llm', 'agent', 'tool'] as const).map(f => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded text-sm ${
+              className={`px-3 py-1.5 rounded-md text-xs font-mono uppercase transition-all ${
                 filter === f
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-dark-700 text-dark-300 hover:text-white'
+                  ? 'bg-electric/20 text-electric border border-electric/30'
+                  : 'bg-navy-1000/50 text-steel-500 border border-steel-800/50 hover:border-steel-700'
               }`}
             >
-              {f === 'all' ? '全部' : f.toUpperCase()}
+              {f}
             </button>
           ))}
         </div>
@@ -312,10 +316,8 @@ export function Tracing() {
           <div className="stat-value">{spans.length}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Total Duration</div>
-          <div className="stat-value">
-            {spans.find(s => !s.parent_id)?.duration_ms.toFixed(0) || 0}ms
-          </div>
+          <div className="stat-label">Duration</div>
+          <div className="stat-value">{spans.find(s => !s.parent_id)?.duration_ms.toFixed(0) || 0}ms</div>
         </div>
         <div className="stat-card">
           <div className="stat-label">LLM Calls</div>
@@ -328,12 +330,16 @@ export function Tracing() {
       </div>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Span Tree */}
-        <div className="lg:col-span-2 card">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-primary-400" />
-            <h2 className="text-lg font-semibold text-white">调用链</h2>
+        <div className="lg:col-span-8 card">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+              <Activity className="w-4 h-4 text-success" />
+            </div>
+            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              Call Chain
+            </h2>
           </div>
           <div className="space-y-1">
             {rootSpans.map(span => (
@@ -343,17 +349,21 @@ export function Tracing() {
         </div>
 
         {/* Detail Panel */}
-        <div className="card">
-          <div className="flex items-center gap-2 mb-4">
-            <Zap className="w-5 h-5 text-primary-400" />
-            <h2 className="text-lg font-semibold text-white">详情</h2>
+        <div className="lg:col-span-4 card">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+              <Zap className="w-4 h-4 text-warning" />
+            </div>
+            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              Details
+            </h2>
           </div>
           {selectedSpan ? (
             <SpanDetail span={selectedSpan} />
           ) : (
-            <div className="text-center py-8 text-dark-400">
-              <Activity className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>选择一个 Span 查看详情</p>
+            <div className="flex flex-col items-center justify-center py-12 text-steel-500">
+              <Activity className="w-10 h-10 mb-3 opacity-20" />
+              <p className="text-sm">Select a span to view details</p>
             </div>
           )}
         </div>
@@ -361,47 +371,50 @@ export function Tracing() {
 
       {/* Waterfall View */}
       <div className="card">
-        <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-5 h-5 text-primary-400" />
-          <h2 className="text-lg font-semibold text-white">时间轴视图</h2>
-        </div>
-        <div className="relative">
-          {/* Time markers */}
-          <div className="flex justify-between text-xs text-dark-500 mb-2">
-            <span>0ms</span>
-            <span>1s</span>
-            <span>2s</span>
-            <span>3s</span>
-            <span>4s</span>
-            <span>5s</span>
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
+            <Clock className="w-4 h-4 text-electric" />
           </div>
-          
-          {/* Spans */}
-          <div className="space-y-2">
-            {filteredSpans.map(span => {
-              const timeline = getTimelinePosition(span);
-              return (
-                <div key={span.span_id} className="flex items-center gap-2">
-                  <div className="w-40 text-sm text-dark-300 truncate">
-                    {span.name}
-                  </div>
-                  <div className="flex-1 h-6 bg-dark-800 rounded relative">
-                    <div
-                      className={`absolute h-full rounded flex items-center px-2 text-xs ${
-                        span.status === 'OK' ? 'bg-primary-600' : 
-                        span.status === 'ERROR' ? 'bg-red-600' : 'bg-gray-600'
-                      }`}
-                      style={{ left: `${timeline.left}%`, width: `${Math.max(timeline.width, 2)}%` }}
-                    >
-                      {timeline.width > 10 && (
-                        <span className="text-white truncate">{span.duration_ms.toFixed(0)}ms</span>
-                      )}
-                    </div>
+          <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            Timeline View
+          </h2>
+        </div>
+        
+        {/* Time markers */}
+        <div className="flex justify-between text-xs text-steel-600 mb-3 font-mono px-44">
+          <span>0ms</span>
+          <span>1s</span>
+          <span>2s</span>
+          <span>3s</span>
+          <span>4s</span>
+          <span>5s</span>
+        </div>
+        
+        {/* Spans */}
+        <div className="space-y-2">
+          {filteredSpans.map(span => {
+            const timeline = getTimelinePosition(span);
+            return (
+              <div key={span.span_id} className="flex items-center gap-3">
+                <div className="w-40 text-xs text-steel-400 truncate font-mono">
+                  {span.name}
+                </div>
+                <div className="flex-1 h-6 bg-navy-1000/50 rounded relative overflow-hidden">
+                  <div
+                    className={`absolute h-full rounded flex items-center px-2 text-xs ${
+                      span.status === 'OK' ? 'bg-electric' : 
+                      span.status === 'ERROR' ? 'bg-error' : 'bg-steel-600'
+                    }`}
+                    style={{ left: `${timeline.left}%`, width: `${Math.max(timeline.width, 2)}%` }}
+                  >
+                    {timeline.width > 10 && (
+                      <span className="text-navy-950 font-mono truncate">{span.duration_ms.toFixed(0)}ms</span>
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

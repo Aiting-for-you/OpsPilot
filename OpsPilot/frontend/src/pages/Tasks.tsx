@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Play, RefreshCw, Search, ChevronRight, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Play, RefreshCw, ChevronRight, Clock, CheckCircle, XCircle, Terminal, Zap, ArrowRight } from 'lucide-react';
 import { api } from '../services/api';
-import { useAppStore, taskStateLabels, taskStateColors } from '../store';
+import { useAppStore, taskStateLabels } from '../store';
 import { TaskState, Task, TaskResult } from '../types';
 
 const terminalStates = [TaskState.SUCCESS, TaskState.FAILED, TaskState.REJECTED] as const;
@@ -13,7 +13,7 @@ export function Tasks() {
   const queryClient = useQueryClient();
   const { addTask, tasks } = useAppStore();
 
-  // 创建任务
+  // Create task mutation
   const createTaskMutation = useMutation({
     mutationFn: (userInput: string) => api.createTask(userInput),
     onSuccess: (data) => {
@@ -29,7 +29,7 @@ export function Tasks() {
     },
   });
 
-  // 查询任务状态
+  // Query task status
   const { refetch: refetchTask } = useQuery({
     queryKey: ['task', selectedTask?.task_id],
     queryFn: () => api.getTaskStatus(selectedTask?.task_id || ''),
@@ -43,7 +43,7 @@ export function Tasks() {
     },
   });
 
-  // 获取任务结果
+  // Get task result
   const { data: taskResult } = useQuery({
     queryKey: ['task-result', selectedTask?.task_id],
     queryFn: () => api.getTaskResult(selectedTask?.task_id || ''),
@@ -58,73 +58,121 @@ export function Tasks() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Task Input */}
+    <div className="space-y-6 animate-fade-in">
+      {/* ============================================
+          Task Input Panel
+          ============================================ */}
       <div className="card">
-        <h2 className="text-lg font-semibold text-white mb-4">创建任务</h2>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
+            <Terminal className="w-4 h-4 text-electric" />
+          </div>
+          <div>
+            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              Create Task
+            </h2>
+            <p className="text-xs text-steel-500">Execute natural language commands</p>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="flex gap-3">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="输入任务指令，如：查询供应商库存..."
-            className="input flex-1"
-          />
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="输入任务指令，如：查询供应商库存、创建采购订单..."
+              className="input pr-10"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-steel-600">
+              <Zap className="w-4 h-4" />
+            </div>
+          </div>
           <button
             type="submit"
             disabled={createTaskMutation.isPending || !input.trim()}
-            className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary min-w-[100px]"
           >
             {createTaskMutation.isPending ? (
               <RefreshCw className="w-4 h-4 animate-spin" />
             ) : (
-              <Play className="w-4 h-4" />
+              <>
+                <Play className="w-4 h-4" />
+                Execute
+              </>
             )}
-            执行
           </button>
         </form>
       </div>
 
-      {/* Tasks List and Detail */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* ============================================
+          Tasks Grid
+          ============================================ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
         {/* Task List */}
-        <div className="lg:col-span-1 card">
+        <div className="lg:col-span-4 card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">任务列表</h2>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+                <Clock className="w-4 h-4 text-warning" />
+              </div>
+              <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+                Task Queue
+              </h2>
+            </div>
             <button
               onClick={() => queryClient.invalidateQueries({ queryKey: ['tasks'] })}
-              className="text-dark-400 hover:text-white"
+              className="p-1.5 rounded-md text-steel-500 hover:text-electric hover:bg-steel-800/50 transition-all"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
           </div>
-          <div className="space-y-2 max-h-[500px] overflow-auto scrollbar-thin">
+
+          <div className="space-y-2 max-h-[500px] overflow-y-auto scrollbar-custom">
             {tasks.length === 0 ? (
-              <div className="text-center py-8 text-dark-400">暂无任务</div>
+              <div className="flex flex-col items-center justify-center py-12 text-steel-500">
+                <Terminal className="w-8 h-8 mb-2 opacity-30" />
+                <p className="text-sm">No tasks yet</p>
+              </div>
             ) : (
-              tasks.map((task) => (
+              tasks.map((task, idx) => (
                 <div
                   key={task.task_id}
                   onClick={() => setSelectedTask(task)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                    selectedTask?.task_id === task.task_id
-                      ? 'bg-primary-600 text-white'
-                      : 'bg-dark-700 hover:bg-dark-600 text-dark-100'
-                  }`}
+                  className={`
+                    group flex items-center justify-between p-3 rounded-lg cursor-pointer
+                    border transition-all duration-150
+                    ${selectedTask?.task_id === task.task_id
+                      ? 'bg-electric/5 border-electric/30'
+                      : 'bg-navy-1000/50 border-steel-800/50 hover:border-steel-700'
+                    }
+                  `}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-sm">
-                      {task.task_id.slice(0, 8)}
-                    </span>
-                    <ChevronRight className="w-4 h-4" />
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`text-xs ${taskStateColors[task.state]}`}>
+                  <div className="flex items-center gap-3">
+                    <span className={`badge badge-${
+                      task.state === TaskState.SUCCESS ? 'success' :
+                      task.state === TaskState.FAILED ? 'error' :
+                      task.state === TaskState.RUNNING ? 'processing' : 'idle'
+                    }`}>
                       {taskStateLabels[task.state]}
                     </span>
-                    <span className="text-xs text-dark-400">
-                      {new Date(task.created_at).toLocaleTimeString()}
+                    <div>
+                      <span className="font-mono text-sm text-electric">
+                        {task.task_id.slice(0, 8)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-steel-500 font-mono">
+                      {new Date(task.created_at).toLocaleTimeString('zh-CN', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
                     </span>
+                    <ChevronRight className={`w-4 h-4 text-steel-600 group-hover:text-electric transition-colors ${
+                      selectedTask?.task_id === task.task_id ? 'text-electric' : ''
+                    }`} />
                   </div>
                 </div>
               ))
@@ -133,61 +181,69 @@ export function Tasks() {
         </div>
 
         {/* Task Detail */}
-        <div className="lg:col-span-2 card">
-          <h2 className="text-lg font-semibold text-white mb-4">任务详情</h2>
+        <div className="lg:col-span-8 card">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+              <ArrowRight className="w-4 h-4 text-success" />
+            </div>
+            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              Task Detail
+            </h2>
+          </div>
+
           {!selectedTask ? (
-            <div className="text-center py-12 text-dark-400">
-              选择一个任务查看详情
+            <div className="flex flex-col items-center justify-center py-16 text-steel-500">
+              <Terminal className="w-12 h-12 mb-3 opacity-20" />
+              <p className="text-sm">Select a task to view details</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {/* Basic Info */}
+            <div className="space-y-5">
+              {/* Basic Info Grid */}
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="label">任务ID</div>
-                  <div className="font-mono text-sm text-dark-100">
+                <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                  <div className="label">Task ID</div>
+                  <div className="font-mono text-sm text-electric break-all">
                     {selectedTask.task_id}
                   </div>
                 </div>
-                <div>
-                  <div className="label">状态</div>
-                  <div className={taskStateColors[selectedTask.state]}>
+                <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                  <div className="label">Status</div>
+                  <span className={`badge badge-${
+                    selectedTask.state === TaskState.SUCCESS ? 'success' :
+                    selectedTask.state === TaskState.FAILED ? 'error' :
+                    selectedTask.state === TaskState.RUNNING ? 'processing' : 'idle'
+                  }`}>
                     {taskStateLabels[selectedTask.state]}
+                  </span>
+                </div>
+                <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                  <div className="label">Intent</div>
+                  <div className="text-text-secondary">
+                    {selectedTask.intent || '—'}
                   </div>
                 </div>
-                <div>
-                  <div className="label">意图</div>
-                  <div className="text-dark-100">
-                    {selectedTask.intent || '-'}
-                  </div>
-                </div>
-                <div>
-                  <div className="label">创建时间</div>
-                  <div className="text-dark-100">
-                    {new Date(selectedTask.created_at).toLocaleString()}
+                <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                  <div className="label">Created At</div>
+                  <div className="font-mono text-sm text-text-secondary">
+                    {new Date(selectedTask.created_at).toLocaleString('zh-CN')}
                   </div>
                 </div>
               </div>
 
               {/* Execution Trace */}
-              {taskResult?.execution_trace && (
+              {taskResult?.execution_trace && taskResult.execution_trace.length > 0 && (
                 <div>
-                  <div className="label mb-2">执行轨迹</div>
+                  <div className="label mb-3">Execution Trace</div>
                   <div className="space-y-2">
                     {taskResult.execution_trace.map((trace, idx) => (
                       <div
                         key={idx}
-                        className="flex items-start gap-3 p-3 bg-dark-700 rounded-lg"
+                        className="flex items-start gap-3 p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50"
                       >
-                        <div
-                          className={`mt-1 ${
-                            trace.status === 'success'
-                              ? 'text-green-400'
-                              : trace.status === 'failed'
-                              ? 'text-red-400'
-                              : 'text-yellow-400'
-                          }`}
-                        >
+                        <div className={`mt-0.5 ${
+                          trace.status === 'success' ? 'text-success' :
+                          trace.status === 'failed' ? 'text-error' : 'text-warning'
+                        }`}>
                           {trace.status === 'success' ? (
                             <CheckCircle className="w-4 h-4" />
                           ) : trace.status === 'failed' ? (
@@ -196,10 +252,10 @@ export function Tasks() {
                             <Clock className="w-4 h-4" />
                           )}
                         </div>
-                        <div className="flex-1">
-                          <div className="text-dark-100">{trace.action}</div>
-                          <div className="text-xs text-dark-400">
-                            {new Date(trace.timestamp).toLocaleTimeString()}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-text-primary text-sm">{trace.action}</div>
+                          <div className="font-mono text-xs text-steel-500 mt-1">
+                            {new Date(trace.timestamp).toLocaleTimeString('zh-CN')}
                           </div>
                         </div>
                       </div>
@@ -211,8 +267,8 @@ export function Tasks() {
               {/* Result */}
               {taskResult?.result && (
                 <div>
-                  <div className="label mb-2">执行结果</div>
-                  <pre className="p-4 bg-dark-700 rounded-lg overflow-auto text-sm text-dark-100">
+                  <div className="label mb-3">Result</div>
+                  <pre className="code-block max-h-60 overflow-auto">
                     {JSON.stringify(taskResult.result, null, 2)}
                   </pre>
                 </div>

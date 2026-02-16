@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Wrench, Play, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Wrench, Play, Loader2, CheckCircle, AlertCircle, Zap, Terminal, Code, Clock } from 'lucide-react';
 import { api } from '../services/api';
 import { useAppStore } from '../store';
 import { Tool } from '../types';
@@ -10,7 +10,7 @@ export function Tools() {
   const [params, setParams] = useState<string>('{}');
   const { tools, setTools } = useAppStore();
 
-  // 获取工具列表
+  // Fetch tools list
   const { isLoading } = useQuery({
     queryKey: ['tools'],
     queryFn: async () => {
@@ -20,7 +20,7 @@ export function Tools() {
     },
   });
 
-  // 调用工具
+  // Call tool mutation
   const callToolMutation = useMutation({
     mutationFn: () => {
       if (!selectedTool) throw new Error('No tool selected');
@@ -39,22 +39,34 @@ export function Tools() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="space-y-6 animate-fade-in">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
         {/* Tools List */}
-        <div className="card">
-          <div className="flex items-center gap-2 mb-4">
-            <Wrench className="w-5 h-5 text-primary-400" />
-            <h2 className="text-lg font-semibold text-white">工具列表</h2>
+        <div className="lg:col-span-4 card">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
+              <Wrench className="w-4 h-4 text-electric" />
+            </div>
+            <div>
+              <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+                Tool Registry
+              </h2>
+              <p className="text-xs text-steel-500">{tools.length} tools available</p>
+            </div>
           </div>
+
           {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-primary-400" />
+            <div className="flex items-center justify-center py-12">
+              <div className="w-6 h-6 border-2 border-electric border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
-            <div className="space-y-2 max-h-[500px] overflow-auto scrollbar-thin">
+            <div className="space-y-2 max-h-[500px] overflow-y-auto scrollbar-custom">
               {tools.length === 0 ? (
-                <div className="text-center py-8 text-dark-400">暂无工具</div>
+                <div className="flex flex-col items-center justify-center py-12 text-steel-500">
+                  <Wrench className="w-8 h-8 mb-2 opacity-30" />
+                  <p className="text-sm">No tools registered</p>
+                </div>
               ) : (
                 tools.map((tool) => (
                   <div
@@ -63,16 +75,25 @@ export function Tools() {
                       setSelectedTool(tool);
                       setParams('{}');
                     }}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                      selectedTool?.name === tool.name
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-dark-700 hover:bg-dark-600 text-dark-100'
-                    }`}
+                    className={`
+                      group p-3 rounded-lg cursor-pointer border transition-all duration-150
+                      ${selectedTool?.name === tool.name
+                        ? 'bg-electric/5 border-electric/30'
+                        : 'bg-navy-1000/50 border-steel-800/50 hover:border-steel-700'
+                      }
+                    `}
                   >
-                    <div className="font-medium">{tool.name}</div>
-                    <div className="text-sm text-dark-300 line-clamp-2 mt-1">
-                      {tool.description}
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className={`w-1.5 h-1.5 rounded-full ${
+                        selectedTool?.name === tool.name ? 'bg-electric' : 'bg-steel-600'
+                      }`} />
+                      <span className="font-display text-sm font-medium text-text-primary">
+                        {tool.name}
+                      </span>
                     </div>
+                    <p className="text-xs text-steel-500 line-clamp-2 ml-3.5">
+                      {tool.description}
+                    </p>
                   </div>
                 ))
               )}
@@ -80,28 +101,45 @@ export function Tools() {
           )}
         </div>
 
-        {/* Tool Detail & Execution */}
-        <div className="lg:col-span-2 card">
-          <h2 className="text-lg font-semibold text-white mb-4">工具调用</h2>
+        {/* Tool Execution Panel */}
+        <div className="lg:col-span-8 card">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+              <Terminal className="w-4 h-4 text-success" />
+            </div>
+            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              Tool Execution
+            </h2>
+          </div>
+
           {!selectedTool ? (
-            <div className="text-center py-12 text-dark-400">
-              选择一个工具进行调用
+            <div className="flex flex-col items-center justify-center py-16 text-steel-500">
+              <Wrench className="w-12 h-12 mb-3 opacity-20" />
+              <p className="text-sm">Select a tool to execute</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Tool Info */}
-              <div className="p-4 bg-dark-700 rounded-lg">
-                <div className="text-white font-medium">{selectedTool.name}</div>
-                <div className="text-dark-300 text-sm mt-1">
-                  {selectedTool.description}
+              <div className="p-4 rounded-lg bg-navy-1000/50 border border-electric/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 rounded-full bg-electric" />
+                  <span className="font-display text-sm font-semibold text-electric">
+                    {selectedTool.name}
+                  </span>
                 </div>
+                <p className="text-sm text-steel-400 ml-4">
+                  {selectedTool.description}
+                </p>
               </div>
 
               {/* Input Schema */}
               {selectedTool.input_schema && (
                 <div>
-                  <div className="label mb-2">输入参数 Schema</div>
-                  <pre className="p-4 bg-dark-700 rounded-lg overflow-auto text-xs text-dark-100 max-h-40">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Code className="w-4 h-4 text-steel-500" />
+                    <span className="label mb-0">Input Schema</span>
+                  </div>
+                  <pre className="code-block max-h-40 text-xs">
                     {JSON.stringify(selectedTool.input_schema, null, 2)}
                   </pre>
                 </div>
@@ -109,11 +147,14 @@ export function Tools() {
 
               {/* Params Input */}
               <div>
-                <div className="label mb-2">参数 (JSON)</div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-4 h-4 text-steel-500" />
+                  <span className="label mb-0">Parameters (JSON)</span>
+                </div>
                 <textarea
                   value={params}
                   onChange={(e) => setParams(e.target.value)}
-                  className="input h-32 font-mono text-sm"
+                  className="input h-32 font-mono text-sm resize-none"
                   placeholder='{"key": "value"}'
                 />
               </div>
@@ -122,17 +163,17 @@ export function Tools() {
               <button
                 onClick={handleCallTool}
                 disabled={callToolMutation.isPending}
-                className="btn-primary w-full flex items-center justify-center gap-2"
+                className="btn-primary w-full"
               >
                 {callToolMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    执行中...
+                    Executing...
                   </>
                 ) : (
                   <>
                     <Play className="w-4 h-4" />
-                    执行工具
+                    Execute Tool
                   </>
                 )}
               </button>
@@ -140,30 +181,36 @@ export function Tools() {
               {/* Result */}
               {callToolMutation.data && (
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-3">
                     {callToolMutation.data.success ? (
-                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      <CheckCircle className="w-4 h-4 text-success" />
                     ) : (
-                      <AlertCircle className="w-4 h-4 text-red-400" />
+                      <AlertCircle className="w-4 h-4 text-error" />
                     )}
-                    <span className="label mb-0">执行结果</span>
+                    <span className="label mb-0">Execution Result</span>
                   </div>
-                  <div className="p-4 bg-dark-700 rounded-lg space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-dark-400">耗时</span>
-                      <span className="text-dark-100">
+                  
+                  <div className="p-4 rounded-lg bg-navy-1000/50 border border-steel-800/50 space-y-3">
+                    {/* Latency */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-steel-500">Execution Time</span>
+                      <span className="font-mono text-xs text-electric">
                         {callToolMutation.data.latency_ms}ms
                       </span>
                     </div>
+                    
+                    {/* Fallback Mode */}
                     {callToolMutation.data.fallback_mode && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-dark-400">降级模式</span>
-                        <span className="text-yellow-400">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-steel-500">Fallback Mode</span>
+                        <span className="font-mono text-xs text-warning">
                           {callToolMutation.data.fallback_mode}
                         </span>
                       </div>
                     )}
-                    <pre className="text-sm text-dark-100 overflow-auto">
+                    
+                    {/* Result Data */}
+                    <pre className="code-block text-sm max-h-60">
                       {JSON.stringify(callToolMutation.data.result, null, 2)}
                     </pre>
                   </div>
@@ -172,8 +219,14 @@ export function Tools() {
 
               {/* Error */}
               {callToolMutation.isError && (
-                <div className="p-4 bg-red-900/30 border border-red-700 rounded-lg text-red-400">
-                  {String(callToolMutation.error)}
+                <div className="p-4 rounded-lg bg-error/10 border border-error/30 text-error text-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="font-medium">Execution Failed</span>
+                  </div>
+                  <pre className="text-xs opacity-80 overflow-auto">
+                    {String(callToolMutation.error)}
+                  </pre>
                 </div>
               )}
             </div>

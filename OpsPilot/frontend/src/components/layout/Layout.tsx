@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -11,6 +11,7 @@ import {
   X,
   Plane,
   Activity,
+  ChevronLeft,
 } from 'lucide-react';
 import { useAppStore } from '../../store';
 
@@ -19,97 +20,177 @@ interface LayoutProps {
 }
 
 const navItems = [
-  { path: '/', icon: LayoutDashboard, label: '仪表盘' },
-  { path: '/tasks', icon: GitBranch, label: '任务管理' },
-  { path: '/tools', icon: Wrench, label: '工具调用' },
-  { path: '/sop', icon: Database, label: 'SOP 执行' },
-  { path: '/agents', icon: Users, label: 'Agent 监控' },
-  { path: '/tracing', icon: Activity, label: '追踪分析' },
-  { path: '/settings', icon: Settings, label: '设置' },
+  { path: '/', icon: LayoutDashboard, label: '仪表盘', section: 'monitor' },
+  { path: '/tasks', icon: GitBranch, label: '任务管理', section: 'operate' },
+  { path: '/tools', icon: Wrench, label: '工具调用', section: 'operate' },
+  { path: '/sop', icon: Database, label: 'SOP 执行', section: 'operate' },
+  { path: '/agents', icon: Users, label: 'Agent 监控', section: 'monitor' },
+  { path: '/tracing', icon: Activity, label: '追踪分析', section: 'monitor' },
+  { path: '/settings', icon: Settings, label: '设置', section: 'system' },
 ];
 
 export function Layout({ children }: LayoutProps) {
   const { sidebarOpen, setSidebarOpen } = useAppStore();
   const location = useLocation();
+  const currentNav = navItems.find((item) => item.path === location.pathname);
 
   return (
-    <div className="flex h-screen bg-dark-950">
-      {/* Sidebar */}
+    <div className="flex h-screen bg-navy-950 font-body">
+      {/* ============================================
+          Sidebar - Glass Panel with Electric Accent
+          ============================================ */}
       <aside
-        className={`${
-          sidebarOpen ? 'w-64' : 'w-20'
-        } bg-dark-900 border-r border-dark-700 flex flex-col transition-all duration-300`}
+        className={`
+          ${sidebarOpen ? 'w-64' : 'w-20'}
+          relative flex flex-col
+          bg-gradient-to-b from-steel-950/90 to-navy-950/90
+          backdrop-blur-xl
+          border-r border-steel-800/50
+          transition-all duration-300 ease-out
+        `}
       >
-        {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-dark-700">
-          <div className="flex items-center gap-2">
-            <Plane className="w-8 h-8 text-primary-500" />
+        {/* Top Electric Line */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-electric/50 to-transparent" />
+        
+        {/* Logo Section */}
+        <div className="relative h-16 flex items-center justify-between px-4 border-b border-steel-800/50">
+          <div className="flex items-center gap-3">
+            {/* Logo Icon */}
+            <div className="relative">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-electric to-cyber-500 flex items-center justify-center clip-corner-sm">
+                <Plane className="w-5 h-5 text-navy-950" />
+              </div>
+              {/* Glow Effect */}
+              <div className="absolute inset-0 rounded-lg bg-electric/20 blur-md -z-10" />
+            </div>
+            
+            {/* Logo Text */}
             {sidebarOpen && (
-              <span className="text-xl font-bold text-white">OpsPilot</span>
+              <div className="animate-fade-in">
+                <span className="font-display text-lg font-bold text-text-primary tracking-tight">
+                  OpsPilot
+                </span>
+                <div className="text-[10px] text-steel-500 tracking-widest uppercase -mt-1">
+                  Control Center
+                </div>
+              </div>
             )}
           </div>
+          
+          {/* Toggle Button */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1 rounded-lg hover:bg-dark-700 text-dark-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-md text-steel-500 hover:text-electric hover:bg-steel-800/50 transition-all"
           >
-            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {sidebarOpen ? <ChevronLeft size={18} /> : <Menu size={18} />}
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 px-2 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
-                  ${
-                    isActive
-                      ? 'bg-primary-600 text-white'
-                      : 'text-dark-300 hover:bg-dark-800 hover:text-white'
-                  }
-                  ${!sidebarOpen && 'justify-center'}`}
-              >
-                <Icon size={20} />
-                {sidebarOpen && <span>{item.label}</span>}
-              </NavLink>
-            );
-          })}
+        <nav className="flex-1 py-4 px-3 overflow-y-auto scrollbar-custom">
+          <div className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={`
+                    group relative flex items-center gap-3 px-3 py-2.5 rounded-md
+                    font-medium text-sm transition-all duration-150
+                    ${isActive
+                      ? 'text-electric bg-electric/5'
+                      : 'text-steel-400 hover:text-steel-200 hover:bg-steel-800/30'
+                    }
+                    ${!sidebarOpen && 'justify-center px-2'}
+                  `}
+                >
+                  {/* Active Indicator */}
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-electric rounded-r-full" />
+                  )}
+                  
+                  {/* Icon */}
+                  <Icon 
+                    size={20} 
+                    className={`
+                      flex-shrink-0 transition-colors
+                      ${isActive ? 'text-electric' : 'text-steel-500 group-hover:text-steel-300'}
+                    `}
+                  />
+                  
+                  {/* Label */}
+                  {sidebarOpen && (
+                    <span className="truncate">{item.label}</span>
+                  )}
+                  
+                  {/* Hover Glow */}
+                  {isActive && (
+                    <div className="absolute inset-0 rounded-md bg-electric/5 pointer-events-none" />
+                  )}
+                </NavLink>
+              );
+            })}
+          </div>
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-dark-700">
-          <div
-            className={`text-center ${
-              sidebarOpen ? 'text-sm' : 'text-xs'
-            } text-dark-500`}
-          >
-            {sidebarOpen ? 'OpsPilot v0.1.0' : 'v0.1'}
-          </div>
+        <div className="p-4 border-t border-steel-800/50">
+          {sidebarOpen ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                <span className="text-xs text-steel-500">System Online</span>
+              </div>
+              <span className="font-mono text-xs text-steel-600">v0.1.0</span>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            </div>
+          )}
         </div>
+        
+        {/* Bottom Electric Line */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-electric/30 to-transparent" />
       </aside>
 
-      {/* Main Content */}
+      {/* ============================================
+          Main Content Area
+          ============================================ */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-16 bg-dark-900 border-b border-dark-700 flex items-center justify-between px-6">
-          <h1 className="text-lg font-semibold text-white">
-            {navItems.find((item) => item.path === location.pathname)?.label ||
-              'OpsPilot'}
-          </h1>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm text-dark-400">系统正常</span>
+        <header className="relative h-14 flex items-center justify-between px-6 border-b border-steel-800/50 bg-navy-950/50 backdrop-blur-sm">
+          {/* Page Title */}
+          <div className="flex items-center gap-3">
+            <div className="w-1 h-6 bg-electric rounded-full" />
+            <h1 className="font-display text-sm font-semibold text-text-primary tracking-wide uppercase">
+              {currentNav?.label || 'OpsPilot'}
+            </h1>
+          </div>
+          
+          {/* Right Section */}
+          <div className="flex items-center gap-6">
+            {/* System Status */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-steel-900/50 border border-steel-800/50">
+              <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+              <span className="text-xs text-steel-400 font-medium">All Systems Operational</span>
+            </div>
+            
+            {/* Current Time */}
+            <div className="font-mono text-xs text-steel-500">
+              {new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
+          
+          {/* Top Gradient Line */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-steel-700/50 to-transparent" />
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-auto p-6 scrollbar-thin">
+        <div className="flex-1 overflow-auto p-6 scrollbar-custom">
           {children}
         </div>
       </main>
