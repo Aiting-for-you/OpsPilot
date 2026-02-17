@@ -2618,6 +2618,204 @@ result = await notify.call_tool("send_notification", {
 
 ---
 
+## [2026-02-17] - MCP Client 功能开发：动态添加外部 MCP Server
+
+### 开发目标
+
+实现 MCP Client 功能，允许动态添加外部 MCP Server：
+- 项目作为 MCP 客户端，连接外部 MCP Server
+- 支持动态添加、配置、管理外部 Server
+- 工具自动发现和统一调用
+- 前端管理界面
+
+### 完成内容
+
+#### 1. 后端核心模块
+
+- [x] `opspilot/mcp/external_manager.py` - 外部 MCP Server 连接管理核心
+  - `ServerStatus` 枚举（DISCONNECTED/CONNECTING/CONNECTED/ERROR）
+  - `MCPServerError` 自定义异常类
+  - `ExternalMCPManager` 连接管理器
+    - `add_server()` - 添加 Server 配置
+    - `remove_server()` - 删除 Server 配置
+    - `connect()` - 连接 Server（stdio 协议）
+    - `disconnect()` - 断开 Server 连接
+    - `list_tools()` - 获取 Server 提供的工具列表
+    - `call_tool()` - 调用工具（自动路由）
+    - `call_tool_on_server()` - 指定 Server 调用工具
+  - 单例模式 + 全局管理器获取函数
+
+- [x] `opspilot/utils/config.py` - 配置扩展
+  - `MCPServerConfig` - Server 配置模型
+    - name: Server 唯一标识
+    - command: 启动命令
+    - args: 命令参数
+    - env: 环境变量
+    - enabled: 启用状态
+    - auto_connect: 自动连接
+    - description: 描述信息
+
+- [x] `opspilot/api/schemas.py` - API Schema 定义
+  - `MCPServerStatus` - Server 状态响应
+  - `MCPServerConfigRequest` - 配置请求
+  - `MCPServerConfigResponse` - 配置响应
+  - `MCPServerListResponse` - 列表响应
+  - `MCPServerToolResponse` - 工具响应
+  - `MCPToolCallRequest` - 工具调用请求
+  - `MCPToolCallResponse` - 工具调用响应
+  - `MCPAllToolsResponse` - 所有工具响应
+
+- [x] `opspilot/api/routes.py` - API 路由
+  - `GET /mcp/servers` - 获取所有 Server
+  - `POST /mcp/servers` - 添加 Server
+  - `GET /mcp/servers/{name}` - 获取单个 Server
+  - `PUT /mcp/servers/{name}` - 更新 Server
+  - `DELETE /mcp/servers/{name}` - 删除 Server
+  - `POST /mcp/servers/{name}/connect` - 连接 Server
+  - `POST /mcp/servers/{name}/disconnect` - 断开 Server
+  - `GET /mcp/servers/{name}/tools` - 获取 Server 工具
+  - `GET /mcp/tools` - 获取所有工具
+  - `POST /mcp/tools/call` - 调用工具
+
+#### 2. 前端管理界面
+
+- [x] `frontend/src/components/MCPServerSettings.tsx` - MCP Server 配置组件
+  - Server 列表展示（状态、工具数量、描述）
+  - 添加 Server 表单（名称、命令、参数、环境变量）
+  - 编辑 Server 配置
+  - 连接/断开操作
+  - 查看工具列表
+  - 删除 Server
+
+- [x] `frontend/src/pages/Settings.tsx` - Tab 切换
+  - 新增 `activeTab` state（'llm' | 'mcp'）
+  - LLM Tab 显示原有配置
+  - MCP Tab 显示 MCPServerSettings 组件
+
+- [x] `frontend/src/services/api.ts` - API 方法
+  - `getMCPServers()` - 获取 Server 列表
+  - `addMCPServer()` - 添加 Server
+  - `updateMCPServer()` - 更新 Server
+  - `deleteMCPServer()` - 删除 Server
+  - `connectMCPServer()` - 连接 Server
+  - `disconnectMCPServer()` - 断开 Server
+  - `getMCPServerTools()` - 获取工具列表
+  - `getAllMCPTools()` - 获取所有工具
+  - `callMCPTool()` - 调用工具
+
+#### 3. 配置文件更新
+
+- [x] `.gitignore` - 添加 node_modules 排除规则
+
+### 技术架构
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   Frontend (React)                       │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │  Settings.tsx (Tab: LLM / MCP)                     │ │
+│  │    └─ MCPServerSettings.tsx                        │ │
+│  │         - Server 列表                               │ │
+│  │         - 添加/编辑表单                             │ │
+│  │         - 连接/断开操作                             │ │
+│  │         - 工具列表查看                              │ │
+│  └────────────────────────────────────────────────────┘ │
+└──────────────────────┬──────────────────────────────────┘
+                       │ REST API
+┌──────────────────────┼──────────────────────────────────┐
+│                 Backend (FastAPI)                        │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │  API Routes (/api/v1/mcp/*)                        │ │
+│  └──────────────────────┬─────────────────────────────┘ │
+│                         │                                │
+│  ┌──────────────────────┼─────────────────────────────┐ │
+│  │  ExternalMCPManager (Singleton)                    │ │
+│  │    - Server 配置管理                                │ │
+│  │    - 连接状态管理                                   │ │
+│  │    - 工具发现与路由                                 │ │
+│  └──────────────────────┬─────────────────────────────┘ │
+└───────────────────────┼──────────────────────────────────┘
+                        │ stdio 协议
+        ┌───────────────┼───────────────┐
+        │               │               │
+   ┌────▼─────┐   ┌────▼─────┐   ┌────▼─────┐
+   │ MCP      │   │ MCP      │   │ MCP      │
+   │ Server 1 │   │ Server 2 │   │ Server N │
+   │(Filesys) │   │(GitHub)  │   │(Custom)  │
+   └──────────┘   └──────────┘   └──────────┘
+```
+
+### 支持的 MCP Server 示例
+
+| Server | 命令 | 功能 |
+|--------|------|------|
+| filesystem | `npx -y @modelcontextprotocol/server-filesystem` | 文件系统操作 |
+| github | `npx -y @modelcontextprotocol/server-github` | GitHub API |
+| postgres | `npx -y @modelcontextprotocol/server-postgres` | 数据库操作 |
+| slack | `npx -y @modelcontextprotocol/server-slack` | Slack 集成 |
+
+### 使用示例
+
+**添加 MCP Server**:
+```typescript
+// 前端调用
+await api.addMCPServer({
+  name: "filesystem",
+  command: "npx",
+  args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+  enabled: true,
+  auto_connect: true,
+});
+```
+
+**连接 Server**:
+```typescript
+await api.connectMCPServer("filesystem");
+```
+
+**调用工具**:
+```typescript
+const result = await api.callMCPTool("read_file", {
+  path: "/tmp/test.txt"
+});
+```
+
+### 遇到的问题
+
+| 问题 | 解决方案 | 状态 |
+|------|---------|------|
+| `OpsPilotError` 导入失败 | 检查 exceptions.py 发现实际类名为 `opspilotError`，修改导入并创建 `MCPServerError` 子类 | ✅ 已解决 |
+| .gitignore 缺失 | 添加 node_modules 排除规则 | ✅ 已解决 |
+
+### 技术决策
+
+- **stdio 协议**: 使用 MCP 标准的 stdio 协议连接外部 Server
+- **单例管理器**: 全局唯一的 `ExternalMCPManager` 实例
+- **动态配置**: 支持 YAML 文件 + 运行时动态添加
+- **工具自动路由**: 调用工具时自动定位到对应 Server
+- **Tab 切换界面**: 前端使用 Tab 切换 LLM 配置和 MCP 配置
+
+### 完成统计
+
+| 项目 | 数量 |
+|------|------|
+| 后端新增模块 | 1 |
+| API 新增接口 | 10 |
+| 前端新增组件 | 1 |
+| 前端更新文件 | 3 |
+| Python 代码行数 | ~300 |
+| TypeScript 代码行数 | ~200 |
+
+### 后续优化方向
+
+1. **持久化存储**: Server 配置保存到数据库
+2. **健康检查**: Server 连接状态定时检测
+3. **重连机制**: Server 断开后自动重连
+4. **工具缓存**: 工具列表缓存优化
+5. **权限控制**: Server 配置权限管理
+
+---
+
 
 
 
