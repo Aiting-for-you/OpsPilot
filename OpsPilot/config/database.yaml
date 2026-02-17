@@ -1,0 +1,75 @@
+# OpsPilot 数据库配置
+
+# PostgreSQL 主数据库
+postgresql:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "cyx0414"
+  database: "opspilot"
+  
+  # 连接池配置
+  pool:
+    min_size: 5
+    max_size: 20
+    max_queries: 50000
+    max_inactive_connection_lifetime: 300
+  
+  # 超时配置
+  timeout:
+    connect: 10
+    query: 30
+
+# Redis 缓存
+redis:
+  host: "localhost"
+  port: 6379
+  db: 0
+  password: null
+  
+  # 缓存配置
+  cache:
+    default_ttl: 3600        # 默认过期时间 1 小时
+    exchange_rate_ttl: 3600   # 汇率缓存 1 小时
+    session_ttl: 86400        # 会话缓存 24 小时
+    inventory_ttl: 300        # 库存缓存 5 分钟
+
+# ChromaDB 向量数据库
+chromadb:
+  persist_directory: "./data/chroma"
+  
+  # 集合配置
+  collections:
+    policies:
+      name: "policies"
+      description: "政策文档向量库"
+    products:
+      name: "products"
+      description: "产品知识库"
+    suppliers:
+      name: "suppliers"
+      description: "供应商信息向量库"
+  
+  # 嵌入模型配置
+  embedding:
+    model: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    chunk_size: 512
+    chunk_overlap: 50
+
+# 数据初始化配置
+init:
+  # 是否在启动时自动初始化
+  auto_init: true
+  
+  # 是否清空现有数据
+  drop_existing: false
+  
+  # 虚拟数据生成配置
+  mock_data:
+    suppliers: 50
+    products: 100
+    inventory_records: 500
+    orders: 200
+    logistics: 200
+    customs: 100
+    policy_documents: 50
