@@ -38,6 +38,8 @@ from opspilot.tools.mcp import (
     ERPServer,
     ComplianceServer,
     create_default_router,
+    create_minimal_router,
+    create_ecommerce_router,
 )
 
 from opspilot.tools.internal import InternalToolsServer
@@ -79,10 +81,15 @@ from opspilot.tools.file_ops import (
 
 from opspilot.tools.notification import (
     NotificationServer,
-    NotificationConfig,
-    NotificationChannel,
-    NotificationSender,
+    NotificationRecord,
+    NOTIFICATION_TEMPLATES,
     create_notification_server,
+)
+
+# 跨境电商工具
+from opspilot.tools.ecommerce import (
+    EcommerceMockServer,
+    create_ecommerce_server,
 )
 
 # 工具调用优化模块
@@ -171,6 +178,8 @@ __all__ = [
     "ERPServer",
     "ComplianceServer",
     "create_default_router",
+    "create_minimal_router",
+    "create_ecommerce_router",
     # 数据库工具
     "DatabaseServer",
     "DatabaseConfig",
@@ -199,10 +208,12 @@ __all__ = [
     "create_file_server",
     # 通知工具
     "NotificationServer",
-    "NotificationConfig",
-    "NotificationChannel",
-    "NotificationSender",
+    "NotificationRecord",
+    "NOTIFICATION_TEMPLATES",
     "create_notification_server",
+    # 跨境电商工具
+    "EcommerceMockServer",
+    "create_ecommerce_server",
     # 内部工具
     "InternalToolsServer",
     # 工具索引

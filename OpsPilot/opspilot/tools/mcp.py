@@ -16,6 +16,7 @@ from opspilot.tools.base import (
     ToolContext,
     ToolStatus,
     FallbackMode,
+    ToolRouter,
 )
 
 
@@ -481,10 +482,77 @@ def create_default_router() -> ToolRouter:
     包含所有内置 MCP Server
     """
     from opspilot.tools.base import ToolRouter
+    
+    # 延迟导入避免循环依赖
+    try:
+        from opspilot.tools.ecommerce import EcommerceMockServer
+        from opspilot.tools.notification import NotificationServer
+        from opspilot.tools.devops import DevOpsServer
+        from opspilot.tools.http_client import ApiServer
+    except ImportError:
+        # 如果导入失败，只注册基础 Server
+        router = ToolRouter()
+        router.register_server(ERPServer())
+        router.register_server(ComplianceServer())
+        return router
+
+    router = ToolRouter()
+    
+    # 核心业务 Server
+    router.register_server(ERPServer())
+    router.register_server(ComplianceServer())
+    
+    # 跨境电商 Server
+    router.register_server(EcommerceMockServer())
+    
+    # 通知 Server
+    router.register_server(NotificationServer())
+    
+    # 运维 Server（可选）
+    try:
+        router.register_server(DevOpsServer())
+    except Exception:
+        pass
+    
+    # API Server（可选）
+    try:
+        router.register_server(ApiServer())
+    except Exception:
+        pass
+
+    return router
+
+
+def create_minimal_router() -> ToolRouter:
+    """
+    创建最小化工具路由器
+
+    只包含核心业务 Server（ERP + 合规）
+    """
+    from opspilot.tools.base import ToolRouter
 
     router = ToolRouter()
     router.register_server(ERPServer())
     router.register_server(ComplianceServer())
+
+    return router
+
+
+def create_ecommerce_router() -> ToolRouter:
+    """
+    创建跨境电商场景路由器
+
+    包含：ERP + 合规 + 电商 + 通知
+    """
+    from opspilot.tools.base import ToolRouter
+    from opspilot.tools.ecommerce import EcommerceMockServer
+    from opspilot.tools.notification import NotificationServer
+
+    router = ToolRouter()
+    router.register_server(ERPServer())
+    router.register_server(ComplianceServer())
+    router.register_server(EcommerceMockServer())
+    router.register_server(NotificationServer())
 
     return router
 

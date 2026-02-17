@@ -2394,6 +2394,97 @@ result = await notify.call_tool("send_notification", {
 
 ---
 
+## [2026-02-17] - MCP 工具扩展
+
+### 开发目标
+
+- 创建跨境电商 Mock 数据
+- 实现 EcommerceMockServer
+- 实现 NotificationServer
+- 更新 ToolRouter 集成
+
+### 完成内容
+
+#### 1. 跨境电商 Mock 数据 (`tests/fixtures/ecommerce_data.py`)
+
+| 数据类型 | 数量 | 说明 |
+|---------|------|------|
+| 汇率数据 | 5 个货币对 | USD/CNY/EUR/JPY/GBP |
+| 物流轨迹 | 5 条 | 含正常、延迟、海关扣留、派送中等状态 |
+| 平台订单 | 5 条 | 亚马逊、速卖通、独立站各类型 |
+| 报关状态 | 3 条 | 已放行、待补充资料、审核中 |
+
+#### 2. EcommerceMockServer (`opspilot/tools/ecommerce.py`)
+
+| 工具类别 | 工具名称 | 功能 |
+|---------|---------|------|
+| 汇率 | `get_exchange_rate` | 查询实时汇率 |
+| | `convert_currency` | 货币换算 |
+| | `list_exchange_rates` | 获取汇率列表 |
+| 物流 | `track_logistics` | 查询物流轨迹 |
+| | `list_logistics_by_status` | 按状态查询物流 |
+| | `get_delayed_shipments` | 获取问题物流 |
+| 订单 | `get_platform_order` | 查询平台订单 |
+| | `list_platform_orders` | 订单列表查询 |
+| | `sync_platform_orders` | 同步平台订单 |
+| | `get_pending_shipments` | 获取待发货订单 |
+| 报关 | `get_customs_declaration` | 查询报关单 |
+| | `list_customs_by_status` | 按状态查询报关单 |
+| | `get_customs_issues` | 获取问题报关单 |
+| 统计 | `get_ecommerce_summary` | 汇总统计 |
+
+#### 3. NotificationServer (`opspilot/tools/notification.py`)
+
+| 工具类别 | 工具名称 | 功能 |
+|---------|---------|------|
+| 邮件 | `send_email` | 发送邮件通知 |
+| 短信 | `send_sms` | 发送短信通知 |
+| 企微 | `send_wecom` | 发送企业微信消息 |
+| 站内信 | `send_inbox_message` | 发送站内信 |
+| 模板 | `send_templated_notification` | 使用模板发送通知 |
+| 批量 | `send_batch_notification` | 批量发送通知 |
+| 查询 | `get_notification_status` | 查询通知状态 |
+| | `list_notifications` | 列出通知记录 |
+
+**通知模板**：
+- `order_created`: 订单创建通知
+- `order_approved`: 订单审批通过
+- `order_delayed`: 订单延迟预警
+- `compliance_violation`: 合规违规预警
+- `approval_required`: 待审批通知
+- `logistics_update`: 物流状态更新
+- `customs_hold`: 海关扣留通知
+- `system_alert`: 系统告警
+
+#### 4. ToolRouter 更新 (`opspilot/tools/mcp.py`)
+
+| 函数 | 说明 |
+|------|------|
+| `create_default_router()` | 包含所有 MCP Server |
+| `create_minimal_router()` | 仅核心 Server (ERP + 合规) |
+| `create_ecommerce_router()` | 跨境电商场景 (ERP + 合规 + 电商 + 通知) |
+
+### 测试覆盖
+
+| 测试文件 | 测试用例 | 结果 |
+|---------|---------|------|
+| `test_ecommerce.py` | 21 | ✅ 全部通过 |
+| `test_notification.py` | 18 | ✅ 全部通过 |
+
+### 工具统计
+
+| Server | 工具数量 | 说明 |
+|--------|---------|------|
+| ERPServer | 5 | 供应商、订单、库存 |
+| ComplianceServer | 2 | 政策、合规检查 |
+| EcommerceMockServer | 13 | 汇率、物流、订单、报关 |
+| NotificationServer | 9 | 邮件、短信、企微、站内信 |
+| DevOpsServer | 10 | K8s、系统监控 |
+| ApiServer | 6 | HTTP 请求 |
+| **总计** | **45** | - |
+
+---
+
 ## [2026-02-17] - 创建测试文档
 
 ### 开发目标

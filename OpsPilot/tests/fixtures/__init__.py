@@ -21,6 +21,18 @@ from tests.fixtures.llm_mock import (
     MockStreamingLLMClient,
     create_mock_response,
 )
+from tests.fixtures.ecommerce_data import (
+    MOCK_EXCHANGE_RATES,
+    MOCK_LOGISTICS_TRACKING,
+    MOCK_PLATFORM_ORDERS,
+    MOCK_CUSTOMS_DECLARATIONS,
+    get_exchange_rate,
+    convert_currency,
+    track_logistics,
+    get_platform_order,
+    get_customs_declaration,
+    get_ecommerce_summary,
+)
 
 __all__ = [
     # ERP 数据
@@ -38,4 +50,15 @@ __all__ = [
     "MockLLMClient",
     "MockStreamingLLMClient",
     "create_mock_response",
+    # 跨境电商数据
+    "MOCK_EXCHANGE_RATES",
+    "MOCK_LOGISTICS_TRACKING",
+    "MOCK_PLATFORM_ORDERS",
+    "MOCK_CUSTOMS_DECLARATIONS",
+    "get_exchange_rate",
+    "convert_currency",
+    "track_logistics",
+    "get_platform_order",
+    "get_customs_declaration",
+    "get_ecommerce_summary",
 ]
