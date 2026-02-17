@@ -195,6 +195,62 @@ class ApiService {
     const response = await this.client.post('/llm/models/batch-add', request);
     return response.data;
   }
+
+  // ==================== MCP Server 接口 ====================
+
+  async getMCPServers(): Promise<{ success: boolean; servers: any[] }> {
+    const response = await this.client.get('/mcp/servers');
+    return response.data;
+  }
+
+  async getMCPServer(name: string): Promise<any> {
+    const response = await this.client.get(`/mcp/servers/${encodeURIComponent(name)}`);
+    return response.data;
+  }
+
+  async addMCPServer(server: any): Promise<any> {
+    const response = await this.client.post('/mcp/servers', server);
+    return response.data;
+  }
+
+  async updateMCPServer(name: string, server: any): Promise<any> {
+    const response = await this.client.put(`/mcp/servers/${encodeURIComponent(name)}`, server);
+    return response.data;
+  }
+
+  async deleteMCPServer(name: string): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.delete(`/mcp/servers/${encodeURIComponent(name)}`);
+    return response.data;
+  }
+
+  async connectMCPServer(name: string): Promise<any> {
+    const response = await this.client.post(`/mcp/servers/${encodeURIComponent(name)}/connect`);
+    return response.data;
+  }
+
+  async disconnectMCPServer(name: string): Promise<any> {
+    const response = await this.client.post(`/mcp/servers/${encodeURIComponent(name)}/disconnect`);
+    return response.data;
+  }
+
+  async getMCPServerTools(name: string): Promise<{ success: boolean; server_name: string; tools: any[] }> {
+    const response = await this.client.get(`/mcp/servers/${encodeURIComponent(name)}/tools`);
+    return response.data;
+  }
+
+  async getAllMCPTools(): Promise<{ success: boolean; tools: any[] }> {
+    const response = await this.client.get('/mcp/tools');
+    return response.data;
+  }
+
+  async callMCPTool(toolName: string, arguments: any, serverName?: string): Promise<any> {
+    const response = await this.client.post('/mcp/tools/call', {
+      tool_name: toolName,
+      arguments,
+      server_name: serverName,
+    });
+    return response.data;
+  }
 }
 
 export const api = new ApiService();

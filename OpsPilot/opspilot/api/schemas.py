@@ -332,3 +332,96 @@ class ErrorResponse(BaseModel):
             }
         }
 
+
+# ==================== MCP Server 配置相关 ====================
+
+class MCPServerStatus(str, Enum):
+    """MCP Server 状态"""
+    DISCONNECTED = "disconnected"
+    CONNECTING = "connecting"
+    CONNECTED = "connected"
+    ERROR = "error"
+
+
+class MCPServerConfigRequest(BaseModel):
+    """MCP Server 配置请求"""
+    name: str = Field(..., description="Server 唯一标识", min_length=1, max_length=50)
+    command: str = Field(..., description="启动命令，如 npx、python", min_length=1)
+    args: List[str] = Field(default_factory=list, description="命令参数")
+    env: Dict[str, str] = Field(default_factory=dict, description="环境变量")
+    enabled: bool = Field(default=True, description="是否启用")
+    auto_connect: bool = Field(default=False, description="是否自动连接")
+    description: str = Field(default="", description="Server 描述")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "filesystem",
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed"],
+                "env": {},
+                "enabled": True,
+                "auto_connect": True,
+                "description": "文件系统操作工具"
+            }
+        }
+
+
+class MCPServerConfigResponse(BaseModel):
+    """MCP Server 配置响应"""
+    name: str = Field(..., description="Server 名称")
+    command: str = Field(..., description="启动命令")
+    args: List[str] = Field(default_factory=list, description="命令参数")
+    enabled: bool = Field(..., description="是否启用")
+    auto_connect: bool = Field(..., description="是否自动连接")
+    description: str = Field(default="", description="Server 描述")
+    status: MCPServerStatus = Field(..., description="连接状态")
+    tool_count: int = Field(default=0, description="提供的工具数量")
+    error_message: str = Field(default="", description="错误信息")
+    connected_at: Optional[str] = Field(default=None, description="连接时间")
+
+
+class MCPServerListResponse(BaseModel):
+    """MCP Server 列表响应"""
+    success: bool = True
+    servers: List[MCPServerConfigResponse] = Field(default_factory=list, description="Server 列表")
+
+
+class MCPServerToolResponse(BaseModel):
+    """MCP Server 工具响应"""
+    success: bool = True
+    server_name: str = Field(..., description="Server 名称")
+    tools: List[Dict[str, Any]] = Field(default_factory=list, description="工具列表")
+
+
+class MCPToolCallRequest(BaseModel):
+    """MCP 工具调用请求"""
+    tool_name: str = Field(..., description="工具名称")
+    arguments: Dict[str, Any] = Field(default_factory=dict, description="工具参数")
+    server_name: Optional[str] = Field(default=None, description="指定 Server（可选）")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "tool_name": "read_file",
+                "arguments": {"path": "/tmp/test.txt"},
+                "server_name": "filesystem"
+            }
+        }
+
+
+class MCPToolCallResponse(BaseModel):
+    """MCP 工具调用响应"""
+    success: bool = Field(..., description="是否成功")
+    message: str = Field(default="", description="结果消息")
+    tool_name: str = Field(..., description="工具名称")
+    server_name: str = Field(..., description="执行的 Server")
+    result: Optional[Any] = Field(default=None, description="执行结果")
+    error: Optional[str] = Field(default=None, description="错误信息")
+
+
+class MCPAllToolsResponse(BaseModel):
+    """所有 MCP 工具列表响应"""
+    success: bool = True
+    tools: List[Dict[str, Any]] = Field(default_factory=list, description="所有工具列表")
+

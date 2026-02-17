@@ -32,16 +32,26 @@ from opspilot.db.crud import (
     PlatformOrderCRUD,
     PolicyCRUD,
 )
-from opspilot.db.vector_store import (
-    VectorStore,
-    PolicyVectorStore,
-    get_vector_store,
-)
+# 向量存储延迟导入，避免 ChromaDB/orjson 依赖问题
+# from opspilot.db.vector_store import (
+#     VectorStore,
+#     PolicyVectorStore,
+#     get_vector_store,
+# )
 from opspilot.db.cache import (
     CacheManager,
     get_cache,
     cache_result,
 )
+
+# 向量存储延迟导入函数
+def get_vector_store_lazy():
+    """延迟获取向量存储"""
+    try:
+        from opspilot.db.vector_store import get_vector_store
+        return get_vector_store
+    except ImportError:
+        return None
 
 __all__ = [
     # 连接管理
@@ -70,10 +80,8 @@ __all__ = [
     "CustomsCRUD",
     "PlatformOrderCRUD",
     "PolicyCRUD",
-    # 向量存储
-    "VectorStore",
-    "PolicyVectorStore",
-    "get_vector_store",
+    # 向量存储（延迟）
+    "get_vector_store_lazy",
     # 缓存
     "CacheManager",
     "get_cache",

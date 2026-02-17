@@ -46,6 +46,7 @@ class StateMachineConfig(BaseModel):
 
 class RedisConfig(BaseModel):
     """Redis 配置"""
+    enabled: bool = True  # 是否启用 Redis，False 则使用内存模式
     host: str = "localhost"
     port: int = 6379
     db: int = 0
@@ -76,11 +77,27 @@ class LLMConfig(BaseModel):
 
 
 class MCPServerConfig(BaseModel):
-    """MCP Server 配置"""
-    name: str
-    command: str
-    args: list = Field(default_factory=list)
-    env: dict = Field(default_factory=dict)
+    """外部 MCP Server 配置"""
+    name: str = Field(..., description="Server 唯一标识")
+    command: str = Field(..., description="启动命令，如 npx、python")
+    args: list = Field(default_factory=list, description="命令参数")
+    env: dict = Field(default_factory=dict, description="环境变量")
+    enabled: bool = Field(default=True, description="是否启用")
+    auto_connect: bool = Field(default=False, description="是否自动连接")
+    description: str = Field(default="", description="Server 描述")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "filesystem",
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed"],
+                "env": {},
+                "enabled": True,
+                "auto_connect": True,
+                "description": "文件系统操作工具"
+            }
+        }
 
 
 class MCPConfig(BaseModel):

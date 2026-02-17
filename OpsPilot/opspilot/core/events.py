@@ -178,6 +178,26 @@ class AgentCompletedEvent(BaseEvent):
 
 
 @dataclass
+class AgentFailedEvent(BaseEvent):
+    """Agent 失败事件"""
+    event_type: EventType = EventType.AGENT_FAILED
+    task_id: str = ""
+    agent_name: str = ""
+    error: str = ""
+    error_code: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = super().to_dict()
+        data.update({
+            "task_id": self.task_id,
+            "agent_name": self.agent_name,
+            "error": self.error,
+            "error_code": self.error_code,
+        })
+        return data
+
+
+@dataclass
 class ToolCalledEvent(BaseEvent):
     """工具调用事件"""
     event_type: EventType = EventType.TOOL_CALLED

@@ -218,6 +218,32 @@ class MCPConnectionError(ToolError):
         )
 
 
+class ToolTimeoutError(ToolError):
+    """工具执行超时"""
+
+    def __init__(self, tool_name: str, timeout: float):
+        super().__init__(
+            message=f"工具 '{tool_name}' 执行超时: {timeout}s",
+            code="TOOL_TIMEOUT",
+            details={"tool_name": tool_name, "timeout": timeout}
+        )
+
+
+class ToolValidationError(ToolError):
+    """工具参数验证失败"""
+
+    def __init__(self, tool_name: str, reason: str, params: Optional[dict] = None):
+        super().__init__(
+            message=f"工具 '{tool_name}' 参数验证失败: {reason}",
+            code="TOOL_VALIDATION_ERROR",
+            details={
+                "tool_name": tool_name,
+                "reason": reason,
+                "params": params
+            }
+        )
+
+
 # ==================== 记忆相关 ====================
 
 class MemoryError(opspilotError):

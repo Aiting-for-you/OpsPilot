@@ -356,6 +356,13 @@ OpsPilot/
 │   │   ├── mcp.py                  # MCP 协议封装
 │   │   ├── healing.py              # 6种自愈策略
 │   │   └── langchain_tools.py      # LangChain 适配
+│   ├── 📁 mcp/                     # MCP 模块 ⭐
+│   │   ├── base.py                 # MCP Server 基类
+│   │   ├── client.py               # MCP Client 管理器
+│   │   ├── external_manager.py     # 外部 Server 连接管理 ⭐
+│   │   └── 📁 servers/             # 内置 MCP Server
+│   │       ├── erp_server.py       # ERP 工具 Server
+│   │       └── compliance_server.py # 合规工具 Server
 │   ├── 📁 memory/                  # 记忆系统
 │   │   ├── vectorstore.py          # ChromaDB 适配
 │   │   ├── redis_store.py          # Redis 适配
@@ -487,6 +494,38 @@ server = A2AServer(card, registry)
 await server.start()
 ```
 
+### 🔌 外部 MCP Server 管理
+
+动态添加和管理外部 MCP Server，无需修改代码即可扩展功能：
+
+```python
+from opspilot.mcp import get_external_mcp_manager
+
+manager = get_external_mcp_manager()
+
+# 添加外部 Server
+manager.add_server({
+    "name": "filesystem",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed"],
+    "enabled": True,
+    "auto_connect": True,
+})
+
+# 连接 Server
+await manager.connect("filesystem")
+
+# 调用工具（自动路由）
+result = await manager.call_tool("read_file", {"path": "/tmp/test.txt"})
+```
+
+**支持的 MCP Server 示例**：
+| Server | 命令 | 功能 |
+|--------|------|------|
+| filesystem | `npx -y @modelcontextprotocol/server-filesystem` | 文件系统操作 |
+| github | `npx -y @modelcontextprotocol/server-github` | GitHub API |
+| postgres | `npx -y @modelcontextprotocol/server-postgres` | 数据库操作 |
+
 ---
 
 ## 文档导航
@@ -506,7 +545,8 @@ await server.start()
 | 核心架构 | ✅ 完成 | AgentScope + LangChain 混合架构 |
 | Runtime | ✅ 完成 | 沙箱、流式、追踪、A2A |
 | 前端 UI | ✅ 完成 | React 19 + TypeScript |
-| MCP 工具 | 🚧 进行中 | 核心工具已实现 |
+| MCP 工具 | ✅ 完成 | 内置工具 + 外部 Server 管理 |
+| MCP 外部连接 | ✅ 完成 | 动态添加外部 MCP Server |
 | 测试覆盖 | ⏳ 待开始 | 单元测试、集成测试 |
 
 ---

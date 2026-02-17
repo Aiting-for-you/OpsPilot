@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings as SettingsIcon, Save, RefreshCw, Check, X, Eye, EyeOff, Zap, Server, Key, Plus, List, Download, Cpu, Shield, Info, Globe } from 'lucide-react';
+import { Settings as SettingsIcon, Save, RefreshCw, Check, X, Eye, EyeOff, Zap, Server, Key, Plus, List, Download, Cpu, Shield, Info, Globe, Link } from 'lucide-react';
 import { api } from '../services/api';
 import { LLMProviderConfig, LLMProviderType, LLMTestResult, ModelInfo } from '../types';
+import { MCPServerSettings } from '../components/MCPServerSettings';
 
 // Provider display info
 const PROVIDER_INFO: Record<LLMProviderType, { nameKey: string; color: string }> = {
@@ -47,6 +48,9 @@ export function Settings() {
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set());
   const [batchAdding, setBatchAdding] = useState(false);
   const [defaultModelSelect, setDefaultModelSelect] = useState<string>('');
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'llm' | 'mcp'>('llm');
 
   useEffect(() => {
     loadConfigs();
@@ -244,7 +248,7 @@ export function Settings() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      {/* Header */}
+      {/* Header with Tabs */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
@@ -252,32 +256,65 @@ export function Settings() {
           </div>
           <div>
             <h1 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
-              {t('settings.llmConfig')}
+              {t('settings.title') || 'Settings'}
             </h1>
-            <p className="text-xs text-steel-500">{t('settings.provider')}</p>
+            <p className="text-xs text-steel-500">
+              {activeTab === 'llm' ? t('settings.provider') : 'External MCP Servers'}
+            </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        
+        {/* Tab Buttons */}
+        <div className="flex items-center gap-1 p-1 bg-navy-1000/50 rounded-lg border border-steel-800/50">
           <button
-            onClick={() => {
-              setFetchApiBase('');
-              setFetchApiKey('');
-              setFetchedModels([]);
-              setSelectedModels(new Set());
-              setFetchError(null);
-              setShowFetchModal(true);
-            }}
-            className="btn-secondary"
+            onClick={() => setActiveTab('llm')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-all ${
+              activeTab === 'llm'
+                ? 'bg-electric text-navy-950'
+                : 'text-steel-400 hover:text-text-primary'
+            }`}
           >
-            <Download className="w-4 h-4" />
-            {t('settings.fetchModels')}
+            <Zap className="w-3.5 h-3.5" />
+            LLM
           </button>
-          <button onClick={loadConfigs} className="btn-secondary">
-            <RefreshCw className="w-4 h-4" />
-            {t('common.refresh') || 'Refresh'}
+          <button
+            onClick={() => setActiveTab('mcp')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-all ${
+              activeTab === 'mcp'
+                ? 'bg-electric text-navy-950'
+                : 'text-steel-400 hover:text-text-primary'
+            }`}
+          >
+            <Link className="w-3.5 h-3.5" />
+            MCP
           </button>
         </div>
       </div>
+
+      {/* LLM Tab Content */}
+      {activeTab === 'llm' && (
+        <>
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => {
+                setFetchApiBase('');
+                setFetchApiKey('');
+                setFetchedModels([]);
+                setSelectedModels(new Set());
+                setFetchError(null);
+                setShowFetchModal(true);
+              }}
+              className="btn-secondary"
+            >
+              <Download className="w-4 h-4" />
+              {t('settings.fetchModels')}
+            </button>
+            <button onClick={loadConfigs} className="btn-secondary">
+              <RefreshCw className="w-4 h-4" />
+              {t('common.refresh') || 'Refresh'}
+            </button>
+          </div>
 
       {/* Info Banner */}
       <div className="p-4 rounded-lg bg-navy-1000/50 border border-steel-800/50">
@@ -669,8 +706,14 @@ export function Settings() {
           </div>
         </div>
       )}
+        </>
+      )}
 
-      {/* Language Settings */}
+      {/* MCP Tab Content */}
+      {activeTab === 'mcp' && <MCPServerSettings />}
+
+      {/* Language Settings - Only show on LLM tab */}
+      {activeTab === 'llm' && (
       <div className="card">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
@@ -700,8 +743,10 @@ export function Settings() {
           </p>
         </div>
       </div>
+      )}
 
-      {/* About Section */}
+      {/* About Section - Only show on LLM tab */}
+      {activeTab === 'llm' && (
       <div className="card">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-8 h-8 rounded-lg bg-steel-800/50 flex items-center justify-center">
@@ -726,6 +771,7 @@ export function Settings() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

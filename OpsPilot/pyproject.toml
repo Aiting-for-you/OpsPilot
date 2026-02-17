@@ -1,4 +1,4 @@
-﻿[project]
+[project]
 name = "opspilot"
 version = "0.1.0"
 description = "企业级运维智能体系统"

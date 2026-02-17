@@ -606,3 +606,327 @@ async def batch_add_models(request: BatchAddModelsRequest):
         error=result.get("error"),
     )
 
+
+# ==================== MCP Server 配置接口 ====================
+
+from opspilot.mcp.external_manager import get_external_mcp_manager, ExternalMCPManager
+from opspilot.api.schemas import (
+    MCPServerConfigRequest,
+    MCPServerConfigResponse,
+    MCPServerListResponse,
+    MCPServerStatus,
+    MCPServerToolResponse,
+    MCPToolCallRequest,
+    MCPToolCallResponse,
+    MCPAllToolsResponse,
+)
+
+
+def get_mcp_manager() -> ExternalMCPManager:
+    """获取 MCP 管理器实例"""
+    return get_external_mcp_manager()
+
+
+@router.get(
+    "/mcp/servers",
+    response_model=MCPServerListResponse,
+    summary="获取 MCP Server 列表",
+    description="获取所有已配置的外部 MCP Server"
+)
+async def list_mcp_servers(
+    manager: ExternalMCPManager = Depends(get_mcp_manager)
+):
+    """获取所有 MCP Server 配置"""
+    servers = manager.list_servers()
+    return MCPServerListResponse(
+        success=True,
+        servers=[
+            MCPServerConfigResponse(
+                name=s["name"],
+                command=s["command"],
+                args=s["args"],
+                enabled=s["enabled"],
+                auto_connect=s["auto_connect"],
+                description=s.get("description", ""),
+                status=MCPServerStatus(s["status"]),
+                tool_count=s["tool_count"],
+                error_message=s.get("error_message", ""),
+                connected_at=s.get("connected_at"),
+            )
+            for s in servers
+        ]
+    )
+
+
+@router.post(
+    "/mcp/servers",
+    response_model=MCPServerConfigResponse,
+    summary="添加 MCP Server",
+    description="添加新的外部 MCP Server 配置"
+)
+async def add_mcp_server(
+    request: MCPServerConfigRequest,
+    manager: ExternalMCPManager = Depends(get_mcp_manager)
+):
+    """添加新的 MCP Server"""
+    from opspilot.utils.config import MCPServerConfig
+    
+    config = MCPServerConfig(
+        name=request.name,
+        command=request.command,
+        args=request.args,
+        env=request.env,
+        enabled=request.enabled,
+        auto_connect=request.auto_connect,
+        description=request.description,
+    )
+    
+    try:
+        result = manager.add_server(config)
+        return MCPServerConfigResponse(
+            name=result["name"],
+            command=result["command"],
+            args=result["args"],
+            enabled=result["enabled"],
+            auto_connect=result["auto_connect"],
+            description=result.get("description", ""),
+            status=MCPServerStatus(result["status"]),
+            tool_count=result["tool_count"],
+            error_message=result.get("error_message", ""),
+            connected_at=result.get("connected_at"),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get(
+    "/mcp/servers/{name}",
+    response_model=MCPServerConfigResponse,
+    summary="获取单个 MCP Server",
+    description="获取指定 MCP Server 的配置信息"
+)
+async def get_mcp_server(
+    name: str,
+    manager: ExternalMCPManager = Depends(get_mcp_manager)
+):
+    """获取单个 MCP Server 配置"""
+    result = manager.get_server(name)
+    if not result:
+        raise HTTPException(status_code=404, detail=f"Server '{name}' not found")
+    
+    return MCPServerConfigResponse(
+        name=result["name"],
+        command=result["command"],
+        args=result["args"],
+        enabled=result["enabled"],
+        auto_connect=result["auto_connect"],
+        description=result.get("description", ""),
+        status=MCPServerStatus(result["status"]),
+        tool_count=result["tool_count"],
+        error_message=result.get("error_message", ""),
+        connected_at=result.get("connected_at"),
+    )
+
+
+@router.put(
+    "/mcp/servers/{name}",
+    response_model=MCPServerConfigResponse,
+    summary="更新 MCP Server",
+    description="更新指定 MCP Server 的配置"
+)
+async def update_mcp_server(
+    name: str,
+    request: MCPServerConfigRequest,
+    manager: ExternalMCPManager = Depends(get_mcp_manager)
+):
+    """更新 MCP Server 配置"""
+    from opspilot.utils.config import MCPServerConfig
+    
+    config = MCPServerConfig(
+        name=request.name,
+        command=request.command,
+        args=request.args,
+        env=request.env,
+        enabled=request.enabled,
+        auto_connect=request.auto_connect,
+        description=request.description,
+    )
+    
+    try:
+        result = manager.update_server(name, config)
+        return MCPServerConfigResponse(
+            name=result["name"],
+            command=result["command"],
+            args=result["args"],
+            enabled=result["enabled"],
+            auto_connect=result["auto_connect"],
+            description=result.get("description", ""),
+            status=MCPServerStatus(result["status"]),
+            tool_count=result["tool_count"],
+            error_message=result.get("error_message", ""),
+            connected_at=result.get("connected_at"),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.delete(
+    "/mcp/servers/{name}",
+    summary="删除 MCP Server",
+    description="删除指定的 MCP Server 配置"
+)
+async def delete_mcp_server(
+    name: str,
+    manager: ExternalMCPManager = Depends(get_mcp_manager)
+):
+    """删除 MCP Server 配置"""
+    if not manager.remove_server(name):
+        raise HTTPException(status_code=404, detail=f"Server '{name}' not found")
+    
+    return {"success": True, "message": f"Server '{name}' deleted"}
+
+
+@router.post(
+    "/mcp/servers/{name}/connect",
+    response_model=MCPServerConfigResponse,
+    summary="连接 MCP Server",
+    description="连接到指定的 MCP Server"
+)
+async def connect_mcp_server(
+    name: str,
+    manager: ExternalMCPManager = Depends(get_mcp_manager)
+):
+    """连接到 MCP Server"""
+    try:
+        result = await manager.connect(name)
+        return MCPServerConfigResponse(
+            name=result["name"],
+            command=result["command"],
+            args=result["args"],
+            enabled=result["enabled"],
+            auto_connect=result["auto_connect"],
+            description=result.get("description", ""),
+            status=MCPServerStatus(result["status"]),
+            tool_count=result["tool_count"],
+            error_message=result.get("error_message", ""),
+            connected_at=result.get("connected_at"),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post(
+    "/mcp/servers/{name}/disconnect",
+    response_model=MCPServerConfigResponse,
+    summary="断开 MCP Server",
+    description="断开与指定 MCP Server 的连接"
+)
+async def disconnect_mcp_server(
+    name: str,
+    manager: ExternalMCPManager = Depends(get_mcp_manager)
+):
+    """断开 MCP Server 连接"""
+    try:
+        result = await manager.disconnect(name)
+        return MCPServerConfigResponse(
+            name=result["name"],
+            command=result["command"],
+            args=result["args"],
+            enabled=result["enabled"],
+            auto_connect=result["auto_connect"],
+            description=result.get("description", ""),
+            status=MCPServerStatus(result["status"]),
+            tool_count=result["tool_count"],
+            error_message=result.get("error_message", ""),
+            connected_at=result.get("connected_at"),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get(
+    "/mcp/servers/{name}/tools",
+    response_model=MCPServerToolResponse,
+    summary="获取 MCP Server 工具列表",
+    description="获取指定 MCP Server 提供的所有工具"
+)
+async def get_mcp_server_tools(
+    name: str,
+    manager: ExternalMCPManager = Depends(get_mcp_manager)
+):
+    """获取 MCP Server 的工具列表"""
+    try:
+        tools = await manager.list_tools(name)
+        return MCPServerToolResponse(
+            success=True,
+            server_name=name,
+            tools=tools,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get(
+    "/mcp/tools",
+    response_model=MCPAllToolsResponse,
+    summary="获取所有 MCP 工具",
+    description="获取所有已连接 MCP Server 提供的工具"
+)
+async def list_all_mcp_tools(
+    manager: ExternalMCPManager = Depends(get_mcp_manager)
+):
+    """获取所有 MCP 工具"""
+    tools = manager.list_all_tools()
+    return MCPAllToolsResponse(
+        success=True,
+        tools=tools,
+    )
+
+
+@router.post(
+    "/mcp/tools/call",
+    response_model=MCPToolCallResponse,
+    summary="调用 MCP 工具",
+    description="调用指定的 MCP 工具（自动路由到对应的 Server）"
+)
+async def call_mcp_tool(
+    request: MCPToolCallRequest,
+    manager: ExternalMCPManager = Depends(get_mcp_manager)
+):
+    """调用 MCP 工具"""
+    try:
+        if request.server_name:
+            # 在指定 Server 上调用
+            result = await manager.call_tool_on_server(
+                server_name=request.server_name,
+                tool_name=request.tool_name,
+                arguments=request.arguments,
+            )
+            server_name = request.server_name
+        else:
+            # 自动路由
+            result = await manager.call_tool(
+                tool_name=request.tool_name,
+                arguments=request.arguments,
+            )
+            # 查找工具所属的 Server
+            server_name = manager._tool_to_server.get(request.tool_name, "unknown")
+        
+        return MCPToolCallResponse(
+            success=True,
+            message="工具调用成功",
+            tool_name=request.tool_name,
+            server_name=server_name,
+            result=result,
+        )
+    except Exception as e:
+        # 查找工具所属的 Server
+        server_name = manager._tool_to_server.get(request.tool_name, "unknown")
+        return MCPToolCallResponse(
+            success=False,
+            message="工具调用失败",
+            tool_name=request.tool_name,
+            server_name=server_name,
+            error=str(e),
+        )
+

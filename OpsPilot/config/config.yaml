@@ -1,29 +1,30 @@
-﻿# opspilot 配置文件模板
-# 实际配置请参考 dev/04_CONFIG/config_schema.md
+﻿# OpsPilot 本地开发配置
 
 app:
   name: "opspilot"
   version: "0.1.0"
-  debug: false
+  debug: true
 
 state_machine:
   initial_state: "INIT"
   max_retry: 3
 
 memory:
+  # Redis 配置
   redis:
+    enabled: true
     host: "localhost"
     port: 6379
-    db: 0
   chromadb:
     persist_directory: "./data/chromadb"
     collection_name: "opspilot_memory"
 
 llm:
-  # 基座模型配置（待确定）
-  provider: "sglang"
-  model_name: ""
-  api_base: ""
+  # 智谱 GLM 模型配置
+  provider: "zhipuai"
+  model_name: "glm-4-flash"  # 免费模型
+  api_key: "3e36e5e33d2e4055bf7e3bdcda8b270c.MQ696xC3uv50KktT"
+  api_base: "https://open.bigmodel.cn/api/paas/v4"
 
 mcp:
   servers: []
@@ -31,4 +32,3 @@ mcp:
 api:
   host: "0.0.0.0"
   port: 8000
-
