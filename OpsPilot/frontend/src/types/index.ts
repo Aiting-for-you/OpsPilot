@@ -307,3 +307,55 @@ export interface BatchAddModelsResponse {
   default_model?: string;
   error?: string;
 }
+
+// ========================================
+// Pricing Types
+// ========================================
+
+export interface PricingNegotiateRequest {
+  product_id: string;
+  market_context?: Record<string, any>;
+  constraints?: Record<string, any>;
+}
+
+export interface PricingNegotiateResponse {
+  trace_id: string;
+  product_id: string;
+  final_price: number;
+  confidence: number;
+  arbitration_method: string;
+  agent_votes: Record<string, AgentVote>;
+  negotiation_summary: string;
+  processing_time_ms: number;
+  tokens_used: number;
+  timestamp: string;
+}
+
+export interface AgentVote {
+  suggested_price: number;
+  confidence: number;
+  reasoning: string;
+  error?: string;
+}
+
+export interface PricingHistoryRequest {
+  product_id?: string;
+  limit: number;
+}
+
+export interface PricingHistoryResponse {
+  history: PricingNegotiateResponse[];
+  total: number;
+}
+
+export interface PricingAgentStatus {
+  status: string;
+  weight: number;
+  description: string;
+  negotiations_completed?: number;
+}
+
+export interface AgentStatusResponse {
+  agents: Record<string, PricingAgentStatus>;
+}
+

@@ -18,6 +18,10 @@ import {
   FetchModelsResponse,
   BatchAddModelsRequest,
   BatchAddModelsResponse,
+  PricingNegotiateRequest,
+  PricingNegotiateResponse,
+  PricingHistoryResponse,
+  AgentStatusResponse,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -331,6 +335,26 @@ class ApiService {
 
   async getSystemMetrics(): Promise<any> {
     const response = await this.client.get('/analytics/system');
+    return response.data;
+  }
+
+  // ==================== 定价接口 ====================
+
+  async pricingNegotiate(request: PricingNegotiateRequest): Promise<PricingNegotiateResponse> {
+    const response = await this.client.post('/pricing/negotiate', request);
+    return response.data;
+  }
+
+  async getPricingHistory(productId?: string, limit: number = 20): Promise<PricingHistoryResponse> {
+    const params = new URLSearchParams();
+    if (productId) params.append('product_id', productId);
+    params.append('limit', limit.toString());
+    const response = await this.client.get(`/pricing/history?${params.toString()}`);
+    return response.data;
+  }
+
+  async getPricingAgentStatus(): Promise<AgentStatusResponse> {
+    const response = await this.client.get('/pricing/agents/status');
     return response.data;
   }
 }

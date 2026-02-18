@@ -18,6 +18,7 @@ import {
   Monitor,
   Cpu,
   Brain,
+  DollarSign,
 } from 'lucide-react';
 import { useAppStore } from '../../store';
 import { LanguageSwitcher } from '../LanguageSwitcher';
@@ -43,6 +44,7 @@ export function Layout({ children }: LayoutProps) {
     { path: '/monitoring', icon: Monitor, labelKey: 'nav.monitoring' },
     { path: '/tool-optimization', icon: Cpu, labelKey: 'nav.toolOptimization' },
     { path: '/memory-optimization', icon: Brain, labelKey: 'nav.memoryOptimization' },
+    { path: '/pricing', icon: DollarSign, labelKey: 'nav.pricing' },
     { path: '/settings', icon: Settings, labelKey: 'nav.settings' },
   ];
 
