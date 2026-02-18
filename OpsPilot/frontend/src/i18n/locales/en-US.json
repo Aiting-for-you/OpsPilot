@@ -28,6 +28,8 @@
     "sop": "SOP",
     "agents": "Agents",
     "tracing": "Tracing",
+    "scheduler": "Scheduler",
+    "analytics": "Analytics",
     "settings": "Settings"
   },
   "dashboard": {

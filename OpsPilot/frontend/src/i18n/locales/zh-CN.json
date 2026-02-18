@@ -28,6 +28,8 @@
     "sop": "SOP 执行",
     "agents": "Agent 监控",
     "tracing": "追踪分析",
+    "scheduler": "任务调度",
+    "analytics": "数据分析",
     "settings": "设置"
   },
   "dashboard": {

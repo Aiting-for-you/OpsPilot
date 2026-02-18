@@ -251,6 +251,88 @@ class ApiService {
     });
     return response.data;
   }
+
+  // ==================== 任务调度接口 ====================
+
+  async getScheduledTasks(status?: string, tag?: string, limit?: number): Promise<any> {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (tag) params.append('tag', tag);
+    if (limit) params.append('limit', limit.toString());
+    const response = await this.client.get(`/scheduler/tasks?${params.toString()}`);
+    return response.data;
+  }
+
+  async getScheduledTask(taskId: string): Promise<any> {
+    const response = await this.client.get(`/scheduler/tasks/${taskId}`);
+    return response.data;
+  }
+
+  async createScheduledTask(task: any): Promise<any> {
+    const response = await this.client.post('/scheduler/tasks', task);
+    return response.data;
+  }
+
+  async cancelScheduledTask(taskId: string): Promise<any> {
+    const response = await this.client.delete(`/scheduler/tasks/${taskId}`);
+    return response.data;
+  }
+
+  async getSchedulerStats(): Promise<any> {
+    const response = await this.client.get('/scheduler/stats');
+    return response.data;
+  }
+
+  async startScheduler(): Promise<any> {
+    const response = await this.client.post('/scheduler/start');
+    return response.data;
+  }
+
+  async stopScheduler(): Promise<any> {
+    const response = await this.client.post('/scheduler/stop');
+    return response.data;
+  }
+
+  // ==================== 数据分析接口 ====================
+
+  async getAnalyticsDashboard(startTime?: string, endTime?: string): Promise<any> {
+    const params = new URLSearchParams();
+    if (startTime) params.append('start_time', startTime);
+    if (endTime) params.append('end_time', endTime);
+    const response = await this.client.get(`/analytics/dashboard?${params.toString()}`);
+    return response.data;
+  }
+
+  async getTaskStatistics(startTime?: string, endTime?: string): Promise<any> {
+    const params = new URLSearchParams();
+    if (startTime) params.append('start_time', startTime);
+    if (endTime) params.append('end_time', endTime);
+    const response = await this.client.get(`/analytics/tasks?${params.toString()}`);
+    return response.data;
+  }
+
+  async getAgentPerformance(agentId?: string, startTime?: string, endTime?: string): Promise<any> {
+    const params = new URLSearchParams();
+    if (agentId) params.append('agent_id', agentId);
+    if (startTime) params.append('start_time', startTime);
+    if (endTime) params.append('end_time', endTime);
+    const response = await this.client.get(`/analytics/agents?${params.toString()}`);
+    return response.data;
+  }
+
+  async getToolAnalytics(toolName?: string, startTime?: string, endTime?: string): Promise<any> {
+    const params = new URLSearchParams();
+    if (toolName) params.append('tool_name', toolName);
+    if (startTime) params.append('start_time', startTime);
+    if (endTime) params.append('end_time', endTime);
+    const response = await this.client.get(`/analytics/tools?${params.toString()}`);
+    return response.data;
+  }
+
+  async getSystemMetrics(): Promise<any> {
+    const response = await this.client.get('/analytics/system');
+    return response.data;
+  }
 }
 
 export const api = new ApiService();

@@ -8,6 +8,8 @@ import { SOP } from './pages/SOP';
 import { Agents } from './pages/Agents';
 import { Tracing } from './pages/Tracing';
 import { Settings } from './pages/Settings';
+import { Scheduler } from './pages/Scheduler';
+import { Analytics } from './pages/Analytics';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -32,6 +34,8 @@ function App() {
             <Route path="/agents" element={<Agents />} />
             <Route path="/tracing" element={<Tracing />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/scheduler" element={<Scheduler />} />
+            <Route path="/analytics" element={<Analytics />} />
           </Routes>
         </Layout>
       </BrowserRouter>

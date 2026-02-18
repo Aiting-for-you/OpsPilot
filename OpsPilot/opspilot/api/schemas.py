@@ -573,3 +573,158 @@ class UserApprovalsResponse(BaseResponse):
     requests: List[ApprovalRequestResponse]
 
 
+# ==================== 任务调度相关 ====================
+
+class TaskPriority(str, Enum):
+    """任务优先级"""
+    LOW = "low"
+    NORMAL = "normal"
+    HIGH = "high"
+    URGENT = "urgent"
+
+
+class TaskType(str, Enum):
+    """任务类型"""
+    ONE_TIME = "one_time"
+    SCHEDULED = "scheduled"
+    RECURRING = "recurring"
+
+
+class TaskStatus(str, Enum):
+    """任务状态"""
+    PENDING = "pending"
+    QUEUED = "queued"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    RETRYING = "retrying"
+
+
+class CreateScheduledTaskRequest(BaseModel):
+    """创建调度任务请求"""
+    name: str = Field(..., description="任务名称")
+    target: str = Field(..., description="目标函数名")
+    args: List[Any] = Field(default_factory=list, description="位置参数")
+    kwargs: Dict[str, Any] = Field(default_factory=dict, description="关键字参数")
+    priority: TaskPriority = Field(default=TaskPriority.NORMAL, description="优先级")
+    task_type: TaskType = Field(default=TaskType.ONE_TIME, description="任务类型")
+    scheduled_time: Optional[str] = Field(default=None, description="定时执行时间（ISO格式）")
+    interval: Optional[int] = Field(default=None, description="周期性任务间隔（秒）")
+    max_retries: int = Field(default=3, description="最大重试次数")
+    retry_interval: int = Field(default=60, description="重试间隔（秒）")
+    tags: List[str] = Field(default_factory=list, description="标签")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "库存检查任务",
+                "target": "check_inventory",
+                "args": [],
+                "kwargs": {"threshold": 100},
+                "priority": "high",
+                "task_type": "recurring",
+                "interval": 3600,
+                "max_retries": 3,
+                "tags": ["inventory", "monitoring"]
+            }
+        }
+
+
+class ScheduledTaskResponse(BaseResponse):
+    """调度任务响应"""
+    task_id: str
+    name: str
+    task_type: str
+    priority: str
+    status: str
+    created_at: str
+    scheduled_time: Optional[str] = None
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    retry_count: int = 0
+    error_message: Optional[str] = None
+    tags: List[str] = []
+
+
+class ScheduledTaskListResponse(BaseResponse):
+    """任务列表响应"""
+    tasks: List[ScheduledTaskResponse]
+    total: int
+
+
+class SchedulerStatsResponse(BaseResponse):
+    """调度器统计响应"""
+    total_tasks: int
+    completed_tasks: int
+    failed_tasks: int
+    cancelled_tasks: int
+    running_tasks: int
+    queued_tasks: int
+
+
+# ==================== 数据分析相关 ====================
+
+class TaskStatisticsResponse(BaseModel):
+    """任务统计响应"""
+    total_tasks: int
+    completed_tasks: int
+    failed_tasks: int
+    cancelled_tasks: int
+    pending_tasks: int
+    running_tasks: int
+    success_rate: float
+    avg_execution_time: float
+    tasks_by_status: Dict[str, int]
+    tasks_by_day: Dict[str, int]
+    tasks_by_hour: Dict[int, int]
+    daily_completion_trend: List[Dict[str, Any]]
+    daily_failure_trend: List[Dict[str, Any]]
+
+
+class AgentPerformanceResponse(BaseModel):
+    """Agent性能响应"""
+    agent_id: str
+    agent_name: str
+    total_tasks: int
+    successful_tasks: int
+    failed_tasks: int
+    success_rate: float
+    avg_execution_time: float
+    total_tool_calls: int
+    successful_tool_calls: int
+
+
+class ToolAnalyticsResponse(BaseModel):
+    """工具调用分析响应"""
+    tool_name: str
+    total_calls: int
+    successful_calls: int
+    failed_calls: int
+    success_rate: float
+    avg_execution_time: float
+    calls_by_day: Dict[str, int]
+    calls_by_hour: Dict[int, int]
+    common_errors: List[Dict[str, Any]]
+
+
+class SystemMetricsResponse(BaseModel):
+    """系统指标响应"""
+    task_queue_size: int
+    active_tasks: int
+    active_agents: int
+    total_agents: int
+    available_tools: int
+    system_load: float
+    timestamp: str
+
+
+class DashboardDataResponse(BaseModel):
+    """看板数据响应"""
+    task_statistics: TaskStatisticsResponse
+    agent_performance: List[AgentPerformanceResponse]
+    tool_analytics: List[ToolAnalyticsResponse]
+    system_metrics: SystemMetricsResponse
+    generated_at: str
+
+

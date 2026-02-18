@@ -3009,6 +3009,290 @@ curl -X POST http://localhost:8000/api/v1/approval/approve \
 
 ---
 
+## [2026-02-18] - 任务调度系统与数据分析看板
+
+### 开发目标
+
+实现任务调度系统和数据可视化看板：
+- 定时任务管理（一次性/定时/周期性）
+- 任务优先级队列
+- 重试机制
+- 数据统计分析
+- 美观的前端界面
+
+### 完成内容
+
+#### 1. 任务调度模块（`opspilot/scheduler/task_scheduler.py`）
+
+**核心功能**：
+- `TaskPriority` 枚举 - 4 种优先级（LOW/NORMAL/HIGH/URGENT）
+- `TaskStatus` 枚举 - 7 种状态（PENDING/QUEUED/RUNNING/COMPLETED/FAILED/CANCELLED/RETRYING）
+- `TaskType` 枚举 - 3 种类型（ONE_TIME/SCHEDULED/RECURRING）
+- `ScheduledTask` - 调度任务模型
+  - 支持 3 种任务类型
+  - 支持定时执行和周期执行
+  - 支持自定义重试策略
+  - 支持标签和元数据
+
+- `TaskScheduler` - 任务调度器核心
+  - `add_task()` - 添加任务
+  - `cancel_task()` - 取消任务
+  - `get_task()` / `get_all_tasks()` - 查询任务
+  - `get_stats()` - 获取统计信息
+  - `start()` / `stop()` - 启动/停止调度器
+  - `_scheduler_loop()` - 调度主循环
+  - `_process_queue()` - 处理任务队列（优先级堆）
+  - `_execute_task()` - 异步执行任务
+  - `_check_recurring_tasks()` - 检查周期性任务
+
+**技术亮点**：
+```python
+# 优先级队列实现
+def __lt__(self, other: "ScheduledTask") -> bool:
+    if self.priority.value != other.priority.value:
+        return self.priority.value > other.priority.value
+    return self.created_at < other.created_at
+
+# 异步执行支持
+if asyncio.iscoroutinefunction(task.target):
+    result = await task.target(*task.args, **task.kwargs)
+else:
+    result = await asyncio.to_thread(task.target, *task.args, **task.kwargs)
+```
+
+#### 2. 数据分析模块（`opspilot/analytics/analytics_engine.py`）
+
+**核心功能**：
+- `TaskStatistics` - 任务统计
+  - 总数、完成数、失败数、取消数
+  - 成功率、平均执行时间
+  - 按状态/天/小时分布
+  - 完成趋势和失败趋势
+
+- `AgentPerformance` - Agent 性能统计
+  - 任务数量、成功率
+  - 平均执行时间
+  - 工具调用统计
+
+- `ToolCallAnalytics` - 工具调用分析
+  - 调用次数、成功率
+  - 平均执行时间
+  - 调用趋势（按天/小时）
+  - 常见错误分析
+
+- `SystemMetrics` - 系统指标
+  - 任务队列大小
+  - 活跃任务数
+  - 活跃Agent数
+  - 系统负载
+
+- `AnalyticsEngine` - 分析引擎核心
+  - `record_task_execution()` - 记录任务执行
+  - `record_agent_execution()` - 记录 Agent 执行
+  - `record_tool_call()` - 记录工具调用
+  - `get_task_statistics()` - 获取任务统计
+  - `get_agent_performance()` - 获取 Agent 性能
+  - `get_tool_analytics()` - 获取工具分析
+  - `get_system_metrics()` - 获取系统指标
+  - `get_dashboard_data()` - 获取看板汇总数据
+
+**缓存机制**：
+```python
+def _get_cache(self, key: str) -> Optional[Any]:
+    if key in self._cache:
+        cache_time = self._cache_time.get(key)
+        if cache_time and (datetime.now() - cache_time).seconds < 60:
+            return self._cache[key]
+    return None
+```
+
+#### 3. API Schema 定义（`opspilot/api/schemas.py`）
+
+**任务调度相关 Schema**：
+- `CreateScheduledTaskRequest` - 创建调度任务请求
+- `ScheduledTaskResponse` - 调度任务响应
+- `ScheduledTaskListResponse` - 任务列表响应
+- `SchedulerStatsResponse` - 调度器统计响应
+
+**数据分析相关 Schema**：
+- `TaskStatisticsResponse` - 任务统计响应
+- `AgentPerformanceResponse` - Agent 性能响应
+- `ToolAnalyticsResponse` - 工具调用分析响应
+- `SystemMetricsResponse` - 系统指标响应
+- `DashboardDataResponse` - 看板数据响应
+
+#### 4. API 路由（`opspilot/api/routes.py`）
+
+**任务调度接口**（8 个）：
+```
+POST   /api/v1/scheduler/tasks          - 创建调度任务
+GET    /api/v1/scheduler/tasks          - 获取任务列表
+GET    /api/v1/scheduler/tasks/{id}     - 获取任务详情
+DELETE /api/v1/scheduler/tasks/{id}     - 取消任务
+GET    /api/v1/scheduler/stats          - 获取调度器统计
+POST   /api/v1/scheduler/start          - 启动调度器
+POST   /api/v1/scheduler/stop           - 停止调度器
+```
+
+**数据分析接口**（5 个）：
+```
+GET  /api/v1/analytics/dashboard         - 获取看板数据
+GET  /api/v1/analytics/tasks             - 获取任务统计
+GET  /api/v1/analytics/agents            - 获取 Agent 性能
+GET  /api/v1/analytics/tools             - 获取工具调用分析
+GET  /api/v1/analytics/system            - 获取系统指标
+```
+
+#### 5. 前端任务调度管理界面（`frontend/src/pages/Scheduler.tsx`）
+
+**核心功能**：
+- 任务统计卡片（总数/完成/失败/取消/运行/队列）
+- 任务列表展示（可展开查看详情）
+- 状态筛选（全部/待执行/队列中/运行中/已完成/失败/已取消）
+- 任务详情查看（时间信息、错误信息、重试次数）
+- 创建任务弹窗（支持 3 种任务类型）
+- 调度器控制（启动/停止）
+
+**UI 设计亮点**：
+```tsx
+// 状态图标动态变化
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'running': return <RefreshCw className="w-4 h-4 text-electric animate-spin" />;
+    case 'completed': return <CheckCircle className="w-4 h-4 text-success" />;
+    case 'failed': return <XCircle className="w-4 h-4 text-error" />;
+    // ...
+  }
+};
+
+// 优先级徽章颜色
+const getPriorityBadge = (priority: string) => {
+  const colors = {
+    low: 'bg-steel-700 text-steel-300',
+    high: 'bg-orange-900/50 text-orange-400',
+    urgent: 'bg-red-900/50 text-red-400',
+  };
+  // ...
+};
+```
+
+#### 6. 前端数据分析看板界面（`frontend/src/pages/Analytics.tsx`）
+
+**核心功能**：
+- 时间范围选择（7天/30天/90天）
+- 系统概览卡片（任务总数/成功率/平均执行时间/活跃Agent）
+- 任务状态分布（进度条可视化）
+- 完成趋势图（柱状图，最近7天）
+- Agent 性能排行榜（按成功率排序）
+- 工具调用排行榜（按调用次数排序）
+- 系统实时指标（队列/任务/Agent/工具）
+
+**UI 设计亮点**：
+```tsx
+// 渐变卡片
+<div className="relative overflow-hidden rounded-xl p-5 bg-gradient-to-br from-electric/20 to-electric/5">
+  {/* 背景装饰 */}
+  <div className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10">
+    <Icon className="w-full h-full" />
+  </div>
+  {/* 内容 */}
+</div>
+
+// 趋势柱状图
+<div className="h-48 flex items-end justify-between gap-2">
+  {trend.map((item) => (
+    <div key={item.date}>
+      <span className="text-xs">{item.count}</span>
+      <div style={{ height: `${height}%` }}>
+        <div className="bg-gradient-to-t from-success to-success/50" />
+      </div>
+      <span>{format(new Date(item.date), 'MM/dd')}</span>
+    </div>
+  ))}
+</div>
+```
+
+#### 7. 前端更新
+
+**App.tsx**：
+- 添加 `/scheduler` 路由
+- 添加 `/analytics` 路由
+
+**Layout.tsx**：
+- 添加 `Clock` 图标
+- 添加 `BarChart3` 图标
+- 添加"任务调度"导航项
+- 添加"数据分析"导航项
+
+**api.ts**：
+- 添加 8 个任务调度 API 方法
+- 添加 5 个数据分析 API 方法
+
+**国际化**：
+- `zh-CN.json` - 添加 `nav.scheduler` 和 `nav.analytics`
+- `en-US.json` - 添加 `nav.scheduler` 和 `nav.analytics`
+
+### 使用示例
+
+#### 1. 创建定时任务
+
+```bash
+curl -X POST http://localhost:8000/api/v1/scheduler/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "每日库存检查",
+    "target": "check_inventory",
+    "task_type": "recurring",
+    "interval": 86400,
+    "priority": "high",
+    "tags": ["inventory", "monitoring"]
+  }'
+```
+
+#### 2. 查看任务列表
+
+```bash
+curl http://localhost:8000/api/v1/scheduler/tasks?status=running
+```
+
+#### 3. 获取数据看板
+
+```bash
+curl "http://localhost:8000/api/v1/analytics/dashboard?start_time=2026-02-11&end_time=2026-02-18"
+```
+
+### 技术决策
+
+1. **优先级队列**：使用 `heapq` 实现优先级队列，高优先级任务优先执行
+2. **异步执行**：支持同步和异步任务，使用 `asyncio.to_thread` 包装同步函数
+3. **重试机制**：支持自定义最大重试次数和重试间隔
+4. **缓存优化**：分析引擎使用 60 秒缓存，避免重复计算
+5. **趋势分析**：自动计算最近 7 天的完成趋势和失败趋势
+6. **前端美化**：使用渐变背景、动态图标、进度条等提升视觉效果
+
+### 完成统计
+
+| 项目 | 数量 |
+|------|------|
+| Python 新增模块 | 2 |
+| Python 新增代码 | ~800 行 |
+| API 新增接口 | 13 |
+| 新增 Schema | 9 |
+| 前端新增页面 | 2 |
+| 前端新增代码 | ~700 行 |
+
+### 后续优化方向
+
+1. **持久化存储**：任务记录保存到数据库
+2. **任务依赖**：支持任务间依赖关系
+3. **并发控制**：更细粒度的并发限制
+4. **任务取消恢复**：支持暂停后恢复
+5. **更丰富的图表**：折线图、饼图、热力图
+6. **数据导出**：支持 CSV/Excel 导出
+7. **告警规则**：任务失败自动告警
+
+---
+
 
 
 

@@ -13,6 +13,8 @@ import {
   Plane,
   Activity,
   ChevronLeft,
+  Clock,
+  BarChart3,
 } from 'lucide-react';
 import { useAppStore } from '../../store';
 import { LanguageSwitcher } from '../LanguageSwitcher';
@@ -33,6 +35,8 @@ export function Layout({ children }: LayoutProps) {
     { path: '/sop', icon: Database, labelKey: 'nav.sop' },
     { path: '/agents', icon: Users, labelKey: 'nav.agents' },
     { path: '/tracing', icon: Activity, labelKey: 'nav.tracing' },
+    { path: '/scheduler', icon: Clock, labelKey: 'nav.scheduler' },
+    { path: '/analytics', icon: BarChart3, labelKey: 'nav.analytics' },
     { path: '/settings', icon: Settings, labelKey: 'nav.settings' },
   ];
 

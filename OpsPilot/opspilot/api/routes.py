@@ -6,10 +6,12 @@ API 路由定义
 - 请求处理
 - 响应生成
 """
-from typing import Optional
+from typing import Optional, List, Dict, Any
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 
 from opspilot.api.schemas import (
+    BaseResponse,
     TaskCreateRequest,
     TaskCreateResponse,
     TaskStatusResponse,
@@ -59,6 +61,19 @@ from opspilot.api.schemas import (
     RejectRequest,
     PendingApprovalsResponse,
     UserApprovalsResponse,
+    # 任务调度相关
+    CreateScheduledTaskRequest,
+    ScheduledTaskResponse,
+    ScheduledTaskListResponse,
+    SchedulerStatsResponse,
+    TaskPriority,
+    TaskType,
+    # 数据分析相关
+    TaskStatisticsResponse,
+    AgentPerformanceResponse,
+    ToolAnalyticsResponse,
+    SystemMetricsResponse,
+    DashboardDataResponse,
 )
 from opspilot.core.orchestrator import Orchestrator
 from opspilot.core.sop_executor import SOPExecutor, SOPDefinition, create_order_sop, query_supplier_sop
@@ -1322,6 +1337,452 @@ async def get_approval_detail(request_id: str):
         approved_by=approval.approved_by,
         approved_at=approval.approved_at.isoformat() if approval.approved_at else None,
         approval_comment=approval.approval_comment,
+    )
+
+
+# ==================== 任务调度接口 ====================
+
+@router.post(
+    "/scheduler/tasks",
+    response_model=ScheduledTaskResponse,
+    summary="创建调度任务"
+)
+async def create_scheduled_task(request: CreateScheduledTaskRequest):
+    """创建调度任务"""
+    from opspilot.scheduler import get_scheduler, TaskPriority as TP, TaskType as TT
+    
+    try:
+        scheduler = get_scheduler()
+        
+        # 转换优先级
+        priority_map = {
+            TaskPriority.LOW: TP.LOW,
+            TaskPriority.NORMAL: TP.NORMAL,
+            TaskPriority.HIGH: TP.HIGH,
+            TaskPriority.URGENT: TP.URGENT,
+        }
+        
+        # 转换任务类型
+        type_map = {
+            TaskType.ONE_TIME: TT.ONE_TIME,
+            TaskType.SCHEDULED: TT.SCHEDULED,
+            TaskType.RECURRING: TT.RECURRING,
+        }
+        
+        # 解析定时时间
+        scheduled_time = None
+        if request.scheduled_time:
+            scheduled_time = datetime.fromisoformat(request.scheduled_time)
+        
+        # 示例目标函数（实际应用中应从注册表中获取）
+        async def sample_task(*args, **kwargs):
+            return {"status": "executed", "args": args, "kwargs": kwargs}
+        
+        task_id = scheduler.add_task(
+            name=request.name,
+            target=sample_task,
+            args=tuple(request.args),
+            kwargs=request.kwargs,
+            priority=priority_map[request.priority],
+            task_type=type_map[request.task_type],
+            scheduled_time=scheduled_time,
+            interval=request.interval,
+            max_retries=request.max_retries,
+            retry_interval=request.retry_interval,
+            tags=request.tags,
+        )
+        
+        task = scheduler.get_task(task_id)
+        
+        return ScheduledTaskResponse(
+            success=True,
+            message="任务创建成功",
+            task_id=task.task_id,
+            name=task.name,
+            task_type=task.task_type.value,
+            priority=task.priority.value,
+            status=task.status.value,
+            created_at=task.created_at.isoformat(),
+            scheduled_time=task.scheduled_time.isoformat() if task.scheduled_time else None,
+            started_at=task.started_at.isoformat() if task.started_at else None,
+            completed_at=task.completed_at.isoformat() if task.completed_at else None,
+            retry_count=task.retry_count,
+            error_message=task.error_message,
+            tags=task.tags,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get(
+    "/scheduler/tasks",
+    response_model=ScheduledTaskListResponse,
+    summary="获取任务列表"
+)
+async def get_scheduled_tasks(
+    status: Optional[str] = None,
+    tag: Optional[str] = None,
+    limit: int = 100,
+):
+    """获取调度任务列表"""
+    from opspilot.scheduler import get_scheduler, TaskStatus as TS
+    
+    scheduler = get_scheduler()
+    
+    # 转换状态
+    status_enum = None
+    if status:
+        try:
+            status_enum = TS(status)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"无效的任务状态: {status}")
+    
+    tasks = scheduler.get_all_tasks(status=status_enum, tag=tag, limit=limit)
+    
+    return ScheduledTaskListResponse(
+        success=True,
+        message="获取成功",
+        tasks=[
+            ScheduledTaskResponse(
+                success=True,
+                message="",
+                task_id=task.task_id,
+                name=task.name,
+                task_type=task.task_type.value,
+                priority=task.priority.value,
+                status=task.status.value,
+                created_at=task.created_at.isoformat(),
+                scheduled_time=task.scheduled_time.isoformat() if task.scheduled_time else None,
+                started_at=task.started_at.isoformat() if task.started_at else None,
+                completed_at=task.completed_at.isoformat() if task.completed_at else None,
+                retry_count=task.retry_count,
+                error_message=task.error_message,
+                tags=task.tags,
+            )
+            for task in tasks
+        ],
+        total=len(tasks),
+    )
+
+
+@router.get(
+    "/scheduler/tasks/{task_id}",
+    response_model=ScheduledTaskResponse,
+    summary="获取任务详情"
+)
+async def get_scheduled_task(task_id: str):
+    """获取调度任务详情"""
+    from opspilot.scheduler import get_scheduler
+    
+    scheduler = get_scheduler()
+    task = scheduler.get_task(task_id)
+    
+    if not task:
+        raise HTTPException(status_code=404, detail="任务不存在")
+    
+    return ScheduledTaskResponse(
+        success=True,
+        message="获取成功",
+        task_id=task.task_id,
+        name=task.name,
+        task_type=task.task_type.value,
+        priority=task.priority.value,
+        status=task.status.value,
+        created_at=task.created_at.isoformat(),
+        scheduled_time=task.scheduled_time.isoformat() if task.scheduled_time else None,
+        started_at=task.started_at.isoformat() if task.started_at else None,
+        completed_at=task.completed_at.isoformat() if task.completed_at else None,
+        retry_count=task.retry_count,
+        error_message=task.error_message,
+        tags=task.tags,
+    )
+
+
+@router.delete(
+    "/scheduler/tasks/{task_id}",
+    response_model=BaseResponse,
+    summary="取消任务"
+)
+async def cancel_scheduled_task(task_id: str):
+    """取消调度任务"""
+    from opspilot.scheduler import get_scheduler
+    
+    scheduler = get_scheduler()
+    success = scheduler.cancel_task(task_id)
+    
+    if not success:
+        raise HTTPException(status_code=400, detail="无法取消任务")
+    
+    return BaseResponse(
+        success=True,
+        message="任务已取消",
+    )
+
+
+@router.get(
+    "/scheduler/stats",
+    response_model=SchedulerStatsResponse,
+    summary="获取调度器统计"
+)
+async def get_scheduler_stats():
+    """获取调度器统计信息"""
+    from opspilot.scheduler import get_scheduler
+    
+    scheduler = get_scheduler()
+    stats = scheduler.get_stats()
+    
+    return SchedulerStatsResponse(
+        success=True,
+        message="获取成功",
+        **stats,
+    )
+
+
+@router.post(
+    "/scheduler/start",
+    response_model=BaseResponse,
+    summary="启动调度器"
+)
+async def start_scheduler():
+    """启动任务调度器"""
+    from opspilot.scheduler import get_scheduler
+    
+    scheduler = get_scheduler()
+    await scheduler.start()
+    
+    return BaseResponse(
+        success=True,
+        message="调度器已启动",
+    )
+
+
+@router.post(
+    "/scheduler/stop",
+    response_model=BaseResponse,
+    summary="停止调度器"
+)
+async def stop_scheduler():
+    """停止任务调度器"""
+    from opspilot.scheduler import get_scheduler
+    
+    scheduler = get_scheduler()
+    await scheduler.stop()
+    
+    return BaseResponse(
+        success=True,
+        message="调度器已停止",
+    )
+
+
+# ==================== 数据分析接口 ====================
+
+@router.get(
+    "/analytics/dashboard",
+    response_model=DashboardDataResponse,
+    summary="获取看板数据"
+)
+async def get_dashboard_data(
+    start_time: Optional[str] = None,
+    end_time: Optional[str] = None,
+):
+    """获取数据看板汇总数据"""
+    from opspilot.analytics import get_analytics_engine
+    
+    engine = get_analytics_engine()
+    
+    # 解析时间
+    start = datetime.fromisoformat(start_time) if start_time else None
+    end = datetime.fromisoformat(end_time) if end_time else None
+    
+    data = engine.get_dashboard_data(start, end)
+    
+    # 转换为响应格式
+    task_stats = data["task_statistics"]
+    return DashboardDataResponse(
+        task_statistics=TaskStatisticsResponse(
+            total_tasks=task_stats.total_tasks,
+            completed_tasks=task_stats.completed_tasks,
+            failed_tasks=task_stats.failed_tasks,
+            cancelled_tasks=task_stats.cancelled_tasks,
+            pending_tasks=task_stats.pending_tasks,
+            running_tasks=task_stats.running_tasks,
+            success_rate=task_stats.success_rate,
+            avg_execution_time=task_stats.avg_execution_time,
+            tasks_by_status=task_stats.tasks_by_status,
+            tasks_by_day=task_stats.tasks_by_day,
+            tasks_by_hour=task_stats.tasks_by_hour,
+            daily_completion_trend=task_stats.daily_completion_trend,
+            daily_failure_trend=task_stats.daily_failure_trend,
+        ),
+        agent_performance=[
+            AgentPerformanceResponse(
+                agent_id=perf.agent_id,
+                agent_name=perf.agent_name,
+                total_tasks=perf.total_tasks,
+                successful_tasks=perf.successful_tasks,
+                failed_tasks=perf.failed_tasks,
+                success_rate=perf.success_rate,
+                avg_execution_time=perf.avg_execution_time,
+                total_tool_calls=perf.total_tool_calls,
+                successful_tool_calls=perf.successful_tool_calls,
+            )
+            for perf in data["agent_performance"]
+        ],
+        tool_analytics=[
+            ToolAnalyticsResponse(
+                tool_name=analytics.tool_name,
+                total_calls=analytics.total_calls,
+                successful_calls=analytics.successful_calls,
+                failed_calls=analytics.failed_calls,
+                success_rate=analytics.success_rate,
+                avg_execution_time=analytics.avg_execution_time,
+                calls_by_day=analytics.calls_by_day,
+                calls_by_hour=analytics.calls_by_hour,
+                common_errors=analytics.common_errors,
+            )
+            for analytics in data["tool_analytics"]
+        ],
+        system_metrics=SystemMetricsResponse(
+            task_queue_size=data["system_metrics"].task_queue_size,
+            active_tasks=data["system_metrics"].active_tasks,
+            active_agents=data["system_metrics"].active_agents,
+            total_agents=data["system_metrics"].total_agents,
+            available_tools=data["system_metrics"].available_tools,
+            system_load=data["system_metrics"].system_load,
+            timestamp=data["system_metrics"].timestamp.isoformat(),
+        ),
+        generated_at=data["generated_at"],
+    )
+
+
+@router.get(
+    "/analytics/tasks",
+    response_model=TaskStatisticsResponse,
+    summary="获取任务统计"
+)
+async def get_task_statistics(
+    start_time: Optional[str] = None,
+    end_time: Optional[str] = None,
+):
+    """获取任务统计数据"""
+    from opspilot.analytics import get_analytics_engine
+    
+    engine = get_analytics_engine()
+    
+    start = datetime.fromisoformat(start_time) if start_time else None
+    end = datetime.fromisoformat(end_time) if end_time else None
+    
+    stats = engine.get_task_statistics(start, end)
+    
+    return TaskStatisticsResponse(
+        total_tasks=stats.total_tasks,
+        completed_tasks=stats.completed_tasks,
+        failed_tasks=stats.failed_tasks,
+        cancelled_tasks=stats.cancelled_tasks,
+        pending_tasks=stats.pending_tasks,
+        running_tasks=stats.running_tasks,
+        success_rate=stats.success_rate,
+        avg_execution_time=stats.avg_execution_time,
+        tasks_by_status=stats.tasks_by_status,
+        tasks_by_day=stats.tasks_by_day,
+        tasks_by_hour=stats.tasks_by_hour,
+        daily_completion_trend=stats.daily_completion_trend,
+        daily_failure_trend=stats.daily_failure_trend,
+    )
+
+
+@router.get(
+    "/analytics/agents",
+    response_model=List[AgentPerformanceResponse],
+    summary="获取Agent性能"
+)
+async def get_agent_performance(
+    agent_id: Optional[str] = None,
+    start_time: Optional[str] = None,
+    end_time: Optional[str] = None,
+):
+    """获取Agent性能统计"""
+    from opspilot.analytics import get_analytics_engine
+    
+    engine = get_analytics_engine()
+    
+    start = datetime.fromisoformat(start_time) if start_time else None
+    end = datetime.fromisoformat(end_time) if end_time else None
+    
+    performances = engine.get_agent_performance(agent_id, start, end)
+    
+    return [
+        AgentPerformanceResponse(
+            agent_id=perf.agent_id,
+            agent_name=perf.agent_name,
+            total_tasks=perf.total_tasks,
+            successful_tasks=perf.successful_tasks,
+            failed_tasks=perf.failed_tasks,
+            success_rate=perf.success_rate,
+            avg_execution_time=perf.avg_execution_time,
+            total_tool_calls=perf.total_tool_calls,
+            successful_tool_calls=perf.successful_tool_calls,
+        )
+        for perf in performances
+    ]
+
+
+@router.get(
+    "/analytics/tools",
+    response_model=List[ToolAnalyticsResponse],
+    summary="获取工具调用分析"
+)
+async def get_tool_analytics(
+    tool_name: Optional[str] = None,
+    start_time: Optional[str] = None,
+    end_time: Optional[str] = None,
+):
+    """获取工具调用分析"""
+    from opspilot.analytics import get_analytics_engine
+    
+    engine = get_analytics_engine()
+    
+    start = datetime.fromisoformat(start_time) if start_time else None
+    end = datetime.fromisoformat(end_time) if end_time else None
+    
+    analytics_list = engine.get_tool_analytics(tool_name, start, end)
+    
+    return [
+        ToolAnalyticsResponse(
+            tool_name=analytics.tool_name,
+            total_calls=analytics.total_calls,
+            successful_calls=analytics.successful_calls,
+            failed_calls=analytics.failed_calls,
+            success_rate=analytics.success_rate,
+            avg_execution_time=analytics.avg_execution_time,
+            calls_by_day=analytics.calls_by_day,
+            calls_by_hour=analytics.calls_by_hour,
+            common_errors=analytics.common_errors,
+        )
+        for analytics in analytics_list
+    ]
+
+
+@router.get(
+    "/analytics/system",
+    response_model=SystemMetricsResponse,
+    summary="获取系统指标"
+)
+async def get_system_metrics():
+    """获取系统实时指标"""
+    from opspilot.analytics import get_analytics_engine
+    
+    engine = get_analytics_engine()
+    metrics = engine.get_system_metrics()
+    
+    return SystemMetricsResponse(
+        task_queue_size=metrics.task_queue_size,
+        active_tasks=metrics.active_tasks,
+        active_agents=metrics.active_agents,
+        total_agents=metrics.total_agents,
+        available_tools=metrics.available_tools,
+        system_load=metrics.system_load,
+        timestamp=metrics.timestamp.isoformat(),
     )
 
 
