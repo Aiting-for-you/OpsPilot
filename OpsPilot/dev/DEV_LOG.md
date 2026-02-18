@@ -2816,6 +2816,199 @@ const result = await api.callMCPTool("read_file", {
 
 ---
 
+## [2026-02-17] - 用户权限体系（RBAC）与 Human-in-the-loop 机制
+
+### 开发目标
+
+实现企业级权限管理和人工审批机制：
+- 基于角色的访问控制（RBAC）
+- 金额上限校验
+- 敏感操作二次确认
+- 审批工作流管理
+
+### 完成内容
+
+#### 1. RBAC 权限模块（`opspilot/auth/rbac.py`）
+
+**核心功能**：
+- `Permission` 枚举 - 17 种权限类型（订单/供应商/库存/财务/合同/支付/系统）
+- `Role` 枚举 - 4 种角色（初级采购员/高级采购员/财务审核员/系统管理员）
+- `RolePermission` - 角色权限配置（金额上限、权限列表、敏感操作、数据范围）
+- `RBACManager` - 权限管理器
+  - `assign_role()` - 分配角色
+  - `has_permission()` / `check_permission()` - 权限校验
+  - `check_amount_limit()` - 金额上限校验
+  - `is_sensitive_action()` - 敏感操作检查
+  - `can_approve_amount()` - 审批权限检查
+  - `validate_data_access()` - 数据访问范围校验
+
+**角色权限矩阵**：
+
+| 角色 | 金额上限 | 敏感操作 | 审批权限 | 数据范围 |
+|------|---------|---------|---------|---------|
+| 初级采购员 | ≤10万 | 无 | 无 | 仅本人数据 |
+| 高级采购员 | ≤50万 | 供应商编辑 | 无 | 本部门数据 |
+| 财务审核员 | 无限 | 支付审批/合同审计 | ≤100万 | 本部门数据 |
+| 系统管理员 | 无限 | 系统管理/用户管理 | 无限 | 全部数据 |
+
+**装饰器**：
+```python
+@require_permission(Permission.ORDER_CREATE)
+async def create_order(user_id: str, ...):
+    # 自动校验权限
+    pass
+
+@require_role(Role.SYSTEM_ADMIN)
+async def system_config(user_id: str, ...):
+    # 仅管理员可访问
+    pass
+```
+
+#### 2. 审批工作流模块（`opspilot/auth/approval.py`）
+
+**核心功能**：
+- `ApprovalType` 枚举 - 5 种审批类型（金额超限/敏感操作/支付/合同/订单取消）
+- `ApprovalStatus` 枚举 - 5 种状态（待审批/已通过/已拒绝/已过期/已取消）
+- `ApprovalRequest` - 审批请求模型
+- `ApprovalRule` - 审批规则配置
+- `ApprovalWorkflow` - 审批工作流管理器
+  - `create_approval_request()` - 创建审批请求
+  - `approve()` / `reject()` - 审批操作
+  - `get_pending_requests()` - 获取待审批列表
+  - `check_expired()` - 检查过期请求
+
+**审批规则示例**：
+```python
+ApprovalType.AMOUNT_EXCEEDED:
+  - 最小金额: 10万元
+  - 需要角色: 财务审核员/系统管理员
+  - 需要权限: finance:approve
+  - 超时时间: 24 小时
+
+ApprovalType.PAYMENT:
+  - 需要角色: 财务审核员/系统管理员
+  - 需要权限: payment:approve
+  - 超时时间: 12 小时
+```
+
+#### 3. API Schema 定义（`opspilot/api/schemas.py`）
+
+**RBAC 相关 Schema**：
+- `AssignRoleRequest` - 分配角色请求
+- `UserRoleResponse` - 用户角色响应
+- `RolePermissionResponse` - 角色权限响应
+- `CheckPermissionRequest/Response` - 权限检查
+- `CheckAmountRequest/Response` - 金额检查
+
+**审批相关 Schema**：
+- `CreateApprovalRequest` - 创建审批请求
+- `ApprovalRequestResponse` - 审批请求响应
+- `ApproveRequest` - 审批通过请求
+- `RejectRequest` - 审批拒绝请求
+- `PendingApprovalsResponse` - 待审批列表
+- `UserApprovalsResponse` - 用户审批列表
+
+#### 4. API 路由（`opspilot/api/routes.py`）
+
+**RBAC 接口**（5 个）：
+```
+POST /api/v1/rbac/assign-role         - 分配用户角色
+GET  /api/v1/rbac/user/{user_id}/role - 获取用户角色
+GET  /api/v1/rbac/role/{role}/permissions - 获取角色权限
+POST /api/v1/rbac/check-permission    - 检查用户权限
+POST /api/v1/rbac/check-amount        - 检查金额上限
+```
+
+**审批接口**（6 个）：
+```
+POST /api/v1/approval/create             - 创建审批请求
+POST /api/v1/approval/approve            - 审批通过
+POST /api/v1/approval/reject             - 审批拒绝
+GET  /api/v1/approval/pending/{user_id}  - 获取待审批列表
+GET  /api/v1/approval/user/{user_id}     - 获取用户发起的审批
+GET  /api/v1/approval/{request_id}       - 获取审批详情
+```
+
+### 使用示例
+
+#### 1. 分配角色
+```bash
+curl -X POST http://localhost:8000/api/v1/rbac/assign-role \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user-001",
+    "role": "senior_buyer",
+    "department": "采购部"
+  }'
+```
+
+#### 2. 检查权限
+```bash
+curl -X POST http://localhost:8000/api/v1/rbac/check-permission \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user-001",
+    "permission": "order:create"
+  }'
+```
+
+#### 3. 创建审批请求（金额超限）
+```bash
+curl -X POST http://localhost:8000/api/v1/approval/create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user-001",
+    "approval_type": "amount_exceeded",
+    "title": "超额采购订单审批",
+    "description": "采购金额 150,000 元，超过角色上限 100,000 元",
+    "data": {
+      "order_id": "order-123",
+      "amount": 150000,
+      "supplier": "供应商A"
+    }
+  }'
+```
+
+#### 4. 审批通过
+```bash
+curl -X POST http://localhost:8000/api/v1/approval/approve \
+  -H "Content-Type: application/json" \
+  -d '{
+    "request_id": "approval-uuid",
+    "approver_id": "finance-user",
+    "comment": "同意采购，价格合理"
+  }'
+```
+
+### 技术决策
+
+1. **权限粒度设计**：基于资源和操作的权限划分（如 `order:create`），易于扩展
+2. **角色继承**：当前为扁平角色，后续可扩展为层级角色
+3. **装饰器模式**：使用装饰器简化权限校验代码
+4. **审批自动化**：支持自动审批/拒绝规则，减少人工介入
+5. **过期机制**：审批请求支持超时自动过期
+
+### 完成统计
+
+| 项目 | 数量 |
+|------|------|
+| Python 新增模块 | 2 |
+| Python 新增代码 | ~800 行 |
+| API 新增接口 | 11 |
+| 新增 Schema | 12 |
+| 支持的角色 | 4 |
+| 支持的权限 | 17 |
+
+### 后续优化方向
+
+1. **数据库持久化**：将用户角色和审批记录保存到数据库
+2. **通知集成**：集成实时通知系统，审批请求自动推送
+3. **审批链**：支持多级审批链（部门主管 → 财务审核 → 总经理）
+4. **权限审计日志**：记录所有权限操作日志
+5. **动态权限配置**：支持管理员动态配置角色权限
+
+---
+
 
 
 

@@ -425,3 +425,151 @@ class MCPAllToolsResponse(BaseModel):
     success: bool = True
     tools: List[Dict[str, Any]] = Field(default_factory=list, description="所有工具列表")
 
+
+# ==================== RBAC 权限相关 ====================
+
+class RoleType(str, Enum):
+    """角色类型"""
+    JUNIOR_BUYER = "junior_buyer"
+    SENIOR_BUYER = "senior_buyer"
+    FINANCE_AUDITOR = "finance_auditor"
+    SYSTEM_ADMIN = "system_admin"
+
+
+class AssignRoleRequest(BaseModel):
+    """分配角色请求"""
+    user_id: str = Field(..., description="用户ID")
+    role: RoleType = Field(..., description="角色类型")
+    department: Optional[str] = Field(default=None, description="部门")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "user_id": "user-001",
+                "role": "senior_buyer",
+                "department": "采购部"
+            }
+        }
+
+
+class UserRoleResponse(BaseResponse):
+    """用户角色响应"""
+    user_id: str
+    role: str
+    department: Optional[str] = None
+    assigned_at: str
+
+
+class RolePermissionResponse(BaseModel):
+    """角色权限响应"""
+    role: str
+    name: str
+    description: str
+    amount_limit: float
+    permissions: List[str]
+    sensitive_actions: List[str]
+    can_approve_amount: float
+    data_scope: str
+
+
+class CheckPermissionRequest(BaseModel):
+    """检查权限请求"""
+    user_id: str = Field(..., description="用户ID")
+    permission: str = Field(..., description="权限名称")
+
+
+class CheckPermissionResponse(BaseResponse):
+    """检查权限响应"""
+    has_permission: bool
+
+
+class CheckAmountRequest(BaseModel):
+    """检查金额请求"""
+    user_id: str = Field(..., description="用户ID")
+    amount: float = Field(..., description="金额")
+
+
+class CheckAmountResponse(BaseResponse):
+    """检查金额响应"""
+    within_limit: bool
+    limit: float
+    exceeded_amount: Optional[float] = None
+
+
+# ==================== 审批工作流相关 ====================
+
+class ApprovalType(str, Enum):
+    """审批类型"""
+    AMOUNT_EXCEEDED = "amount_exceeded"
+    SENSITIVE_ACTION = "sensitive_action"
+    PAYMENT = "payment"
+    CONTRACT = "contract"
+    ORDER_CANCEL = "order_cancel"
+
+
+class CreateApprovalRequest(BaseModel):
+    """创建审批请求"""
+    user_id: str = Field(..., description="用户ID")
+    approval_type: ApprovalType = Field(..., description="审批类型")
+    title: str = Field(..., description="审批标题")
+    description: str = Field(..., description="审批描述")
+    data: Dict[str, Any] = Field(default_factory=dict, description="审批数据")
+    expires_in_hours: Optional[int] = Field(default=None, description="过期时间（小时）")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "user_id": "user-001",
+                "approval_type": "amount_exceeded",
+                "title": "超额采购订单审批",
+                "description": "采购金额 150,000 元，超过角色上限 100,000 元",
+                "data": {
+                    "order_id": "order-123",
+                    "amount": 150000,
+                    "supplier": "供应商A"
+                },
+                "expires_in_hours": 24
+            }
+        }
+
+
+class ApprovalRequestResponse(BaseResponse):
+    """审批请求响应"""
+    request_id: str
+    approval_type: str
+    user_id: str
+    user_role: str
+    title: str
+    description: str
+    status: str
+    created_at: str
+    expires_at: Optional[str] = None
+    approved_by: Optional[str] = None
+    approved_at: Optional[str] = None
+    approval_comment: Optional[str] = None
+
+
+class ApproveRequest(BaseModel):
+    """审批操作请求"""
+    request_id: str = Field(..., description="审批请求ID")
+    approver_id: str = Field(..., description="审批人ID")
+    comment: Optional[str] = Field(default=None, description="审批意见")
+
+
+class RejectRequest(BaseModel):
+    """拒绝操作请求"""
+    request_id: str = Field(..., description="审批请求ID")
+    approver_id: str = Field(..., description="审批人ID")
+    comment: Optional[str] = Field(default=None, description="拒绝原因")
+
+
+class PendingApprovalsResponse(BaseResponse):
+    """待审批列表响应"""
+    requests: List[ApprovalRequestResponse]
+
+
+class UserApprovalsResponse(BaseResponse):
+    """用户发起的审批列表响应"""
+    requests: List[ApprovalRequestResponse]
+
+

@@ -37,6 +37,28 @@ from opspilot.api.schemas import (
     ModelInfo,
     BatchAddModelsRequest,
     BatchAddModelsResponse,
+    MCPServerConfigRequest,
+    MCPServerConfigResponse,
+    MCPServerListResponse,
+    MCPServerToolResponse,
+    MCPToolCallRequest,
+    MCPToolCallResponse,
+    MCPAllToolsResponse,
+    # RBAC 相关
+    AssignRoleRequest,
+    UserRoleResponse,
+    RolePermissionResponse,
+    CheckPermissionRequest,
+    CheckPermissionResponse,
+    CheckAmountRequest,
+    CheckAmountResponse,
+    # 审批相关
+    CreateApprovalRequest,
+    ApprovalRequestResponse,
+    ApproveRequest,
+    RejectRequest,
+    PendingApprovalsResponse,
+    UserApprovalsResponse,
 )
 from opspilot.core.orchestrator import Orchestrator
 from opspilot.core.sop_executor import SOPExecutor, SOPDefinition, create_order_sop, query_supplier_sop
@@ -929,4 +951,377 @@ async def call_mcp_tool(
             server_name=server_name,
             error=str(e),
         )
+
+
+# ==================== RBAC 权限接口 ====================
+
+@router.post(
+    "/rbac/assign-role",
+    response_model=UserRoleResponse,
+    summary="分配用户角色",
+    description="为用户分配角色（需要管理员权限）"
+)
+async def assign_role(request: AssignRoleRequest):
+    """分配用户角色"""
+    try:
+        from opspilot.auth.rbac import get_rbac_manager, Role
+        
+        rbac = get_rbac_manager()
+        role = Role(request.role.value)
+        
+        user_role = rbac.assign_role(
+            user_id=request.user_id,
+            role=role,
+            department=request.department,
+        )
+        
+        return UserRoleResponse(
+            success=True,
+            message="角色分配成功",
+            user_id=user_role.user_id,
+            role=user_role.role.value,
+            department=user_role.department,
+            assigned_at=user_role.assigned_at.isoformat(),
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get(
+    "/rbac/user/{user_id}/role",
+    response_model=UserRoleResponse,
+    summary="获取用户角色"
+)
+async def get_user_role(user_id: str):
+    """获取用户角色信息"""
+    from opspilot.auth.rbac import get_rbac_manager
+    
+    rbac = get_rbac_manager()
+    user_role = rbac.get_user_role(user_id)
+    
+    if not user_role:
+        raise HTTPException(status_code=404, detail="用户角色不存在")
+    
+    return UserRoleResponse(
+        success=True,
+        message="获取成功",
+        user_id=user_role.user_id,
+        role=user_role.role.value,
+        department=user_role.department,
+        assigned_at=user_role.assigned_at.isoformat(),
+    )
+
+
+@router.get(
+    "/rbac/role/{role}/permissions",
+    response_model=RolePermissionResponse,
+    summary="获取角色权限"
+)
+async def get_role_permissions(role: str):
+    """获取角色权限配置"""
+    from opspilot.auth.rbac import get_rbac_manager, Role
+    
+    try:
+        rbac = get_rbac_manager()
+        role_enum = Role(role)
+        role_perm = rbac.get_role_permission(role_enum)
+        
+        return RolePermissionResponse(
+            role=role_perm.role.value,
+            name=role_perm.name,
+            description=role_perm.description,
+            amount_limit=role_perm.amount_limit,
+            permissions=[p.value for p in role_perm.permissions],
+            sensitive_actions=list(role_perm.sensitive_actions),
+            can_approve_amount=role_perm.can_approve_amount,
+            data_scope=role_perm.data_scope,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post(
+    "/rbac/check-permission",
+    response_model=CheckPermissionResponse,
+    summary="检查用户权限"
+)
+async def check_permission(request: CheckPermissionRequest):
+    """检查用户是否有指定权限"""
+    from opspilot.auth.rbac import get_rbac_manager, Permission
+    
+    try:
+        rbac = get_rbac_manager()
+        permission = Permission(request.permission)
+        has_permission = rbac.has_permission(request.user_id, permission)
+        
+        return CheckPermissionResponse(
+            success=True,
+            message="检查完成",
+            has_permission=has_permission,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post(
+    "/rbac/check-amount",
+    response_model=CheckAmountResponse,
+    summary="检查金额上限"
+)
+async def check_amount_limit(request: CheckAmountRequest):
+    """检查金额是否在用户角色上限内"""
+    from opspilot.auth.rbac import get_rbac_manager
+    
+    try:
+        rbac = get_rbac_manager()
+        user_role = rbac.get_user_role(request.user_id)
+        
+        if not user_role:
+            raise HTTPException(status_code=404, detail="用户角色不存在")
+        
+        role_perm = rbac.get_role_permission(user_role.role)
+        limit = role_perm.amount_limit
+        
+        # 0 表示无限制
+        within_limit = (limit == 0) or (request.amount <= limit)
+        exceeded = None if within_limit else (request.amount - limit)
+        
+        return CheckAmountResponse(
+            success=True,
+            message="检查完成",
+            within_limit=within_limit,
+            limit=limit,
+            exceeded_amount=exceeded,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# ==================== 审批工作流接口 ====================
+
+@router.post(
+    "/approval/create",
+    response_model=ApprovalRequestResponse,
+    summary="创建审批请求",
+    description="创建审批请求（敏感操作、超额订单等）"
+)
+async def create_approval(request: CreateApprovalRequest):
+    """创建审批请求"""
+    try:
+        from opspilot.auth.approval import get_approval_workflow, ApprovalType
+        
+        workflow = get_approval_workflow()
+        approval_type = ApprovalType(request.approval_type.value)
+        
+        approval = workflow.create_approval_request(
+            user_id=request.user_id,
+            approval_type=approval_type,
+            title=request.title,
+            description=request.description,
+            data=request.data,
+            expires_in_hours=request.expires_in_hours,
+        )
+        
+        return ApprovalRequestResponse(
+            success=True,
+            message="审批请求创建成功",
+            request_id=approval.request_id,
+            approval_type=approval.approval_type.value,
+            user_id=approval.user_id,
+            user_role=approval.user_role,
+            title=approval.title,
+            description=approval.description,
+            status=approval.status.value,
+            created_at=approval.created_at.isoformat(),
+            expires_at=approval.expires_at.isoformat() if approval.expires_at else None,
+            approved_by=approval.approved_by,
+            approved_at=approval.approved_at.isoformat() if approval.approved_at else None,
+            approval_comment=approval.approval_comment,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post(
+    "/approval/approve",
+    response_model=ApprovalRequestResponse,
+    summary="审批通过"
+)
+async def approve_request(request: ApproveRequest):
+    """审批通过"""
+    try:
+        from opspilot.auth.approval import get_approval_workflow
+        
+        workflow = get_approval_workflow()
+        approval = workflow.approve(
+            request_id=request.request_id,
+            approver_id=request.approver_id,
+            comment=request.comment,
+        )
+        
+        return ApprovalRequestResponse(
+            success=True,
+            message="审批通过",
+            request_id=approval.request_id,
+            approval_type=approval.approval_type.value,
+            user_id=approval.user_id,
+            user_role=approval.user_role,
+            title=approval.title,
+            description=approval.description,
+            status=approval.status.value,
+            created_at=approval.created_at.isoformat(),
+            expires_at=approval.expires_at.isoformat() if approval.expires_at else None,
+            approved_by=approval.approved_by,
+            approved_at=approval.approved_at.isoformat() if approval.approved_at else None,
+            approval_comment=approval.approval_comment,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post(
+    "/approval/reject",
+    response_model=ApprovalRequestResponse,
+    summary="审批拒绝"
+)
+async def reject_request(request: RejectRequest):
+    """审批拒绝"""
+    try:
+        from opspilot.auth.approval import get_approval_workflow
+        
+        workflow = get_approval_workflow()
+        approval = workflow.reject(
+            request_id=request.request_id,
+            approver_id=request.approver_id,
+            comment=request.comment,
+        )
+        
+        return ApprovalRequestResponse(
+            success=True,
+            message="审批拒绝",
+            request_id=approval.request_id,
+            approval_type=approval.approval_type.value,
+            user_id=approval.user_id,
+            user_role=approval.user_role,
+            title=approval.title,
+            description=approval.description,
+            status=approval.status.value,
+            created_at=approval.created_at.isoformat(),
+            expires_at=approval.expires_at.isoformat() if approval.expires_at else None,
+            approved_by=approval.approved_by,
+            approved_at=approval.approved_at.isoformat() if approval.approved_at else None,
+            approval_comment=approval.approval_comment,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get(
+    "/approval/pending/{user_id}",
+    response_model=PendingApprovalsResponse,
+    summary="获取待审批列表"
+)
+async def get_pending_approvals(user_id: str):
+    """获取用户待审批的请求列表"""
+    from opspilot.auth.approval import get_approval_workflow
+    
+    workflow = get_approval_workflow()
+    requests = workflow.get_pending_requests(user_id)
+    
+    return PendingApprovalsResponse(
+        success=True,
+        message="获取成功",
+        requests=[
+            ApprovalRequestResponse(
+                success=True,
+                message="",
+                request_id=req.request_id,
+                approval_type=req.approval_type.value,
+                user_id=req.user_id,
+                user_role=req.user_role,
+                title=req.title,
+                description=req.description,
+                status=req.status.value,
+                created_at=req.created_at.isoformat(),
+                expires_at=req.expires_at.isoformat() if req.expires_at else None,
+                approved_by=req.approved_by,
+                approved_at=req.approved_at.isoformat() if req.approved_at else None,
+                approval_comment=req.approval_comment,
+            )
+            for req in requests
+        ],
+    )
+
+
+@router.get(
+    "/approval/user/{user_id}",
+    response_model=UserApprovalsResponse,
+    summary="获取用户发起的审批"
+)
+async def get_user_approvals(user_id: str):
+    """获取用户发起的审批请求列表"""
+    from opspilot.auth.approval import get_approval_workflow
+    
+    workflow = get_approval_workflow()
+    requests = workflow.get_user_requests(user_id)
+    
+    return UserApprovalsResponse(
+        success=True,
+        message="获取成功",
+        requests=[
+            ApprovalRequestResponse(
+                success=True,
+                message="",
+                request_id=req.request_id,
+                approval_type=req.approval_type.value,
+                user_id=req.user_id,
+                user_role=req.user_role,
+                title=req.title,
+                description=req.description,
+                status=req.status.value,
+                created_at=req.created_at.isoformat(),
+                expires_at=req.expires_at.isoformat() if req.expires_at else None,
+                approved_by=req.approved_by,
+                approved_at=req.approved_at.isoformat() if req.approved_at else None,
+                approval_comment=req.approval_comment,
+            )
+            for req in requests
+        ],
+    )
+
+
+@router.get(
+    "/approval/{request_id}",
+    response_model=ApprovalRequestResponse,
+    summary="获取审批详情"
+)
+async def get_approval_detail(request_id: str):
+    """获取审批请求详情"""
+    from opspilot.auth.approval import get_approval_workflow
+    
+    workflow = get_approval_workflow()
+    approval = workflow.get_approval_request(request_id)
+    
+    if not approval:
+        raise HTTPException(status_code=404, detail="审批请求不存在")
+    
+    return ApprovalRequestResponse(
+        success=True,
+        message="获取成功",
+        request_id=approval.request_id,
+        approval_type=approval.approval_type.value,
+        user_id=approval.user_id,
+        user_role=approval.user_role,
+        title=approval.title,
+        description=approval.description,
+        status=approval.status.value,
+        created_at=approval.created_at.isoformat(),
+        expires_at=approval.expires_at.isoformat() if approval.expires_at else None,
+        approved_by=approval.approved_by,
+        approved_at=approval.approved_at.isoformat() if approval.approved_at else None,
+        approval_comment=approval.approval_comment,
+    )
+
 
