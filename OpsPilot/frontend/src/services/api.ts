@@ -22,6 +22,13 @@ import {
   PricingNegotiateResponse,
   PricingHistoryResponse,
   AgentStatusResponse,
+  TicketCreateRequest,
+  TicketCreateResponse,
+  TicketProcessRequest,
+  TicketProcessResponse,
+  TicketListResponse,
+  Ticket,
+  CSAgentStatusResponse,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -355,6 +362,37 @@ class ApiService {
 
   async getPricingAgentStatus(): Promise<AgentStatusResponse> {
     const response = await this.client.get('/pricing/agents/status');
+    return response.data;
+  }
+
+  // ==================== 客服工单接口 ====================
+
+  async createTicket(request: TicketCreateRequest): Promise<TicketCreateResponse> {
+    const response = await this.client.post('/customer-service/tickets', request);
+    return response.data;
+  }
+
+  async processTicket(request: TicketProcessRequest): Promise<TicketProcessResponse> {
+    const response = await this.client.post('/customer-service/tickets/process', request);
+    return response.data;
+  }
+
+  async listTickets(status?: string, priority?: string, limit: number = 20): Promise<TicketListResponse> {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    if (priority) params.append('priority', priority);
+    params.append('limit', limit.toString());
+    const response = await this.client.get(`/customer-service/tickets?${params.toString()}`);
+    return response.data;
+  }
+
+  async getTicket(ticketId: string): Promise<{ success: boolean; ticket: Ticket }> {
+    const response = await this.client.get(`/customer-service/tickets/${ticketId}`);
+    return response.data;
+  }
+
+  async getCSAgentStatus(): Promise<CSAgentStatusResponse> {
+    const response = await this.client.get('/customer-service/agents/status');
     return response.data;
   }
 }

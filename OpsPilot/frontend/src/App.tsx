@@ -14,6 +14,7 @@ import Monitoring from './pages/Monitoring';
 import ToolOptimization from './pages/ToolOptimization';
 import MemoryOptimization from './pages/MemoryOptimization';
 import { PricingManagement } from './pages/PricingManagement';
+import { TicketManagement } from './pages/TicketManagement';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -43,6 +44,7 @@ function App() {
             <Route path="/tool-optimization" element={<ToolOptimization />} />
             <Route path="/memory-optimization" element={<MemoryOptimization />} />
             <Route path="/pricing" element={<PricingManagement />} />
+            <Route path="/customer-service" element={<TicketManagement />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </Layout>

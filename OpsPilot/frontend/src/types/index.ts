@@ -359,3 +359,70 @@ export interface AgentStatusResponse {
   agents: Record<string, PricingAgentStatus>;
 }
 
+// ========================================
+// Customer Service Types
+// ========================================
+
+export interface TicketCreateRequest {
+  customer_id: string;
+  content: string;
+  priority?: 'high' | 'normal' | 'low';
+}
+
+export interface TicketCreateResponse {
+  success: boolean;
+  ticket_id: string;
+  message: string;
+}
+
+export interface TicketProcessRequest {
+  ticket_id: string;
+}
+
+export interface TicketProcessResponse {
+  success: boolean;
+  ticket_id: string;
+  status: string;
+  classification: Record<string, any>;
+  routing: Record<string, any>;
+  solution: Record<string, any>;
+  review: Record<string, any>;
+  processing_time_ms: number;
+  message: string;
+}
+
+export interface TicketListResponse {
+  success: boolean;
+  tickets: Ticket[];
+  total: number;
+}
+
+export interface Ticket {
+  ticket_id: string;
+  customer_id: string;
+  content: string;
+  ticket_type: string;
+  priority: string;
+  status: string;
+  assigned_department: string;
+  classification: Record<string, any>;
+  routing: Record<string, any>;
+  solution: Record<string, any>;
+  review: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerServiceAgentStatus {
+  status: string;
+  description: string;
+  tickets_processed?: number;
+  tickets_routed?: number;
+  tickets_solved?: number;
+  tickets_reviewed?: number;
+}
+
+export interface CSAgentStatusResponse {
+  agents: Record<string, CustomerServiceAgentStatus>;
+}
+

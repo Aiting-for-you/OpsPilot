@@ -105,8 +105,18 @@ from opspilot.pricing.api import (
     PricingNegotiateResponse,
     PricingHistoryRequest,
     PricingHistoryResponse,
-    AgentStatusResponse,
+    AgentStatusResponse as PricingAgentStatusResponse,
     pricing_api,
+)
+# 客服模块导入
+from opspilot.customer_service.api import (
+    TicketCreateRequest,
+    TicketCreateResponse,
+    TicketProcessRequest,
+    TicketProcessResponse,
+    TicketListResponse,
+    AgentStatusResponse,
+    customer_service_api,
 )
 from opspilot.core.orchestrator import Orchestrator
 from opspilot.core.sop_executor import SOPExecutor, SOPDefinition, create_order_sop, query_supplier_sop
@@ -2588,13 +2598,92 @@ async def get_pricing_history(
 
 @router.get(
     "/pricing/agents/status",
-    response_model=AgentStatusResponse,
+    response_model=PricingAgentStatusResponse,
     summary="获取Agent状态",
     description="获取定价Agent的状态信息"
 )
 async def get_pricing_agent_status():
     """获取定价Agent状态"""
     return await pricing_api.get_agent_status()
+
+
+# ==================== 客服工单 API ====================
+
+@router.post(
+    "/customer-service/tickets",
+    response_model=TicketCreateResponse,
+    summary="创建工单",
+    description="创建新的客服工单"
+)
+async def create_ticket(request: TicketCreateRequest):
+    """创建客服工单"""
+    try:
+        result = await customer_service_api.create_ticket(request)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"创建工单失败: {str(e)}")
+
+
+@router.post(
+    "/customer-service/tickets/process",
+    response_model=TicketProcessResponse,
+    summary="处理工单",
+    description="启动多Agent协作处理工单"
+)
+async def process_ticket(request: TicketProcessRequest):
+    """
+    处理工单（完整流程）
+    
+    通过Classifier、Router、Solver、Reviewer四个Agent协作处理
+    """
+    try:
+        result = await customer_service_api.process_ticket(request)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"处理工单失败: {str(e)}")
+
+
+@router.get(
+    "/customer-service/tickets",
+    response_model=TicketListResponse,
+    summary="查询工单列表",
+    description="查询工单列表"
+)
+async def list_tickets(
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    limit: int = 20
+):
+    """查询工单列表"""
+    return await customer_service_api.list_tickets(
+        status=status,
+        priority=priority,
+        limit=limit
+    )
+
+
+@router.get(
+    "/customer-service/tickets/{ticket_id}",
+    summary="查询工单详情",
+    description="查询指定工单的详细信息"
+)
+async def get_ticket(ticket_id: str):
+    """查询工单详情"""
+    result = await customer_service_api.get_ticket(ticket_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=404, detail="工单不存在")
+    return result
+
+
+@router.get(
+    "/customer-service/agents/status",
+    response_model=AgentStatusResponse,
+    summary="获取Agent状态",
+    description="获取客服Agent的状态信息"
+)
+async def get_customer_service_agent_status():
+    """获取客服Agent状态"""
+    return await customer_service_api.get_agent_status()
 
 
 
