@@ -99,6 +99,15 @@ from opspilot.api.schemas import (
     ProviderInfo,
     ProviderListResponse,
 )
+# 定价模块导入
+from opspilot.pricing.api import (
+    PricingNegotiateRequest,
+    PricingNegotiateResponse,
+    PricingHistoryRequest,
+    PricingHistoryResponse,
+    AgentStatusResponse,
+    pricing_api,
+)
 from opspilot.core.orchestrator import Orchestrator
 from opspilot.core.sop_executor import SOPExecutor, SOPDefinition, create_order_sop, query_supplier_sop
 from opspilot.tools.base import ToolRouter, ToolContext
@@ -2536,6 +2545,59 @@ async def list_providers():
         memory_providers=memory_providers,
         evaluation_providers=evaluation_providers,
     )
+
+
+# ==================== 定价博弈 API ====================
+
+@router.post(
+    "/pricing/negotiate",
+    response_model=PricingNegotiateResponse,
+    summary="定价博弈协商",
+    description="启动多Agent博弈定价协商"
+)
+async def pricing_negotiate(request: PricingNegotiateRequest):
+    """
+    启动定价博弈协商
+    
+    通过CostAgent、MarketAgent、ProfitAgent三方博弈，生成最优定价
+    """
+    try:
+        result = await pricing_api.negotiate(request)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"定价协商失败: {str(e)}")
+
+
+@router.get(
+    "/pricing/history",
+    response_model=PricingHistoryResponse,
+    summary="查询定价历史",
+    description="查询定价博弈历史记录"
+)
+async def get_pricing_history(
+    product_id: Optional[str] = None,
+    limit: int = 20
+):
+    """查询定价历史记录"""
+    request = PricingHistoryRequest(
+        product_id=product_id,
+        limit=limit
+    )
+    return await pricing_api.get_history(request)
+
+
+@router.get(
+    "/pricing/agents/status",
+    response_model=AgentStatusResponse,
+    summary="获取Agent状态",
+    description="获取定价Agent的状态信息"
+)
+async def get_pricing_agent_status():
+    """获取定价Agent状态"""
+    return await pricing_api.get_agent_status()
+
+
+
 
 
 
