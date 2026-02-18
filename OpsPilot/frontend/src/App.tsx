@@ -10,6 +10,9 @@ import { Tracing } from './pages/Tracing';
 import { Settings } from './pages/Settings';
 import { Scheduler } from './pages/Scheduler';
 import { Analytics } from './pages/Analytics';
+import Monitoring from './pages/Monitoring';
+import ToolOptimization from './pages/ToolOptimization';
+import MemoryOptimization from './pages/MemoryOptimization';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -33,9 +36,12 @@ function App() {
             <Route path="/sop" element={<SOP />} />
             <Route path="/agents" element={<Agents />} />
             <Route path="/tracing" element={<Tracing />} />
-            <Route path="/settings" element={<Settings />} />
             <Route path="/scheduler" element={<Scheduler />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/monitoring" element={<Monitoring />} />
+            <Route path="/tool-optimization" element={<ToolOptimization />} />
+            <Route path="/memory-optimization" element={<MemoryOptimization />} />
+            <Route path="/settings" element={<Settings />} />
           </Routes>
         </Layout>
       </BrowserRouter>

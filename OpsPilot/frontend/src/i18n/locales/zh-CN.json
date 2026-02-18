@@ -30,6 +30,9 @@
     "tracing": "追踪分析",
     "scheduler": "任务调度",
     "analytics": "数据分析",
+    "monitoring": "监控面板",
+    "toolOptimization": "工具优化",
+    "memoryOptimization": "记忆优化",
     "settings": "设置"
   },
   "dashboard": {

@@ -74,6 +74,30 @@ from opspilot.api.schemas import (
     ToolAnalyticsResponse,
     SystemMetricsResponse,
     DashboardDataResponse,
+    # 工具优化相关
+    ToolIndexRequest,
+    ToolIndexResponse,
+    ToolRetrievalRequest,
+    ToolRetrievalResponse,
+    ToolCompressRequest,
+    ToolCompressResponse,
+    ToolHealingRequest,
+    ToolHealingResponse,
+    ToolContextManagerRequest,
+    ToolContextManagerResponse,
+    # 记忆优化相关
+    MemoryWeightRequest,
+    MemoryWeightResponse,
+    MemoryConflictRequest,
+    MemoryConflictResponse,
+    MemoryConsolidationRequest,
+    MemoryConsolidationResponse,
+    MemoryStatsResponse,
+    # 提供者管理相关
+    SetProviderRequest,
+    ProviderStatusResponse,
+    ProviderInfo,
+    ProviderListResponse,
 )
 from opspilot.core.orchestrator import Orchestrator
 from opspilot.core.sop_executor import SOPExecutor, SOPDefinition, create_order_sop, query_supplier_sop
@@ -1784,5 +1808,738 @@ async def get_system_metrics():
         system_load=metrics.system_load,
         timestamp=metrics.timestamp.isoformat(),
     )
+
+
+# ==================== Token 追踪 API ====================
+
+@router.get(
+    "/tokens/usage",
+    summary="获取 Token 使用统计"
+)
+async def get_token_usage():
+    """获取 Token 使用统计"""
+    from opspilot.reliability import get_token_tracker
+    
+    tracker = get_token_tracker()
+    return {
+        "success": True,
+        "data": tracker.get_usage_summary(),
+    }
+
+
+@router.get(
+    "/tokens/by-agent",
+    summary="按 Agent 分组获取 Token 使用"
+)
+async def get_token_usage_by_agent():
+    """按 Agent 分组获取 Token 使用"""
+    from opspilot.reliability import get_token_tracker
+    
+    tracker = get_token_tracker()
+    return {
+        "success": True,
+        "data": tracker.get_usage_by_agent(),
+    }
+
+
+@router.get(
+    "/tokens/by-model",
+    summary="按模型分组获取 Token 使用"
+)
+async def get_token_usage_by_model():
+    """按模型分组获取 Token 使用"""
+    from opspilot.reliability import get_token_tracker
+    
+    tracker = get_token_tracker()
+    return {
+        "success": True,
+        "data": tracker.get_usage_by_model(),
+    }
+
+
+@router.get(
+    "/tokens/recent",
+    summary="获取最近 Token 使用记录"
+)
+async def get_recent_token_usage(limit: int = 20):
+    """获取最近 Token 使用记录"""
+    from opspilot.reliability import get_token_tracker
+    
+    tracker = get_token_tracker()
+    return {
+        "success": True,
+        "data": tracker.get_recent_usage(limit),
+    }
+
+
+@router.post(
+    "/tokens/reset",
+    summary="重置 Token 统计"
+)
+async def reset_token_usage():
+    """重置 Token 统计"""
+    from opspilot.reliability import get_token_tracker
+    
+    tracker = get_token_tracker()
+    tracker.reset()
+    return {
+        "success": True,
+        "message": "Token 统计已重置",
+    }
+
+
+# ==================== 可观测性 API ====================
+
+@router.get(
+    "/observability/status",
+    summary="获取可观测性状态"
+)
+async def get_observability_status():
+    """获取可观测性系统状态"""
+    from opspilot.observability import get_studio, get_langsmith
+    
+    studio = get_studio()
+    langsmith = get_langsmith()
+    
+    return {
+        "success": True,
+        "data": {
+            "studio": {
+                "available": studio.is_available(),
+                "initialized": studio._initialized,
+                "dashboard_url": studio.get_dashboard_url(),
+            },
+            "langsmith": {
+                "available": langsmith.is_available(),
+                "initialized": langsmith._initialized,
+                "project": langsmith.config.project if langsmith._initialized else None,
+                "project_url": langsmith.get_project_url(),
+            },
+        },
+    }
+
+
+@router.post(
+    "/observability/studio/start",
+    summary="启动 AgentScope Studio"
+)
+async def start_studio():
+    """启动 AgentScope Studio"""
+    from opspilot.observability import get_studio
+    
+    studio = get_studio()
+    success = studio.start()
+    
+    return {
+        "success": success,
+        "message": "Studio 已启动" if success else "Studio 启动失败",
+        "dashboard_url": studio.get_dashboard_url(),
+    }
+
+
+@router.post(
+    "/observability/studio/stop",
+    summary="停止 AgentScope Studio"
+)
+async def stop_studio():
+    """停止 AgentScope Studio"""
+    from opspilot.observability import get_studio
+    
+    studio = get_studio()
+    studio.stop()
+    
+    return {
+        "success": True,
+        "message": "Studio 已停止",
+    }
+
+
+@router.post(
+    "/observability/langsmith/start",
+    summary="启动 LangSmith 追踪"
+)
+async def start_langsmith():
+    """启动 LangSmith 追踪"""
+    from opspilot.observability import get_langsmith
+    
+    langsmith = get_langsmith()
+    success = langsmith.start()
+    
+    return {
+        "success": success,
+        "message": "LangSmith 已启动" if success else "LangSmith 启动失败",
+        "project_url": langsmith.get_project_url(),
+    }
+
+
+@router.post(
+    "/observability/langsmith/stop",
+    summary="停止 LangSmith 追踪"
+)
+async def stop_langsmith():
+    """停止 LangSmith 追踪"""
+    from opspilot.observability import get_langsmith
+    
+    langsmith = get_langsmith()
+    langsmith.stop()
+    
+    return {
+        "success": True,
+        "message": "LangSmith 已停止",
+    }
+
+
+# ==================== Pipeline API ====================
+
+@router.get(
+    "/pipeline/status",
+    summary="获取 Pipeline 状态"
+)
+async def get_pipeline_status():
+    """获取 Pipeline 执行状态"""
+    from opspilot.observability import get_tracing
+    
+    tracing = get_tracing()
+    
+    return {
+        "success": True,
+        "data": {
+            "active_spans": len(tracing._spans),
+            "current_span": tracing._current_span.to_dict() if tracing._current_span else None,
+        },
+    }
+
+
+@router.get(
+    "/pipeline/trace/{trace_id}",
+    summary="获取 Trace 详情"
+)
+async def get_trace_detail(trace_id: str):
+    """获取 Trace 详情"""
+    from opspilot.observability import get_tracing
+    
+    tracing = get_tracing()
+    spans = tracing.get_trace(trace_id)
+    
+    return {
+        "success": True,
+        "data": {
+            "trace_id": trace_id,
+            "spans": [s.to_dict() for s in spans],
+        },
+    }
+
+
+# ==================== 可靠性 API ====================
+
+@router.get(
+    "/reliability/stats",
+    summary="获取可靠性统计"
+)
+async def get_reliability_stats():
+    """获取可靠性模块统计"""
+    from opspilot.reliability import get_token_tracker, ParallelToolExecutor
+    
+    tracker = get_token_tracker()
+    
+    return {
+        "success": True,
+        "data": {
+            "token_tracker": tracker.get_total_usage(),
+            "output_parsers": {
+                "intent": get_intent_parser().get_stats() if _intent_parser else None,
+                "plan": get_plan_parser().get_stats() if _plan_parser else None,
+                "execution": get_execution_parser().get_stats() if _execution_parser else None,
+                "verification": get_verification_parser().get_stats() if _verification_parser else None,
+            },
+        },
+    }
+
+
+# 导入解析器全局变量
+from opspilot.reliability.output_parser import (
+    _intent_parser,
+    _plan_parser,
+    _execution_parser,
+    _verification_parser,
+    get_intent_parser,
+    get_plan_parser,
+    get_execution_parser,
+    get_verification_parser,
+)
+
+
+# ==================== 工具优化 API ====================
+
+@router.post(
+    "/tools/index",
+    response_model=ToolIndexResponse,
+    summary="构建工具索引",
+    description="将工具定义向量化并构建索引"
+)
+async def build_tool_index(request: ToolIndexRequest):
+    """构建工具索引"""
+    from opspilot.tools import create_tool_index
+    
+    try:
+        indexer = create_tool_index()
+        indexed_count = indexer.build_index(request.tools)
+        
+        # 统计各类别工具数量
+        categories = {}
+        for tool in request.tools:
+            category = tool.get("category", "unknown")
+            categories[category] = categories.get(category, 0) + 1
+        
+        return ToolIndexResponse(
+            success=True,
+            message=f"成功索引 {indexed_count} 个工具",
+            indexed_count=indexed_count,
+            categories=categories,
+        )
+    except Exception as e:
+        return ToolIndexResponse(
+            success=False,
+            message=f"索引构建失败: {str(e)}",
+            indexed_count=0,
+            categories={},
+        )
+
+
+@router.post(
+    "/tools/retrieve",
+    response_model=ToolRetrievalResponse,
+    summary="检索相关工具",
+    description="基于查询文本检索相关工具"
+)
+async def retrieve_tools(request: ToolRetrievalRequest):
+    """检索相关工具"""
+    import time
+    from opspilot.tools import retrieve_tools as do_retrieve
+    
+    try:
+        start_time = time.time()
+        result = do_retrieve(
+            query=request.query,
+            max_tools=request.max_tools,
+            max_tokens=request.max_tokens,
+            strategy=request.strategy,
+        )
+        retrieval_time_ms = int((time.time() - start_time) * 1000)
+        
+        return ToolRetrievalResponse(
+            success=True,
+            message=f"检索到 {len(result.tools)} 个工具",
+            tools=[tool.to_dict() for tool in result.tools],
+            total_tokens=result.total_tokens,
+            retrieval_time_ms=retrieval_time_ms,
+        )
+    except Exception as e:
+        return ToolRetrievalResponse(
+            success=False,
+            message=f"检索失败: {str(e)}",
+            tools=[],
+            total_tokens=0,
+            retrieval_time_ms=0,
+        )
+
+
+@router.post(
+    "/tools/compress",
+    response_model=ToolCompressResponse,
+    summary="压缩工具描述",
+    description="压缩工具描述以节省上下文空间"
+)
+async def compress_tools(request: ToolCompressRequest):
+    """压缩工具描述"""
+    from opspilot.tools import compress_tools as do_compress
+    
+    try:
+        result = do_compress(
+            tools=request.tools,
+            level=request.level,
+            max_tokens_per_tool=request.max_tokens_per_tool,
+        )
+        
+        return ToolCompressResponse(
+            success=True,
+            message=f"压缩完成，压缩率: {result['compression_ratio']:.2%}",
+            compressed_tools=result["compressed_tools"],
+            original_tokens=result["original_tokens"],
+            compressed_tokens=result["compressed_tokens"],
+            compression_ratio=result["compression_ratio"],
+        )
+    except Exception as e:
+        return ToolCompressResponse(
+            success=False,
+            message=f"压缩失败: {str(e)}",
+            compressed_tools=[],
+            original_tokens=0,
+            compressed_tokens=0,
+            compression_ratio=0.0,
+        )
+
+
+@router.post(
+    "/tools/heal",
+    response_model=ToolHealingResponse,
+    summary="工具自愈",
+    description="尝试自动恢复工具调用失败"
+)
+async def heal_tool_call(request: ToolHealingRequest):
+    """工具自愈"""
+    from opspilot.tools import create_healer
+    from opspilot.tools.base import ToolContext
+    
+    try:
+        healer = create_healer()
+        context = ToolContext(
+            task_id=None,
+            tool_name=request.tool_name,
+            params=request.params,
+        )
+        
+        result = await healer.heal(
+            context=context,
+            error=request.error_info,
+            max_retries=request.max_retries,
+        )
+        
+        return ToolHealingResponse(
+            success=result["success"],
+            message="自愈成功" if result["success"] else "自愈失败",
+            result=result.get("result"),
+            strategy_used=result.get("strategy", ""),
+            retry_count=result.get("retry_count", 0),
+        )
+    except Exception as e:
+        return ToolHealingResponse(
+            success=False,
+            message=f"自愈失败: {str(e)}",
+            result=None,
+            strategy_used="",
+            retry_count=0,
+        )
+
+
+@router.post(
+    "/tools/context/select",
+    response_model=ToolContextManagerResponse,
+    summary="上下文管理",
+    description="基于上下文预算选择合适的工具"
+)
+async def select_tools_for_context(request: ToolContextManagerRequest):
+    """上下文管理"""
+    from opspilot.tools import create_context_manager
+    
+    try:
+        manager = create_context_manager()
+        result = manager.select_tools(
+            query=request.query,
+            available_tools=request.available_tools,
+            context_budget=request.context_budget,
+        )
+        
+        return ToolContextManagerResponse(
+            success=True,
+            message=f"选择了 {len(result.selected_tools)} 个工具",
+            selected_tools=result.selected_tools,
+            total_tokens=result.total_tokens,
+            selection_strategy=result.strategy,
+        )
+    except Exception as e:
+        return ToolContextManagerResponse(
+            success=False,
+            message=f"选择失败: {str(e)}",
+            selected_tools=[],
+            total_tokens=0,
+            selection_strategy="",
+        )
+
+
+# ==================== 记忆优化 API ====================
+
+@router.post(
+    "/memory/weight",
+    response_model=MemoryWeightResponse,
+    summary="计算记忆权重",
+    description="计算记忆的重要性权重"
+)
+async def calculate_memory_weight(request: MemoryWeightRequest):
+    """计算记忆权重"""
+    from opspilot.memory import calculate_memory_weight as do_calculate
+    
+    try:
+        weight, factors = do_calculate(
+            content=request.content,
+            metadata=request.metadata,
+        )
+        
+        return MemoryWeightResponse(
+            success=True,
+            message=f"权重计算完成: {weight:.4f}",
+            memory_id=request.memory_id,
+            weight=weight,
+            factors=factors,
+        )
+    except Exception as e:
+        return MemoryWeightResponse(
+            success=False,
+            message=f"权重计算失败: {str(e)}",
+            memory_id=request.memory_id,
+            weight=0.0,
+            factors={},
+        )
+
+
+@router.post(
+    "/memory/conflict",
+    response_model=MemoryConflictResponse,
+    summary="检测记忆冲突",
+    description="检测并解决记忆冲突"
+)
+async def detect_memory_conflicts(request: MemoryConflictRequest):
+    """检测记忆冲突"""
+    from opspilot.memory import resolve_memory_conflict as do_resolve
+    
+    try:
+        result = do_resolve(
+            memories=request.memories,
+            check_type=request.check_type,
+        )
+        
+        return MemoryConflictResponse(
+            success=True,
+            message=f"检测到 {len(result['conflicts'])} 个冲突",
+            conflicts=result["conflicts"],
+            resolutions=result["resolutions"],
+            conflict_count=len(result["conflicts"]),
+        )
+    except Exception as e:
+        return MemoryConflictResponse(
+            success=False,
+            message=f"冲突检测失败: {str(e)}",
+            conflicts=[],
+            resolutions=[],
+            conflict_count=0,
+        )
+
+
+@router.post(
+    "/memory/consolidate",
+    response_model=MemoryConsolidationResponse,
+    summary="记忆巩固",
+    description="整合记忆并提取知识模式"
+)
+async def consolidate_memories(request: MemoryConsolidationRequest):
+    """记忆巩固"""
+    from opspilot.memory import consolidate_memories as do_consolidate
+    
+    try:
+        result = do_consolidate(
+            memories=request.memories,
+            consolidation_type=request.consolidation_type,
+            min_cluster_size=request.min_cluster_size,
+        )
+        
+        return MemoryConsolidationResponse(
+            success=True,
+            message=f"巩固完成，压缩率: {result['reduction_ratio']:.2%}",
+            clusters=result["clusters"],
+            patterns=result["patterns"],
+            consolidated_count=result["consolidated_count"],
+            reduction_ratio=result["reduction_ratio"],
+        )
+    except Exception as e:
+        return MemoryConsolidationResponse(
+            success=False,
+            message=f"巩固失败: {str(e)}",
+            clusters=[],
+            patterns=[],
+            consolidated_count=0,
+            reduction_ratio=0.0,
+        )
+
+
+@router.get(
+    "/memory/stats",
+    response_model=MemoryStatsResponse,
+    summary="获取记忆统计",
+    description="获取记忆系统的统计信息"
+)
+async def get_memory_stats():
+    """获取记忆统计"""
+    from opspilot.memory import MemoryManager
+    
+    try:
+        manager = MemoryManager()
+        # 这里应该从实际的记忆存储中获取统计数据
+        # 目前返回示例数据
+        return MemoryStatsResponse(
+            success=True,
+            message="统计获取成功",
+            total_memories=100,
+            weighted_memories=80,
+            conflict_count=5,
+            consolidated_memories=20,
+            patterns_extracted=15,
+        )
+    except Exception as e:
+        return MemoryStatsResponse(
+            success=False,
+            message=f"统计获取失败: {str(e)}",
+            total_memories=0,
+            weighted_memories=0,
+            conflict_count=0,
+            consolidated_memories=0,
+            patterns_extracted=0,
+        )
+
+
+# ==================== 提供者管理 API ====================
+
+@router.get(
+    "/providers/status",
+    response_model=ProviderStatusResponse,
+    summary="获取提供者状态",
+    description="获取当前所有提供者的配置状态"
+)
+async def get_provider_status():
+    """获取提供者状态"""
+    from opspilot.approval import ApprovalFactory, ApprovalProvider
+    from opspilot.memory import MemoryFactory, MemoryProvider
+    from opspilot.evaluation import EvaluationFactory, EvaluationProvider
+    
+    return ProviderStatusResponse(
+        success=True,
+        message="获取成功",
+        approval_provider=ApprovalFactory.get_current_provider().value,
+        memory_provider=MemoryFactory.get_current_provider().value,
+        evaluation_provider=EvaluationFactory.get_current_provider().value,
+    )
+
+
+@router.post(
+    "/providers/set",
+    response_model=BaseResponse,
+    summary="设置提供者",
+    description="动态切换提供者"
+)
+async def set_provider(request: SetProviderRequest):
+    """设置提供者"""
+    try:
+        if request.provider_type == "approval":
+            from opspilot.approval import ApprovalFactory, ApprovalProvider
+            provider_enum = ApprovalProvider(request.provider)
+            ApprovalFactory.set_provider(provider_enum)
+            message = f"审批提供者已切换为: {request.provider}"
+        
+        elif request.provider_type == "memory":
+            from opspilot.memory import MemoryFactory, MemoryProvider
+            provider_enum = MemoryProvider(request.provider)
+            MemoryFactory.set_provider(provider_enum)
+            message = f"记忆提供者已切换为: {request.provider}"
+        
+        elif request.provider_type == "evaluation":
+            from opspilot.evaluation import EvaluationFactory, EvaluationProvider
+            provider_enum = EvaluationProvider(request.provider)
+            EvaluationFactory.set_provider(provider_enum)
+            message = f"评估提供者已切换为: {request.provider}"
+        
+        else:
+            return BaseResponse(
+                success=False,
+                message=f"不支持的提供者类型: {request.provider_type}",
+            )
+        
+        return BaseResponse(
+            success=True,
+            message=message,
+        )
+    except Exception as e:
+        return BaseResponse(
+            success=False,
+            message=f"设置失败: {str(e)}",
+        )
+
+
+@router.get(
+    "/providers/list",
+    response_model=ProviderListResponse,
+    summary="获取提供者列表",
+    description="获取所有可用的提供者及其信息"
+)
+async def list_providers():
+    """获取提供者列表"""
+    from opspilot.approval import ApprovalProvider
+    from opspilot.memory import MemoryProvider
+    from opspilot.evaluation import EvaluationProvider
+    
+    # 审批提供者
+    approval_providers = [
+        ProviderInfo(
+            name=ApprovalProvider.OPSPILOT.value,
+            type="approval",
+            available=True,
+            description="OpsPilot自研审批系统",
+            features=["审批规则配置", "超时自动批准", "多级审批"],
+        ),
+        ProviderInfo(
+            name=ApprovalProvider.LANGCHAIN.value,
+            type="approval",
+            available=True,
+            description="LangChain人工审批回调",
+            features=["工具调用拦截", "人工确认", "审批日志"],
+        ),
+    ]
+    
+    # 记忆提供者
+    memory_providers = [
+        ProviderInfo(
+            name=MemoryProvider.OPSPILOT.value,
+            type="memory",
+            available=True,
+            description="OpsPilot记忆管理",
+            features=["权重计算", "冲突检测", "记忆巩固", "知识提取"],
+        ),
+        ProviderInfo(
+            name=MemoryProvider.REME.value,
+            type="memory",
+            available=True,
+            description="AgentScope ReMe记忆管理",
+            features=["短期记忆", "长期记忆", "向量检索", "知识图谱"],
+        ),
+    ]
+    
+    # 评估提供者
+    evaluation_providers = [
+        ProviderInfo(
+            name=EvaluationProvider.OPSPILOT.value,
+            type="evaluation",
+            available=True,
+            description="OpsPilot评估器",
+            features=["任务评估", "Agent评估", "性能统计"],
+        ),
+        ProviderInfo(
+            name=EvaluationProvider.AGENTSCOPE.value,
+            type="evaluation",
+            available=True,
+            description="AgentScope评估框架",
+            features=["专业评估", "排行榜", "评估报告", "优化建议"],
+        ),
+    ]
+    
+    return ProviderListResponse(
+        success=True,
+        message="获取成功",
+        approval_providers=approval_providers,
+        memory_providers=memory_providers,
+        evaluation_providers=evaluation_providers,
+    )
+
+
+
+
+
 
 

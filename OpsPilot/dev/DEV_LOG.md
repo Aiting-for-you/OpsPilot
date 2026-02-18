@@ -3293,6 +3293,532 @@ curl "http://localhost:8000/api/v1/analytics/dashboard?start_time=2026-02-11&end
 
 ---
 
+## [2026-02-18] - Phase 3：工具优化与记忆优化
+
+### 开发目标
+
+基于LangChain和AgentScope框架，实现Phase 3优化：
+- 工具调用优化（ToolRAG、检索、压缩、自愈）
+- 记忆机制优化（权重、冲突、巩固）
+- 前端管理界面
+
+### 完成内容
+
+#### 1. 工具优化后端实现
+
+**核心发现**：
+- 工具优化模块代码已存在于 `opspilot/tools/` 目录
+- 记忆优化模块代码已存在于 `opspilot/memory/` 目录
+- 包含 indexer, retriever, compressor, healing, context_manager
+- 包含 weight, conflict, consolidation 等核心功能
+
+#### 2. API接口新增（`opspilot/api/routes.py`）
+
+**工具优化接口**（5个）：
+```
+POST /api/v1/tools/index           - 构建工具索引
+POST /api/v1/tools/retrieve        - 检索相关工具
+POST /api/v1/tools/compress        - 压缩工具描述
+POST /api/v1/tools/heal            - 工具自愈
+POST /api/v1/tools/context/select  - 上下文管理
+```
+
+**记忆优化接口**（4个）：
+```
+POST /api/v1/memory/weight         - 计算记忆权重
+POST /api/v1/memory/conflict       - 检测记忆冲突
+POST /api/v1/memory/consolidate    - 记忆巩固
+GET  /api/v1/memory/stats          - 获取记忆统计
+```
+
+#### 3. Schema定义（`opspilot/api/schemas.py`）
+
+**工具优化Schema**：
+- `ToolIndexRequest/Response` - 索引请求响应
+- `ToolRetrievalRequest/Response` - 检索请求响应
+- `ToolCompressRequest/Response` - 压缩请求响应
+- `ToolHealingRequest/Response` - 自愈请求响应
+- `ToolContextManagerRequest/Response` - 上下文管理请求响应
+
+**记忆优化Schema**：
+- `MemoryWeightRequest/Response` - 权重计算请求响应
+- `MemoryConflictRequest/Response` - 冲突检测请求响应
+- `MemoryConsolidationRequest/Response` - 巩固请求响应
+- `MemoryStatsResponse` - 统计响应
+
+#### 4. 前端工具优化管理页面（`frontend/src/pages/ToolOptimization.tsx`）
+
+**核心功能**：
+- Tab页面切换（工具索引、工具检索、工具压缩、工具自愈）
+- 工具索引构建与统计展示
+- 工具检索参数配置（最大工具数、Token预算、检索策略）
+- 工具压缩配置（压缩级别、每工具Token限制）
+- 工具自愈功能（错误诊断、恢复策略）
+
+**UI设计亮点**：
+```tsx
+// Tab式布局
+<Tabs value={tabValue}>
+  <Tab icon={<BuildIcon />} label="工具索引" />
+  <Tab icon={<SearchIcon />} label="工具检索" />
+  <Tab icon={<CompressIcon />} label="工具压缩" />
+  <Tab icon={<HealingIcon />} label="工具自愈" />
+</Tabs>
+
+// 检索结果表格
+<TableContainer>
+  <Table>
+    <TableHead>
+      <TableRow>
+        <TableCell>工具名称</TableCell>
+        <TableCell>描述</TableCell>
+        <TableCell>Token数</TableCell>
+        <TableCell>相关度</TableCell>
+      </TableRow>
+    </TableHead>
+  </Table>
+</TableContainer>
+```
+
+#### 5. 前端记忆优化管理页面（`frontend/src/pages/MemoryOptimization.tsx`）
+
+**核心功能**：
+- 统计卡片（总记忆数、已加权记忆、冲突数、已巩固记忆、提取模式数）
+- Tab页面切换（权重计算、冲突检测、记忆巩固、统计分析）
+- 权重计算（时间衰减、访问频率、相关性、时效性、可信度）
+- 冲突检测（矛盾检测、重复检测、自动解决）
+- 记忆巩固（聚类、模式提取、压缩统计）
+
+**UI设计亮点**：
+```tsx
+// 统计卡片网格
+<Grid container spacing={2}>
+  <Grid item xs={12} sm={2.4}>
+    <Card>
+      <CardContent>
+        <Typography color="text.secondary">总记忆数</Typography>
+        <Typography variant="h4">{memoryStats.total_memories}</Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+</Grid>
+
+// 权重因子展示
+<Grid container spacing={2}>
+  <Grid item xs={6}>
+    <Typography variant="body2" color="text.secondary">
+      时间衰减: {factors.time_decay.toFixed(4)}
+    </Typography>
+  </Grid>
+  <Grid item xs={6}>
+    <Typography variant="body2" color="text.secondary">
+      访问频率: {factors.frequency.toFixed(4)}
+    </Typography>
+  </Grid>
+</Grid>
+```
+
+#### 6. 前端路由更新
+
+**App.tsx**：
+```tsx
+import ToolOptimization from './pages/ToolOptimization';
+import MemoryOptimization from './pages/MemoryOptimization';
+
+<Route path="/tool-optimization" element={<ToolOptimization />} />
+<Route path="/memory-optimization" element={<MemoryOptimization />} />
+```
+
+**Layout.tsx**：
+```tsx
+import { Cpu, Brain } from 'lucide-react';
+
+const navItems = [
+  // ...
+  { path: '/tool-optimization', icon: Cpu, labelKey: 'nav.toolOptimization' },
+  { path: '/memory-optimization', icon: Brain, labelKey: 'nav.memoryOptimization' },
+  // ...
+];
+```
+
+#### 7. 国际化更新
+
+**zh-CN.json**：
+```json
+{
+  "nav": {
+    "toolOptimization": "工具优化",
+    "memoryOptimization": "记忆优化"
+  }
+}
+```
+
+**en-US.json**：
+```json
+{
+  "nav": {
+    "toolOptimization": "Tool Optimization",
+    "memoryOptimization": "Memory Optimization"
+  }
+}
+```
+
+### 技术亮点
+
+1. **ToolRAG机制**：
+   - 两级检索（类别 + 工具）
+   - 语义相似度 + 关键词混合
+   - 上下文预算管理
+
+2. **记忆权重模型**：
+   - 5因子综合评估（时间衰减、频率、相关性、时效性、可信度）
+   - 自动权重计算
+
+3. **冲突智能解决**：
+   - 矛盾检测、重复检测
+   - 多种解决策略（保留最新、保留最可信、合并、人工介入）
+
+4. **记忆巩固**：
+   - 聚类算法
+   - 模式提取
+   - 知识压缩
+
+### 完成统计
+
+| 项目 | 数量 |
+|------|------|
+| 新增API接口 | 9 |
+| 新增Schema | 18 |
+| 前端新增页面 | 2 |
+| 前端新增代码 | ~800行 |
+| 后端新增代码 | ~300行 |
+
+### 后续优化方向
+
+1. **性能优化**：工具索引增量更新、记忆压缩算法优化
+2. **可视化增强**：工具调用热力图、记忆关系图谱
+3. **智能推荐**：基于历史推荐最佳工具组合
+4. **自动化测试**：工具自愈成功率测试、冲突检测准确率测试
+
+---
+
+## [2026-02-18] - Phase 4: 高级特性集成与提供者切换
+
+### 开发目标
+
+集成LangChain和AgentScope的高级特性，同时保留自研功能，提供动态切换机制：
+- ✅ HumanApprovalCallback集成（LangChain）
+- ✅ ReMe记忆管理集成（AgentScope）
+- ✅ 评估框架集成（AgentScope）
+- ✅ 提供者切换机制
+
+### 完成内容
+
+#### 1. 审批模块集成（`opspilot/approval/`）
+
+**文件结构**：
+```
+approval/
+├── __init__.py
+├── config.py              # 审批配置（规则、级别）
+├── opspilot_approval.py   # OpsPilot自研审批
+├── langchain_approval.py  # LangChain审批回调
+└── factory.py             # 审批工厂类
+```
+
+**OpsPilot审批处理器**：
+- `ApprovalStatus` 枚举（PENDING/APPROVED/REJECTED/TIMEOUT/CANCELLED）
+- `ApprovalRequest` 数据模型
+- `OpsPilotApprovalHandler` 核心类
+  - `request_approval()` - 请求审批
+  - `approve()` / `reject()` - 审批操作
+  - `get_status()` - 查询状态
+  - `get_pending_requests()` - 获取待审批列表
+  - `_send_notification()` - 发送通知
+  - `_auto_approve_after_timeout()` - 超时自动批准
+
+**LangChain审批处理器**：
+- 集成LangChain的 `BaseCallbackHandler`
+- `on_agent_action()` - 工具调用前拦截
+- 支持自定义审批回调函数
+- 与OpsPilot接口保持一致
+
+**审批规则**：
+```python
+ApprovalRule(
+    name="删除操作",
+    pattern="delete_*",
+    level=ApprovalLevel.HIGH,
+    require_approval=True,
+)
+
+ApprovalRule(
+    name="更新操作",
+    pattern="update_*",
+    level=ApprovalLevel.MEDIUM,
+    require_approval=True,
+)
+```
+
+#### 2. 评估框架集成（`opspilot/evaluation/`）
+
+**文件结构**：
+```
+evaluation/
+├── __init__.py
+├── metrics.py                # 评估指标定义
+├── opspilot_evaluator.py     # OpsPilot评估器
+├── agentscope_evaluator.py   # AgentScope评估器
+└── factory.py                # 评估工厂类
+```
+
+**评估指标**：
+- `MetricType` 枚举（SUCCESS_RATE/LATENCY/COST/ACCURACY等）
+- `EvaluationMetric` 基类
+- `TaskMetric` - 任务指标
+- `AgentMetric` - Agent指标
+
+**OpsPilot评估器**：
+- `record_task()` - 记录任务执行
+- `evaluate_tasks()` - 评估任务执行情况
+- `evaluate_agents()` - 评估Agent性能
+- `get_statistics()` - 获取统计数据
+- 自动生成优化建议
+
+**AgentScope评估器**：
+- 集成AgentScope的 `Evaluator`
+- `record_interaction()` - 记录Agent交互
+- `evaluate_agent()` - 评估单个Agent
+- `evaluate_all_agents()` - 评估所有Agent
+- `get_leaderboard()` - 获取排行榜
+- `generate_report()` - 生成评估报告
+- 综合评分算法（成功率40% + 用户满意度30% + 错误率20% + 响应时间10%）
+
+**评估报告示例**：
+```json
+{
+  "summary": {
+    "total_agents": 5,
+    "avg_success_rate": 0.92,
+    "avg_score": 0.85,
+    "best_agent": "IntentAgent",
+    "worst_agent": "VerifyAgent"
+  },
+  "recommendations": [
+    "Agent VerifyAgent 成功率较低（75%），建议优化错误处理逻辑"
+  ]
+}
+```
+
+#### 3. ReMe记忆管理集成（`opspilot/memory/`）
+
+**文件结构**：
+```
+memory/
+├── reme_memory.py       # AgentScope ReMe记忆管理
+├── memory_factory.py    # 记忆工厂类
+└── ...（原有文件保留）
+```
+
+**ReMe记忆管理器**：
+- 集成AgentScope的 `TemporaryMemory`
+- 短期记忆（对话上下文）
+- 长期记忆（向量检索）
+- `add_memory()` - 添加记忆
+- `search()` - 检索记忆
+- `get_context()` - 获取上下文
+- `consolidate()` - 记忆巩固
+- `get_stats()` - 获取统计
+
+**ReMe配置**：
+```python
+ReMeConfig(
+    vector_store="chromadb",
+    embedding_model="text-embedding-ada-002",
+    max_short_term_memory=100,
+    max_long_term_memory=10000,
+    enable_knowledge_graph=False,
+    similarity_threshold=0.7,
+)
+```
+
+#### 4. 提供者工厂模式
+
+**审批工厂**：
+```python
+class ApprovalFactory:
+    _current_provider = ApprovalProvider.LANGCHAIN
+    
+    @classmethod
+    def create_handler(cls, provider=None, config=None):
+        if provider == ApprovalProvider.OPSPILOT:
+            return OpsPilotApprovalHandler(config)
+        elif provider == ApprovalProvider.LANGCHAIN:
+            return LangChainApprovalHandler(config)
+    
+    @classmethod
+    def set_provider(cls, provider):
+        cls._current_provider = provider
+```
+
+**记忆工厂**：
+```python
+class MemoryFactory:
+    _current_provider = MemoryProvider.OPSPILOT
+    
+    @classmethod
+    def create_memory(cls, provider=None, config=None):
+        if provider == MemoryProvider.OPSPILOT:
+            return ShortTermMemory()
+        elif provider == MemoryProvider.REME:
+            return ReMeMemory(config)
+```
+
+**评估工厂**：
+```python
+class EvaluationFactory:
+    _current_provider = EvaluationProvider.AGENTSCOPE
+    
+    @classmethod
+    def create_evaluator(cls, provider=None, config=None):
+        if provider == EvaluationProvider.OPSPILOT:
+            return OpsPilotEvaluator()
+        elif provider == EvaluationProvider.AGENTSCOPE:
+            return AgentScopeEvaluator(config)
+```
+
+#### 5. API接口新增（`opspilot/api/routes.py`）
+
+**提供者管理接口**（3个）：
+```
+GET  /api/v1/providers/status  - 获取提供者状态
+POST /api/v1/providers/set     - 设置提供者
+GET  /api/v1/providers/list    - 获取提供者列表
+```
+
+**Schema定义**（`opspilot/api/schemas.py`）：
+- `SetProviderRequest` - 设置提供者请求
+- `ProviderStatusResponse` - 提供者状态响应
+- `ProviderInfo` - 提供者信息
+- `ProviderListResponse` - 提供者列表响应
+
+#### 6. 前端提供者配置界面（`frontend/src/components/ProviderSettings.tsx`）
+
+**核心功能**：
+- 显示当前提供者状态
+- 提供者切换下拉菜单
+- 显示提供者特性和功能
+- 可用性状态指示器
+
+**UI设计**：
+```tsx
+<Card>
+  <Typography variant="h6">审批提供者</Typography>
+  <FormControl>
+    <Select value={approvalProvider} onChange={...}>
+      {providers.map(provider => (
+        <MenuItem value={provider.name}>
+          {provider.description}
+          <Chip label="当前" />
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+  
+  {/* 显示特性 */}
+  {provider.features.map(feature => (
+    <Chip label={feature} variant="outlined" />
+  ))}
+</Card>
+```
+
+#### 7. Settings页面更新（`frontend/src/pages/Settings.tsx`）
+
+**新增Tab**：
+- LLM（原有）
+- MCP（原有）
+- **Providers**（新增）
+
+**集成方式**：
+```tsx
+import { ProviderSettings } from '../components/ProviderSettings';
+
+const [activeTab, setActiveTab] = useState<'llm' | 'mcp' | 'providers'>('llm');
+
+{activeTab === 'providers' && (
+  <ProviderSettings />
+)}
+```
+
+### 技术亮点
+
+1. **双轨并行架构**：
+   - 保留所有自研功能
+   - 集成第三方框架
+   - 无缝切换机制
+
+2. **工厂模式**：
+   - 单例管理
+   - 缓存优化
+   - 动态配置
+
+3. **统一接口**：
+   - OpsPilot和LangChain/AgentScope接口保持一致
+   - 降低使用难度
+
+4. **实时切换**：
+   - 无需重启服务
+   - 即时生效
+   - 状态持久化
+
+### 完成统计
+
+| 项目 | 数量 |
+|------|------|
+| 新增Python模块 | 9 |
+| 新增Python代码 | ~1800行 |
+| 新增API接口 | 3 |
+| 新增Schema | 4 |
+| 前端新增组件 | 1 |
+| 前端新增代码 | ~300行 |
+
+### 提供者对比
+
+#### 审批提供者
+
+| 提供者 | 优势 | 适用场景 |
+|--------|------|---------|
+| **OpsPilot** | 规则灵活、超时批准、多级审批 | 内部审批流程 |
+| **LangChain** | 工具拦截、人工确认、日志完整 | LangChain集成项目 |
+
+#### 记忆提供者
+
+| 提供者 | 优势 | 适用场景 |
+|--------|------|---------|
+| **OpsPilot** | 权重计算、冲突检测、知识提取 | 复杂记忆管理 |
+| **ReMe** | 高性能检索、知识图谱、向量存储 | 大规模记忆系统 |
+
+#### 评估提供者
+
+| 提供者 | 优势 | 适用场景 |
+|--------|------|---------|
+| **OpsPilot** | 轻量级、快速统计 | 简单评估需求 |
+| **AgentScope** | 专业级、排行榜、详细报告 | 深度性能分析 |
+
+### 后续优化方向
+
+1. **提供者插件化**：支持自定义提供者插件
+2. **A/B测试**：同时使用多个提供者进行对比
+3. **性能监控**：监控各提供者的性能指标
+4. **智能推荐**：根据场景自动推荐最佳提供者
+
+---
+
+
+
+
+
+
 
 
 

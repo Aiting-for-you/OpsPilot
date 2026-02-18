@@ -728,3 +728,175 @@ class DashboardDataResponse(BaseModel):
     generated_at: str
 
 
+# ==================== 工具优化相关 ====================
+
+class ToolIndexRequest(BaseModel):
+    """工具索引请求"""
+    tools: List[Dict[str, Any]] = Field(..., description="工具列表")
+    force_rebuild: bool = Field(default=False, description="是否强制重建索引")
+
+
+class ToolIndexResponse(BaseResponse):
+    """工具索引响应"""
+    indexed_count: int = Field(..., description="已索引工具数量")
+    categories: Dict[str, int] = Field(default_factory=dict, description="各类别工具数量")
+
+
+class ToolRetrievalRequest(BaseModel):
+    """工具检索请求"""
+    query: str = Field(..., description="查询文本", min_length=1)
+    max_tools: int = Field(default=10, description="最大返回工具数")
+    max_tokens: int = Field(default=2000, description="最大Token预算")
+    strategy: str = Field(default="hybrid", description="检索策略: semantic/keyword/hybrid")
+
+
+class ToolRetrievalResponse(BaseResponse):
+    """工具检索响应"""
+    tools: List[Dict[str, Any]] = Field(default_factory=list, description="检索到的工具")
+    total_tokens: int = Field(default=0, description="总Token数")
+    retrieval_time_ms: int = Field(default=0, description="检索耗时")
+
+
+class ToolCompressRequest(BaseModel):
+    """工具压缩请求"""
+    tools: List[Dict[str, Any]] = Field(..., description="待压缩工具列表")
+    level: str = Field(default="medium", description="压缩级别: low/medium/high")
+    max_tokens_per_tool: int = Field(default=100, description="每个工具最大Token数")
+
+
+class ToolCompressResponse(BaseResponse):
+    """工具压缩响应"""
+    compressed_tools: List[Dict[str, Any]] = Field(default_factory=list, description="压缩后的工具")
+    original_tokens: int = Field(default=0, description="原始Token数")
+    compressed_tokens: int = Field(default=0, description="压缩后Token数")
+    compression_ratio: float = Field(default=0.0, description="压缩比率")
+
+
+class ToolHealingRequest(BaseModel):
+    """工具自愈请求"""
+    tool_name: str = Field(..., description="工具名称")
+    params: Dict[str, Any] = Field(default_factory=dict, description="工具参数")
+    error_info: Dict[str, Any] = Field(..., description="错误信息")
+    max_retries: int = Field(default=3, description="最大重试次数")
+
+
+class ToolHealingResponse(BaseResponse):
+    """工具自愈响应"""
+    success: bool = Field(..., description="是否成功")
+    result: Optional[Dict[str, Any]] = Field(default=None, description="执行结果")
+    strategy_used: str = Field(default="", description="使用的恢复策略")
+    retry_count: int = Field(default=0, description="重试次数")
+
+
+class ToolContextManagerRequest(BaseModel):
+    """上下文管理请求"""
+    query: str = Field(..., description="查询文本")
+    available_tools: List[str] = Field(default_factory=list, description="可用工具列表")
+    context_budget: int = Field(default=2000, description="上下文预算")
+
+
+class ToolContextManagerResponse(BaseResponse):
+    """上下文管理响应"""
+    selected_tools: List[str] = Field(default_factory=list, description="选中的工具")
+    total_tokens: int = Field(default=0, description="总Token数")
+    selection_strategy: str = Field(default="", description="选择策略")
+
+
+# ==================== 记忆优化相关 ====================
+
+class MemoryWeightRequest(BaseModel):
+    """记忆权重计算请求"""
+    memory_id: str = Field(..., description="记忆ID")
+    content: str = Field(..., description="记忆内容")
+    metadata: Dict[str, Any] = Field(default_factory=dict, description="记忆元数据")
+
+
+class MemoryWeightResponse(BaseResponse):
+    """记忆权重响应"""
+    memory_id: str
+    weight: float = Field(..., description="权重值(0-1)")
+    factors: Dict[str, float] = Field(default_factory=dict, description="权重因子")
+
+
+class MemoryConflictRequest(BaseModel):
+    """记忆冲突检测请求"""
+    memories: List[Dict[str, Any]] = Field(..., description="记忆列表")
+    check_type: str = Field(default="all", description="检查类型: all/contradiction/duplicate")
+
+
+class MemoryConflictResponse(BaseResponse):
+    """记忆冲突响应"""
+    conflicts: List[Dict[str, Any]] = Field(default_factory=list, description="检测到的冲突")
+    resolutions: List[Dict[str, Any]] = Field(default_factory=list, description="解决方案")
+    conflict_count: int = Field(default=0, description="冲突数量")
+
+
+class MemoryConsolidationRequest(BaseModel):
+    """记忆巩固请求"""
+    memories: List[Dict[str, Any]] = Field(..., description="待巩固记忆列表")
+    consolidation_type: str = Field(default="auto", description="巩固类型: auto/cluster/pattern")
+    min_cluster_size: int = Field(default=3, description="最小簇大小")
+
+
+class MemoryConsolidationResponse(BaseResponse):
+    """记忆巩固响应"""
+    clusters: List[Dict[str, Any]] = Field(default_factory=list, description="记忆簇")
+    patterns: List[Dict[str, Any]] = Field(default_factory=list, description="提取的模式")
+    consolidated_count: int = Field(default=0, description="巩固的记忆数")
+    reduction_ratio: float = Field(default=0.0, description="压缩比率")
+
+
+class MemoryStatsResponse(BaseResponse):
+    """记忆统计响应"""
+    total_memories: int = Field(default=0, description="总记忆数")
+    weighted_memories: int = Field(default=0, description="已加权记忆数")
+    conflict_count: int = Field(default=0, description="冲突数")
+    consolidated_memories: int = Field(default=0, description="已巩固记忆数")
+    patterns_extracted: int = Field(default=0, description="提取的模式数")
+
+
+# ==================== 提供者管理相关 ====================
+
+class ProviderType(str, Enum):
+    """提供者类型"""
+    OPSPILOT = "opspilot"
+    LANGCHAIN = "langchain"
+    AGENTSCOPE = "agentscope"
+    REME = "reme"
+
+
+class SetProviderRequest(BaseModel):
+    """设置提供者请求"""
+    provider_type: str = Field(..., description="提供者类型: approval/memory/evaluation")
+    provider: str = Field(..., description="提供者名称")
+
+
+class ProviderStatusResponse(BaseResponse):
+    """提供者状态响应"""
+    approval_provider: str = Field(default="langchain", description="审批提供者")
+    memory_provider: str = Field(default="opspilot", description="记忆提供者")
+    evaluation_provider: str = Field(default="agentscope", description="评估提供者")
+
+
+class ProviderInfo(BaseModel):
+    """提供者信息"""
+    name: str
+    type: str
+    available: bool = Field(default=True)
+    description: str = ""
+    features: List[str] = Field(default_factory=list)
+
+
+class ProviderListResponse(BaseResponse):
+    """提供者列表响应"""
+    approval_providers: List[ProviderInfo] = Field(default_factory=list)
+    memory_providers: List[ProviderInfo] = Field(default_factory=list)
+    evaluation_providers: List[ProviderInfo] = Field(default_factory=list)
+
+
+
+
+
+
+
+

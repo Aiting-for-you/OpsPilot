@@ -4,6 +4,7 @@ import { Settings as SettingsIcon, Save, RefreshCw, Check, X, Eye, EyeOff, Zap, 
 import { api } from '../services/api';
 import { LLMProviderConfig, LLMProviderType, LLMTestResult, ModelInfo } from '../types';
 import { MCPServerSettings } from '../components/MCPServerSettings';
+import { ProviderSettings } from '../components/ProviderSettings';
 
 // Provider display info
 const PROVIDER_INFO: Record<LLMProviderType, { nameKey: string; color: string }> = {
@@ -50,7 +51,7 @@ export function Settings() {
   const [defaultModelSelect, setDefaultModelSelect] = useState<string>('');
   
   // Tab state
-  const [activeTab, setActiveTab] = useState<'llm' | 'mcp'>('llm');
+  const [activeTab, setActiveTab] = useState<'llm' | 'mcp' | 'providers'>('llm');
 
   useEffect(() => {
     loadConfigs();
@@ -288,8 +289,24 @@ export function Settings() {
             <Link className="w-3.5 h-3.5" />
             MCP
           </button>
+          <button
+            onClick={() => setActiveTab('providers')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-all ${
+              activeTab === 'providers'
+                ? 'bg-electric text-navy-950'
+                : 'text-steel-400 hover:text-text-primary'
+            }`}
+          >
+            <Shield className="w-3.5 h-3.5" />
+            Providers
+          </button>
         </div>
       </div>
+
+      {/* Providers Tab Content */}
+      {activeTab === 'providers' && (
+        <ProviderSettings />
+      )}
 
       {/* LLM Tab Content */}
       {activeTab === 'llm' && (

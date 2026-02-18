@@ -15,6 +15,9 @@ import {
   ChevronLeft,
   Clock,
   BarChart3,
+  Monitor,
+  Cpu,
+  Brain,
 } from 'lucide-react';
 import { useAppStore } from '../../store';
 import { LanguageSwitcher } from '../LanguageSwitcher';
@@ -37,6 +40,9 @@ export function Layout({ children }: LayoutProps) {
     { path: '/tracing', icon: Activity, labelKey: 'nav.tracing' },
     { path: '/scheduler', icon: Clock, labelKey: 'nav.scheduler' },
     { path: '/analytics', icon: BarChart3, labelKey: 'nav.analytics' },
+    { path: '/monitoring', icon: Monitor, labelKey: 'nav.monitoring' },
+    { path: '/tool-optimization', icon: Cpu, labelKey: 'nav.toolOptimization' },
+    { path: '/memory-optimization', icon: Brain, labelKey: 'nav.memoryOptimization' },
     { path: '/settings', icon: Settings, labelKey: 'nav.settings' },
   ];
 

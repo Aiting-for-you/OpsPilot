@@ -30,6 +30,9 @@
     "tracing": "Tracing",
     "scheduler": "Scheduler",
     "analytics": "Analytics",
+    "monitoring": "Monitoring",
+    "toolOptimization": "Tool Optimization",
+    "memoryOptimization": "Memory Optimization",
     "settings": "Settings"
   },
   "dashboard": {
