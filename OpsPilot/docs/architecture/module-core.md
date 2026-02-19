@@ -1,59 +1,70 @@
 # Core 模块架构
 
-## 模块架构图
+## 组件架构图
 
 ```mermaid
 graph TB
     subgraph Core模块
-        ORCH["Orchestrator<br/>任务编排器"]
-        FSM["StateMachine<br/>状态机"]
-        CTX["Context<br/>上下文管理"]
-        EVT["EventBus<br/>事件总线"]
-        SOP["SOPExecutor<br/>SOP执行器"]
+        ORCH[Orchestrator<br/>编排器<br/><br/>任务分发<br/>结果聚合]
+        FSM[StateMachine<br/>状态机<br/><br/>状态验证<br/>转换控制]
+        CTX[Context<br/>上下文<br/><br/>数据传递<br/>序列化]
+        EVT[EventBus<br/>事件总线<br/><br/>发布订阅<br/>监听通知]
+        SOP[SOPExecutor<br/>执行器<br/><br/>流程编排<br/>步骤执行]
     end
-    
-    subgraph 状态定义
-        STATES["8个状态<br/>INIT→PLANNING→AUDITING<br/>→EXECUTING→VERIFYING<br/>→SUCCESS/RETRY/REJECTED"]
-    end
-    
+
     ORCH --> FSM
     ORCH --> SOP
     FSM --> CTX
     FSM --> EVT
-    EVT --> ORCH
-    
-    FSM --> STATES
 
-    style Core模块 fill:#e8eaf6
-    style 状态定义 fill:#f3e5f5
+    style ORCH fill:#083B75,color:#fff
+    style FSM fill:#083B75,color:#fff
+    style CTX fill:#6C8EBF,color:#fff
+    style EVT fill:#6C8EBF,color:#fff
+    style SOP fill:#083B75,color:#fff
 ```
 
-## 核心流程时序图
+## 状态流转时序图
 
 ```mermaid
 sequenceDiagram
     participant Client as 调用方
-    participant Orch as Orchestrator
+    participant ORCH as Orchestrator
     participant FSM as StateMachine
     participant CTX as Context
-    participant EVT as EventBus
 
-    Client->>Orch: 提交任务
-    Orch->>CTX: 创建上下文
-    CTX-->>Orch: 返回Context
-    
-    Orch->>FSM: 初始化状态(INIT)
-    FSM->>EVT: 发布StateChangeEvent
-    
-    loop 状态流转
-        FSM->>FSM: 验证转换
-        FSM->>CTX: 更新状态
-        FSM->>EVT: 发布事件
-    end
-    
-    FSM-->>Orch: 状态完成
-    Orch-->>Client: 返回结果
+    Client->>ORCH: 提交任务
+    ORCH->>CTX: 创建上下文
+    ORCH->>FSM: 初始化状态
+
+    FSM->>FSM: INIT → PLANNING
+    FSM->>CTX: 更新状态
+
+    FSM->>FSM: PLANNING → EXECUTING
+    FSM->>CTX: 更新状态
+
+    FSM->>FSM: EXECUTING → VERIFYING
+    FSM->>CTX: 更新状态
+
+    FSM->>FSM: VERIFYING → SUCCESS
+    FSM->>CTX: 更新状态
+
+    FSM-->>ORCH: 状态完成
+    ORCH-->>Client: 返回结果
 ```
+
+## 状态定义
+
+| 状态 | 说明 | 允许的下一状态 |
+|------|------|---------------|
+| INIT | 初始化 | PLANNING |
+| PLANNING | 规划中 | AUDITING |
+| AUDITING | 审核中 | EXECUTING, REJECTED |
+| EXECUTING | 执行中 | VERIFYING |
+| VERIFYING | 验证中 | SUCCESS, RETRY |
+| SUCCESS | 成功 | - |
+| RETRY | 重试 | EXECUTING |
+| REJECTED | 拒绝 | - |
 
 ## 核心组件
 
