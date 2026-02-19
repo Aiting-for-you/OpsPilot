@@ -4,79 +4,84 @@
 
 ```mermaid
 graph TB
-    subgraph Orchestrator编排器
-        ORCH[Orchestrator<br/>主编排器<br/><br/>任务生命周期管理<br/>资源调度协调]
-        ORCH_TASK[TaskManager<br/>任务管理器<br/><br/>任务创建/销毁<br/>状态跟踪]
-        ORCH_RES[ResourceManager<br/>资源管理器<br/><br/>Agent分配<br/>工具调度]
-        ORCH_EVENT[EventEmitter<br/>事件发射器<br/><br/>事件广播<br/>状态通知]
+    %% ==================== 第一行：主控制器 ====================
+    subgraph L1[Orchestrator编排器]
+        direction LR
+        ORCH[Orchestrator<br/>主编排器<br/>任务生命周期管理]
+        ORCH_TASK[TaskManager<br/>任务管理器<br/>任务创建/销毁]
+        ORCH_RES[ResourceManager<br/>资源管理器<br/>Agent分配]
+        ORCH_EVENT[EventEmitter<br/>事件发射器<br/>事件广播]
     end
 
-    subgraph StateMachine状态机
-        SM[StateMachine<br/>状态机核心<br/><br/>状态定义<br/>转换规则]
-        SM_DEF[StateDefinition<br/>状态定义<br/><br/>PENDING/RUNNING<br/>SUCCESS/FAILED]
-        SM_TRANS[Transition<br/>状态转换<br/><br/>条件检查<br/>动作触发]
-        SM_HIST[StateHistory<br/>状态历史<br/><br/>变更记录<br/>回溯支持]
+    %% ==================== 第二行：状态机 ====================
+    subgraph L2[StateMachine状态机]
+        direction LR
+        SM[StateMachine<br/>状态机核心<br/>状态定义]
+        SM_DEF[StateDefinition<br/>状态定义<br/>PENDING/RUNNING]
+        SM_TRANS[Transition<br/>状态转换<br/>条件检查]
+        SM_HIST[StateHistory<br/>状态历史<br/>变更记录]
     end
 
-    subgraph SOPExecutor执行器
-        SOP[SOPExecutor<br/>SOP执行器<br/><br/>标准流程执行<br/>步骤编排]
-        SOP_STEP[StepExecutor<br/>步骤执行器<br/><br/>单步执行<br/>结果收集]
-        SOP_CTX[ExecutionContext<br/>执行上下文<br/><br/>变量管理<br/>状态传递]
-        SOP_HOOK[HookManager<br/>钩子管理器<br/><br/>前置/后置处理<br/>异常处理]
+    %% ==================== 第三行：执行器 ====================
+    subgraph L3[SOPExecutor执行器]
+        direction LR
+        SOP[SOPExecutor<br/>SOP执行器<br/>标准流程执行]
+        SOP_STEP[StepExecutor<br/>步骤执行器<br/>单步执行]
+        SOP_CTX[ExecutionContext<br/>执行上下文<br/>变量管理]
+        SOP_HOOK[HookManager<br/>钩子管理器<br/>前置/后置处理]
     end
 
-    subgraph Context上下文
-        CTX[Context<br/>上下文管理器<br/><br/>全局状态<br/>数据共享]
-        CTX_VAR[VariableStore<br/>变量存储<br/><br/>运行时变量<br/>参数传递]
-        CTX_META[Metadata<br/>元数据<br/><br/>任务信息<br/>环境配置]
-        CTX_CACHE[ContextCache<br/>上下文缓存<br/><br/>快照存储<br/>状态恢复]
+    %% ==================== 第四行：上下文 ====================
+    subgraph L4[Context上下文]
+        direction LR
+        CTX[Context<br/>上下文管理器<br/>全局状态]
+        CTX_VAR[VariableStore<br/>变量存储<br/>运行时变量]
+        CTX_META[Metadata<br/>元数据<br/>任务信息]
+        CTX_CACHE[ContextCache<br/>上下文缓存<br/>状态恢复]
     end
 
-    subgraph Events事件系统
-        EVT[EventManager<br/>事件管理器<br/><br/>事件订阅<br/>消息分发]
-        EVT_BUS[EventBus<br/>事件总线<br/><br/>异步通信<br/>解耦组件]
-        EVT_HANDLER[EventHandler<br/>事件处理器<br/><br/>回调执行<br/>错误处理]
+    %% ==================== 第五行：事件与配置 ====================
+    subgraph L5A[Events事件系统]
+        direction LR
+        EVT[EventManager<br/>事件管理器<br/>事件订阅]
+        EVT_BUS[EventBus<br/>事件总线<br/>异步通信]
+        EVT_HANDLER[EventHandler<br/>事件处理器<br/>回调执行]
     end
 
-    subgraph LLMConfig配置
-        LLM_CFG[LLMConfig<br/>LLM配置<br/><br/>模型选择<br/>参数设置]
-        LLM_MODEL[ModelRegistry<br/>模型注册表<br/><br/>GPT/Claude<br/>DeepSeek]
-        LLM_PARAMS[ParameterStore<br/>参数存储<br/><br/>temperature<br/>max_tokens]
+    subgraph L5B[LLMConfig配置]
+        direction LR
+        LLM_CFG[LLMConfig<br/>LLM配置<br/>模型选择]
+        LLM_MODEL[ModelRegistry<br/>模型注册表<br/>GPT/Claude]
+        LLM_PARAMS[ParameterStore<br/>参数存储<br/>temperature]
     end
 
-    %% Orchestrator内部连接
+    %% ==================== 层间连接 ====================
     ORCH --> ORCH_TASK
     ORCH --> ORCH_RES
     ORCH --> ORCH_EVENT
     ORCH_TASK --> ORCH_RES
 
-    %% StateMachine内部连接
     SM --> SM_DEF
     SM --> SM_TRANS
     SM --> SM_HIST
     SM_TRANS --> SM_DEF
 
-    %% SOPExecutor内部连接
     SOP --> SOP_STEP
     SOP --> SOP_CTX
     SOP --> SOP_HOOK
     SOP_CTX --> SOP_HOOK
 
-    %% Context内部连接
     CTX --> CTX_VAR
     CTX --> CTX_META
     CTX --> CTX_CACHE
 
-    %% Events内部连接
     EVT --> EVT_BUS
     EVT --> EVT_HANDLER
     EVT_BUS --> EVT_HANDLER
 
-    %% LLMConfig内部连接
     LLM_CFG --> LLM_MODEL
     LLM_CFG --> LLM_PARAMS
 
-    %% 模块间连接
     ORCH --> SM
     ORCH --> SOP
     ORCH --> CTX
@@ -85,7 +90,7 @@ graph TB
     SOP_CTX --> CTX
     SOP_HOOK --> EVT_HANDLER
 
-    %% 样式
+    %% ==================== 样式 ====================
     classDef primary fill:#083B75,color:#fff
     classDef secondary fill:#1a5f7a,color:#fff
     classDef tertiary fill:#2e7d32,color:#fff

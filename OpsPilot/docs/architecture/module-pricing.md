@@ -4,97 +4,99 @@
 
 ```mermaid
 graph TB
-    subgraph PricingOrchestrator编排器
-        PO[PricingOrchestrator<br/>定价编排器<br/><br/>协调多Agent博弈<br/>最终决策]
-        PO_TASK[TaskDistributor<br/>任务分发器<br/><br/>定价任务分解<br/>并行调度]
-        PO_AGG[ResultAggregator<br/>结果聚合器<br/><br/>博弈结果汇总<br/>决策融合]
-        PO_MONITOR[PricingMonitor<br/>定价监控器<br/><br/>价格追踪<br/>异常检测]
+    %% ==================== 第一行：编排器 ====================
+    subgraph L1[PricingOrchestrator编排器]
+        direction LR
+        PO[PricingOrchestrator<br/>定价编排器<br/>协调多Agent]
+        PO_TASK[TaskDistributor<br/>任务分发器<br/>并行调度]
+        PO_AGG[ResultAggregator<br/>结果聚合器<br/>决策融合]
+        PO_MONITOR[PricingMonitor<br/>定价监控器<br/>价格追踪]
     end
 
-    subgraph PricingAgents博弈Agent
-        PA_COST[CostAnalystAgent<br/>成本分析Agent<br/><br/>成本核算<br/>利润计算]
-        PA_COMP[CompetitorAgent<br/>竞品分析Agent<br/><br/>竞品监控<br/>价格对比]
-        PA_DEMAND[DemandAgent<br/>需求分析Agent<br/><br/>需求预测<br/>弹性分析]
-        PA_INV[InventoryAgent<br/>库存分析Agent<br/><br/>库存压力<br/>周转评估]
-        PA_STRAT[StrategyAgent<br/>策略Agent<br/><br/>定价策略<br/>博弈决策]
+    %% ==================== 第二行：博弈Agent ====================
+    subgraph L2A[分析Agent]
+        direction LR
+        PA_COST[CostAnalystAgent<br/>成本分析Agent<br/>成本核算]
+        PA_COMP[CompetitorAgent<br/>竞品分析Agent<br/>竞品监控]
+        PA_DEMAND[DemandAgent<br/>需求分析Agent<br/>需求预测]
     end
 
-    subgraph NegotiationEngine博弈引擎
-        NE[NegotiationEngine<br/>博弈引擎<br/><br/>多Agent博弈<br/>纳什均衡]
-        NE_GAME[GameTheorist<br/>博弈理论家<br/><br/>博弈建模<br/>均衡计算]
-        NE_VOTE[VoteCoordinator<br/>投票协调器<br/><br/>权重投票<br/>共识达成]
-        NE_BALANCE[BalanceEngine<br/>平衡引擎<br/><br/>多方利益<br/>帕累托最优]
+    subgraph L2B[决策Agent]
+        direction LR
+        PA_INV[InventoryAgent<br/>库存分析Agent<br/>库存压力]
+        PA_STRAT[StrategyAgent<br/>策略Agent<br/>定价策略]
     end
 
-    subgraph PricingTools定价工具
-        PT[PricingTools<br/>定价工具集<br/><br/>价格计算<br/>数据分析]
-        PT_CALC[PriceCalculator<br/>价格计算器<br/><br/>成本加成<br/>动态定价]
-        PT_HIST[HistoryAnalyzer<br/>历史分析器<br/><br/>价格历史<br/>趋势预测]
-        PT_OPT[OptimizerEngine<br/>优化引擎<br/><br/>利润优化<br/>约束求解]
-        PT_RULE[RuleEngine<br/>规则引擎<br/><br/>定价规则<br/>阈值检查]
+    %% ==================== 第三行：博弈引擎 ====================
+    subgraph L3[NegotiationEngine博弈引擎]
+        direction LR
+        NE[NegotiationEngine<br/>博弈引擎<br/>多Agent博弈]
+        NE_GAME[GameTheorist<br/>博弈理论家<br/>均衡计算]
+        NE_VOTE[VoteCoordinator<br/>投票协调器<br/>共识达成]
+        NE_BALANCE[BalanceEngine<br/>平衡引擎<br/>帕累托最优]
     end
 
-    subgraph DataSource数据源
-        DS[DataSourceManager<br/>数据源管理器<br/><br/>统一数据接入]
-        DS_ERP[ERPConnector<br/>ERP连接器<br/><br/>成本数据<br/>库存数据]
-        DS_COMP[CompetitorAPI<br/>竞品API<br/><br/>竞品价格<br/>促销信息]
-        DS_MARKET[MarketAPI<br/>市场API<br/><br/>市场需求<br/>行业趋势]
-        DS_INTERN[InternalDB<br/>内部数据库<br/><br/>历史定价<br/>销售数据]
+    %% ==================== 第四行：定价工具 ====================
+    subgraph L4[PricingTools定价工具]
+        direction LR
+        PT[PricingTools<br/>定价工具集]
+        PT_CALC[PriceCalculator<br/>价格计算器]
+        PT_HIST[HistoryAnalyzer<br/>历史分析器]
+        PT_OPT[OptimizerEngine<br/>优化引擎]
     end
 
-    subgraph Decision决策层
-        DEC[DecisionMaker<br/>决策器<br/><br/>最终定价<br/>审批流程]
-        DEC_CONF[ConfidenceScorer<br/>置信度评分器<br/><br/>决策可信度<br/>风险评估]
-        DEC_APPROVE[ApprovalManager<br/>审批管理器<br/><br/>人工审批<br/>权限控制]
-        DEC_EXEC[ExecutionEngine<br/>执行引擎<br/><br/>价格生效<br/>渠道同步]
+    %% ==================== 第五行：数据源 ====================
+    subgraph L5[DataSource数据源]
+        direction LR
+        DS[DataSourceManager<br/>数据源管理器]
+        DS_ERP[ERPConnector<br/>ERP连接器]
+        DS_COMP[CompetitorAPI<br/>竞品API]
+        DS_MARKET[MarketAPI<br/>市场API]
     end
 
-    subgraph Feedback反馈闭环
-        FB[FeedbackLoop<br/>反馈闭环<br/><br/>效果追踪<br/>策略优化]
-        FB_TRACK[SalesTracker<br/>销量追踪器<br/><br/>销量监控<br/>转化分析]
-        FB_ADAPT[AdaptiveEngine<br/>自适应引擎<br/><br/>策略调整<br/>模型更新]
-        FB_REPORT[ReportGenerator<br/>报告生成器<br/><br/>定价报告<br/>效果分析]
+    %% ==================== 第六行：决策与反馈 ====================
+    subgraph L6A[Decision决策层]
+        direction LR
+        DEC[DecisionMaker<br/>决策器]
+        DEC_CONF[ConfidenceScorer<br/>置信度评分]
+        DEC_APPROVE[ApprovalManager<br/>审批管理器]
     end
 
-    %% PricingOrchestrator内部连接
+    subgraph L6B[Feedback反馈闭环]
+        direction LR
+        FB[FeedbackLoop<br/>反馈闭环]
+        FB_TRACK[SalesTracker<br/>销量追踪]
+        FB_ADAPT[AdaptiveEngine<br/>自适应引擎]
+    end
+
+    %% ==================== 层间连接 ====================
     PO --> PO_TASK
     PO --> PO_AGG
     PO --> PO_MONITOR
 
-    %% PricingAgents内部连接
     PA_COST --> PA_STRAT
     PA_COMP --> PA_STRAT
     PA_DEMAND --> PA_STRAT
     PA_INV --> PA_STRAT
 
-    %% NegotiationEngine内部连接
     NE --> NE_GAME
     NE --> NE_VOTE
     NE --> NE_BALANCE
 
-    %% PricingTools内部连接
     PT --> PT_CALC
     PT --> PT_HIST
     PT --> PT_OPT
-    PT --> PT_RULE
 
-    %% DataSource内部连接
     DS --> DS_ERP
     DS --> DS_COMP
     DS --> DS_MARKET
-    DS --> DS_INTERN
 
-    %% Decision内部连接
     DEC --> DEC_CONF
     DEC --> DEC_APPROVE
-    DEC --> DEC_EXEC
 
-    %% Feedback内部连接
     FB --> FB_TRACK
     FB --> FB_ADAPT
-    FB --> FB_REPORT
 
-    %% 模块间连接
     PO_TASK --> PA_COST
     PO_TASK --> PA_COMP
     PO_TASK --> PA_DEMAND
@@ -107,11 +109,10 @@ graph TB
     DS_COMP --> PA_COMP
     PO_AGG --> DEC
     DEC_CONF --> DEC_APPROVE
-    DEC_EXEC --> FB
     FB_TRACK --> FB_ADAPT
     FB_ADAPT --> PA_STRAT
 
-    %% 样式
+    %% ==================== 样式 ====================
     classDef orch fill:#083B75,color:#fff
     classDef agent fill:#1a5f7a,color:#fff
     classDef engine fill:#2e7d32,color:#fff
@@ -123,10 +124,10 @@ graph TB
     class PO,PO_TASK,PO_AGG,PO_MONITOR orch
     class PA_COST,PA_COMP,PA_DEMAND,PA_INV,PA_STRAT agent
     class NE,NE_GAME,NE_VOTE,NE_BALANCE engine
-    class PT,PT_CALC,PT_HIST,PT_OPT,PT_RULE tool
-    class DS,DS_ERP,DS_COMP,DS_MARKET,DS_INTERN data
-    class DEC,DEC_CONF,DEC_APPROVE,DEC_EXEC decision
-    class FB,FB_TRACK,FB_ADAPT,FB_REPORT feedback
+    class PT,PT_CALC,PT_HIST,PT_OPT tool
+    class DS,DS_ERP,DS_COMP,DS_MARKET data
+    class DEC,DEC_CONF,DEC_APPROVE decision
+    class FB,FB_TRACK,FB_ADAPT feedback
 ```
 
 ## 博弈定价时序图

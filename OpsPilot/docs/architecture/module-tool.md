@@ -4,143 +4,139 @@
 
 ```mermaid
 graph TB
-    subgraph Base基类
-        BASE[BaseTool<br/>工具基类<br/><br/>定义工具接口<br/>参数验证]
-        BASE_SCHEMA[ToolSchema<br/>工具模式<br/><br/>输入输出定义<br/>JSON Schema]
-        BASE_VALID[Validator<br/>参数验证器<br/><br/>类型检查<br/>范围验证]
-        BASE_EXEC[Executor<br/>执行器<br/><br/>同步/异步执行<br/>超时控制]
+    %% ==================== 第一行：基类 ====================
+    subgraph L1[Base基类]
+        direction LR
+        BASE[BaseTool<br/>工具基类<br/>定义工具接口]
+        BASE_SCHEMA[ToolSchema<br/>工具模式<br/>JSON Schema]
+        BASE_VALID[Validator<br/>参数验证器<br/>类型检查]
+        BASE_EXEC[Executor<br/>执行器<br/>超时控制]
     end
 
-    subgraph Ecommerce电商工具
-        ECOM[EcommerceTool<br/>电商工具集<br/><br/>商品/订单/库存]
-        ECOM_PROD[ProductTool<br/>商品工具<br/><br/>商品查询<br/>价格管理]
-        ECOM_ORDER[OrderTool<br/>订单工具<br/><br/>订单创建<br/>状态查询]
-        ECOM_INV[InventoryTool<br/>库存工具<br/><br/>库存查询<br/>调拨管理]
-        ECOM_PRICE[PriceTool<br/>定价工具<br/><br/>价格计算<br/>折扣管理]
+    %% ==================== 第二行：电商与数据库 ====================
+    subgraph L2A[Ecommerce电商工具]
+        direction LR
+        ECOM[电商工具集]
+        ECOM_PROD[ProductTool<br/>商品工具]
+        ECOM_ORDER[OrderTool<br/>订单工具]
+        ECOM_INV[InventoryTool<br/>库存工具]
     end
 
-    subgraph Database数据库工具
-        DB[DatabaseTool<br/>数据库工具集<br/><br/>CRUD操作]
-        DB_QUERY[QueryTool<br/>查询工具<br/><br/>SELECT查询<br/>条件构建]
-        DB_MUTATE[MutateTool<br/>变更工具<br/><br/>INSERT/UPDATE<br/>DELETE]
-        DB_TRANS[TransactionTool<br/>事务工具<br/><br/>事务管理<br/>批量操作]
-        DB_MIG[MigrationTool<br/>迁移工具<br/><br/>Schema变更<br/>数据迁移]
+    subgraph L2B[Database数据库工具]
+        direction LR
+        DB[数据库工具集]
+        DB_QUERY[QueryTool<br/>查询工具]
+        DB_MUTATE[MutateTool<br/>变更工具]
+        DB_TRANS[TransactionTool<br/>事务工具]
     end
 
-    subgraph HTTP网络工具
-        HTTP[HttpClientTool<br/>HTTP工具集<br/><br/>API调用]
-        HTTP_GET[GETTool<br/>GET请求<br/><br/>查询接口<br/>分页处理]
-        HTTP_POST[POSTTool<br/>POST请求<br/><br/>数据提交<br/>文件上传]
-        HTTP_AUTH[AuthManager<br/>认证管理器<br/><br/>Token管理<br/>签名计算]
-        HTTP_RETRY[RetryPolicy<br/>重试策略<br/><br/>失败重试<br/>熔断保护]
+    %% ==================== 第三行：HTTP与文件 ====================
+    subgraph L3A[HTTP网络工具]
+        direction LR
+        HTTP[HTTP工具集]
+        HTTP_GET[GETTool<br/>GET请求]
+        HTTP_POST[POSTTool<br/>POST请求]
+        HTTP_AUTH[AuthManager<br/>认证管理]
     end
 
-    subgraph File文件工具
-        FILE[FileOpsTool<br/>文件工具集<br/><br/>文件读写]
-        FILE_READ[FileReader<br/>文件读取器<br/><br/>文本/JSON<br/>编码处理]
-        FILE_WRITE[FileWriter<br/>文件写入器<br/><br/>创建/追加<br/>原子写入]
-        FILE_GLOB[FileGlobber<br/>文件搜索器<br/><br/>模式匹配<br/>递归搜索]
-        FILE_COMP[FileCompressor<br/>文件压缩器<br/><br/>ZIP/TAR<br/>解压缩]
+    subgraph L3B[File文件工具]
+        direction LR
+        FILE[文件工具集]
+        FILE_READ[FileReader<br/>文件读取]
+        FILE_WRITE[FileWriter<br/>文件写入]
+        FILE_GLOB[FileGlobber<br/>文件搜索]
     end
 
-    subgraph Notification通知工具
-        NOTIFY[NotificationTool<br/>通知工具集<br/><br/>消息推送]
-        NOTIFY_EMAIL[EmailNotifier<br/>邮件通知<br/><br/>SMTP发送<br/>模板渲染]
-        NOTIFY_SMS[SMSNotifier<br/>短信通知<br/><br/>短信网关<br/>状态查询]
-        NOTIFY_WEB[WebhookNotifier<br/>Webhook通知<br/><br/>HTTP回调<br/>重试机制]
-        NOTIFY_PUSH[PushNotifier<br/>推送通知<br/><br/>移动推送<br/>订阅管理]
+    %% ==================== 第四行：通知与自愈 ====================
+    subgraph L4A[Notification通知工具]
+        direction LR
+        NOTIFY[通知工具集]
+        NOTIFY_EMAIL[EmailNotifier<br/>邮件通知]
+        NOTIFY_SMS[SMSNotifier<br/>短信通知]
+        NOTIFY_WEB[WebhookNotifier<br/>Webhook]
     end
 
-    subgraph Healing自愈工具
-        HEAL[HealingTool<br/>自愈工具集<br/><br/>故障恢复]
-        HEAL_DIAG[DiagnosticTool<br/>诊断工具<br/><br/>健康检查<br/>问题定位]
-        HEAL_FIX[FixTool<br/>修复工具<br/><br/>自动修复<br/>配置恢复]
-        HEAL_ROLL[RollbackTool<br/>回滚工具<br/><br/>版本回退<br/>状态恢复]
+    subgraph L4B[Healing自愈工具]
+        direction LR
+        HEAL[自愈工具集]
+        HEAL_DIAG[DiagnosticTool<br/>诊断工具]
+        HEAL_FIX[FixTool<br/>修复工具]
+        HEAL_ROLL[RollbackTool<br/>回滚工具]
     end
 
-    subgraph MCP外部工具
-        MCP[MCPTool<br/>MCP工具集<br/><br/>外部工具接入]
-        MCP_CLIENT[MCPClient<br/>MCP客户端<br/><br/>协议通信<br/>工具发现]
-        MCP_DB[MCPDatabase<br/>MCP数据库<br/><br/>外部数据源<br/>统一查询]
-        MCP_SEARCH[MCPSearch<br/>MCP搜索<br/><br/>外部检索<br/>结果聚合]
+    %% ==================== 第五行：MCP与检索 ====================
+    subgraph L5A[MCP外部工具]
+        direction LR
+        MCP[MCP工具集]
+        MCP_CLIENT[MCPClient<br/>MCP客户端]
+        MCP_DB[MCPDatabase<br/>外部数据源]
+        MCP_SEARCH[MCPSearch<br/>外部检索]
     end
 
-    subgraph Retrieval检索工具
-        RETR[RetrieverTool<br/>检索工具集<br/><br/>语义检索]
-        RETR_VEC[VectorRetriever<br/>向量检索器<br/><br/>相似度搜索<br/>ANN索引]
-        RETR_HYB[HybridRetriever<br/>混合检索器<br/><br/>关键词+向量<br/>重排序]
-        RETR_CTX[ContextManager<br/>上下文管理器<br/><br/>窗口控制<br/>去重过滤]
+    subgraph L5B[Retrieval检索工具]
+        direction LR
+        RETR[检索工具集]
+        RETR_VEC[VectorRetriever<br/>向量检索]
+        RETR_HYB[HybridRetriever<br/>混合检索]
+        RETR_CTX[ContextManager<br/>上下文管理]
     end
 
-    subgraph Embedding向量工具
-        EMBED[EmbeddingTool<br/>向量化工具<br/><br/>文本嵌入]
-        EMBED_OPEN[OpenAIEmbedding<br/>OpenAI嵌入<br/><br/>text-embedding<br/>批量处理]
-        EMBED_LOCAL[LocalEmbedding<br/>本地嵌入<br/><br/>SentenceTransform<br/>离线推理]
+    %% ==================== 第六行：向量与集成 ====================
+    subgraph L6A[Embedding向量工具]
+        direction LR
+        EMBED[向量化工具]
+        EMBED_OPEN[OpenAIEmbedding<br/>OpenAI嵌入]
+        EMBED_LOCAL[LocalEmbedding<br/>本地嵌入]
     end
 
-    subgraph Langchain集成
-        LC[LangchainTools<br/>Langchain工具<br/><br/>框架集成]
-        LC_WRAP[ToolWrapper<br/>工具包装器<br/><br/>格式转换<br/>接口适配]
+    subgraph L6B[Langchain集成]
+        direction LR
+        LC[Langchain工具]
+        LC_WRAP[ToolWrapper<br/>工具包装器]
     end
 
-    %% Base内部连接
+    %% ==================== 层间连接 ====================
     BASE --> BASE_SCHEMA
     BASE --> BASE_VALID
     BASE --> BASE_EXEC
 
-    %% Ecommerce内部连接
     ECOM --> ECOM_PROD
     ECOM --> ECOM_ORDER
     ECOM --> ECOM_INV
-    ECOM --> ECOM_PRICE
 
-    %% Database内部连接
     DB --> DB_QUERY
     DB --> DB_MUTATE
     DB --> DB_TRANS
-    DB --> DB_MIG
 
-    %% HTTP内部连接
     HTTP --> HTTP_GET
     HTTP --> HTTP_POST
     HTTP --> HTTP_AUTH
-    HTTP --> HTTP_RETRY
 
-    %% File内部连接
     FILE --> FILE_READ
     FILE --> FILE_WRITE
     FILE --> FILE_GLOB
-    FILE --> FILE_COMP
 
-    %% Notification内部连接
     NOTIFY --> NOTIFY_EMAIL
     NOTIFY --> NOTIFY_SMS
     NOTIFY --> NOTIFY_WEB
-    NOTIFY --> NOTIFY_PUSH
 
-    %% Healing内部连接
     HEAL --> HEAL_DIAG
     HEAL --> HEAL_FIX
     HEAL --> HEAL_ROLL
 
-    %% MCP内部连接
     MCP --> MCP_CLIENT
     MCP --> MCP_DB
     MCP --> MCP_SEARCH
 
-    %% Retrieval内部连接
     RETR --> RETR_VEC
     RETR --> RETR_HYB
     RETR --> RETR_CTX
 
-    %% Embedding内部连接
     EMBED --> EMBED_OPEN
     EMBED --> EMBED_LOCAL
 
-    %% Langchain内部连接
     LC --> LC_WRAP
 
-    %% 继承关系
     BASE -.->|继承| ECOM
     BASE -.->|继承| DB
     BASE -.->|继承| HTTP
@@ -152,12 +148,11 @@ graph TB
     BASE -.->|继承| EMBED
     BASE -.->|继承| LC
 
-    %% 工具间协作
     RETR_VEC --> EMBED
-    HTTP_AUTH --> HTTP_RETRY
+    HTTP_AUTH --> HTTP_GET
     HEAL_DIAG --> HEAL_FIX
 
-    %% 样式
+    %% ==================== 样式 ====================
     classDef base fill:#083B75,color:#fff
     classDef ecommerce fill:#1a5f7a,color:#fff
     classDef database fill:#2e7d32,color:#fff
@@ -169,11 +164,11 @@ graph TB
     classDef retrieval fill:#00838f,color:#fff
 
     class BASE,BASE_SCHEMA,BASE_VALID,BASE_EXEC base
-    class ECOM,ECOM_PROD,ECOM_ORDER,ECOM_INV,ECOM_PRICE ecommerce
-    class DB,DB_QUERY,DB_MUTATE,DB_TRANS,DB_MIG database
-    class HTTP,HTTP_GET,HTTP_POST,HTTP_AUTH,HTTP_RETRY http
-    class FILE,FILE_READ,FILE_WRITE,FILE_GLOB,FILE_COMP file
-    class NOTIFY,NOTIFY_EMAIL,NOTIFY_SMS,NOTIFY_WEB,NOTIFY_PUSH notify
+    class ECOM,ECOM_PROD,ECOM_ORDER,ECOM_INV ecommerce
+    class DB,DB_QUERY,DB_MUTATE,DB_TRANS database
+    class HTTP,HTTP_GET,HTTP_POST,HTTP_AUTH http
+    class FILE,FILE_READ,FILE_WRITE,FILE_GLOB file
+    class NOTIFY,NOTIFY_EMAIL,NOTIFY_SMS,NOTIFY_WEB notify
     class HEAL,HEAL_DIAG,HEAL_FIX,HEAL_ROLL healing
     class MCP,MCP_CLIENT,MCP_DB,MCP_SEARCH mcp
     class RETR,RETR_VEC,RETR_HYB,RETR_CTX,EMBED,EMBED_OPEN,EMBED_LOCAL retrieval
@@ -239,7 +234,6 @@ sequenceDiagram
 | ecommerce.py | ProductTool | 商品操作工具 |
 | ecommerce.py | OrderTool | 订单操作工具 |
 | ecommerce.py | InventoryTool | 库存操作工具 |
-| ecommerce.py | PriceTool | 定价操作工具 |
 | database.py | QueryTool | 数据库查询工具 |
 | database.py | MutateTool | 数据库变更工具 |
 | database.py | TransactionTool | 事务管理工具 |

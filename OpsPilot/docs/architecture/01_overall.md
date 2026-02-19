@@ -4,19 +4,24 @@
 
 ```mermaid
 graph TB
-    subgraph 用户接入层
+    %% ==================== 第一行：用户接入 ====================
+    subgraph L1[用户接入]
+        direction LR
         WEB[Web前端<br/>React + TypeScript]
         CLI[CLI命令行]
         API_CLIENT[API调用方]
     end
 
-    subgraph API网关层
+    %% ==================== 第二行：网关与调度 ====================
+    subgraph L2A[API网关]
+        direction LR
         API[FastAPI路由<br/>REST/GraphQL]
         AUTH[认证授权<br/>JWT/OAuth2]
         RATE[限流熔断<br/>请求控制]
     end
 
-    subgraph 编排调度层
+    subgraph L2B[编排调度]
+        direction LR
         ORCH[Orchestrator<br/>任务编排器]
         SCHED[Scheduler<br/>定时调度器]
         PIPELINE[Pipeline<br/>流程编排]
@@ -24,7 +29,9 @@ graph TB
         STATE[StateMachine<br/>状态机]
     end
 
-    subgraph Agent协作层
+    %% ==================== 第三行：Agent与业务 ====================
+    subgraph L3A[Agent协作]
+        direction LR
         INTENT[IntentAgent<br/>意图识别]
         PLAN[PlanAgent<br/>任务规划]
         EXEC[ExecAgent<br/>任务执行]
@@ -33,7 +40,8 @@ graph TB
         NEGOT[Negotiation<br/>博弈谈判]
     end
 
-    subgraph 业务模块层
+    subgraph L3B[业务模块]
+        direction LR
         PRICING[PricingModule<br/>博弈定价]
         CS[CustomerService<br/>客服工单]
         BUYER[BuyerModule<br/>智能采购]
@@ -41,7 +49,9 @@ graph TB
         COMPLIANCE[Compliance<br/>合规审查]
     end
 
-    subgraph 工具集成层
+    %% ==================== 第四行：工具与支撑 ====================
+    subgraph L4A[工具集成]
+        direction LR
         ECOM[电商工具<br/>商品/订单]
         DBTOOL[数据库工具<br/>CRUD操作]
         HTTPTOOL[HTTP工具<br/>API调用]
@@ -50,13 +60,8 @@ graph TB
         HEALING[自愈工具<br/>故障恢复]
     end
 
-    subgraph MCP工具层
-        MCP[MCP客户端<br/>外部工具接入]
-        MCP_DB[MCP数据库<br/>外部数据源]
-        MCP_SEARCH[MCP搜索<br/>外部检索]
-    end
-
-    subgraph 记忆与检索层
+    subgraph L4B[记忆检索]
+        direction LR
         MEMORY[MemoryManager<br/>记忆管理]
         EMBED[EmbeddingService<br/>向量化]
         RETRIEVE[Retriever<br/>语义检索]
@@ -64,27 +69,39 @@ graph TB
         COMPRESS[Compressor<br/>上下文压缩]
     end
 
-    subgraph 推理链路层
+    subgraph L4C[推理链路]
+        direction LR
         CHAINS[Chains<br/>推理链]
         PROMPTS[Prompts<br/>提示词库]
         RUNTIME[Runtime<br/>LLM运行时]
     end
 
-    subgraph 数据存储层
+    subgraph L4D[MCP工具]
+        direction LR
+        MCP[MCP客户端<br/>外部工具接入]
+        MCP_DB[MCP数据库<br/>外部数据源]
+        MCP_SEARCH[MCP搜索<br/>外部检索]
+    end
+
+    %% ==================== 第五行：存储与观测 ====================
+    subgraph L5A[数据存储]
+        direction LR
         PG[(PostgreSQL<br/>关系数据)]
         REDIS[(Redis<br/>缓存队列)]
         CHROMA[(ChromaDB<br/>向量存储)]
         FILES[(文件存储<br/>日志/备份)]
     end
 
-    subgraph 可观测层
+    subgraph L5B[可观测性]
+        direction LR
         OBS[Observability<br/>可观测性]
         LOGS[日志收集]
         METRICS[指标监控]
         TRACES[链路追踪]
     end
 
-    subgraph 外部系统
+    subgraph L5C[外部系统]
+        direction LR
         ERP[ERP系统]
         WMS[仓储系统]
         LOGISTICS[物流系统]
@@ -92,21 +109,18 @@ graph TB
         LLM[LLM服务<br/>GPT/Claude]
     end
 
-    %% 用户接入层 → API网关层
-    WEB -->|HTTP/WebSocket| API
-    CLI -->|HTTP| API
-    API_CLIENT -->|HTTP| API
+    %% ==================== 层间连接 ====================
+    WEB --> API
+    CLI --> API
+    API_CLIENT --> API
     API --> AUTH
     AUTH --> RATE
-
-    %% API网关层 → 编排调度层
     RATE --> ORCH
     RATE --> SCHED
     ORCH --> PIPELINE
     ORCH --> SOP
     ORCH --> STATE
 
-    %% 编排调度层 → Agent协作层
     PIPELINE --> INTENT
     SOP --> PLAN
     STATE --> EXEC
@@ -114,14 +128,12 @@ graph TB
     INTENT --> COLLAB
     COLLAB --> NEGOT
 
-    %% Agent协作层 → 业务模块层
     PLAN --> PRICING
     EXEC --> CS
     EXEC --> BUYER
     VERIFY --> FINANCE
     VERIFY --> COMPLIANCE
 
-    %% 业务模块层 → 工具集成层
     PRICING --> ECOM
     CS --> DBTOOL
     BUYER --> HTTPTOOL
@@ -129,43 +141,37 @@ graph TB
     COMPLIANCE --> NOTIFY
     EXEC --> HEALING
 
-    %% 工具集成层 → MCP工具层
     ECOM --> MCP
     HTTPTOOL --> MCP_SEARCH
     DBTOOL --> MCP_DB
 
-    %% Agent协作层 → 记忆与检索层
     INTENT --> MEMORY
     PLAN --> RETRIEVE
     EXEC --> EMBED
     VERIFY --> INDEX
     MEMORY --> COMPRESS
 
-    %% 记忆与检索层 → 推理链路层
     RETRIEVE --> CHAINS
     CHAINS --> PROMPTS
     PROMPTS --> RUNTIME
 
-    %% 数据存储层连接
     ORCH --> PG
     ORCH --> REDIS
     MEMORY --> CHROMA
     FILETOOL --> FILES
 
-    %% 可观测层
     API --> OBS
     ORCH --> LOGS
-    AGENT --> METRICS
+    EXEC --> METRICS
     PIPELINE --> TRACES
 
-    %% 外部系统连接
     MCP --> ERP
     ECOM --> WMS
     ECOM --> LOGISTICS
     ECOM --> PAYMENT
     RUNTIME --> LLM
 
-    %% 样式定义
+    %% ==================== 样式 ====================
     classDef core fill:#083B75,color:#fff
     classDef agent fill:#1a5f7a,color:#fff
     classDef business fill:#2e7d32,color:#fff

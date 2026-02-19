@@ -4,106 +4,114 @@
 
 ```mermaid
 graph TB
-    subgraph Base基类
-        BASE[BaseAgent<br/>抽象基类<br/><br/>定义Agent接口<br/>生命周期方法]
-        BASE_STATE[AgentState<br/>Agent状态<br/><br/>IDLE/BUSY<br/>ERROR]
-        BASE_CTX[AgentContext<br/>Agent上下文<br/><br/>任务信息<br/>工具列表]
-        BASE_MSG[MessageHub<br/>消息中心<br/><br/>消息路由<br/>订阅发布]
+    %% ==================== 第一行：基类 ====================
+    subgraph L1[Base基类]
+        direction LR
+        BASE[BaseAgent<br/>抽象基类<br/>定义Agent接口]
+        BASE_STATE[AgentState<br/>Agent状态<br/>IDLE/BUSY]
+        BASE_CTX[AgentContext<br/>Agent上下文<br/>任务信息]
+        BASE_MSG[MessageHub<br/>消息中心<br/>订阅发布]
     end
 
-    subgraph IntentAgent意图识别
-        INTENT[IntentAgent<br/>意图识别Agent<br/><br/>解析用户输入<br/>识别任务类型]
-        INTENT_PARSER[InputParser<br/>输入解析器<br/><br/>文本分词<br/>实体提取]
-        INTENT_CLS[IntentClassifier<br/>意图分类器<br/><br/>ML分类<br/>规则匹配]
-        INTENT_SLOT[SlotFiller<br/>槽位填充器<br/><br/>参数提取<br/>类型转换]
+    %% ==================== 第二行：核心Agent ====================
+    subgraph L2[核心Agent]
+        direction LR
+        INTENT[IntentAgent<br/>意图识别<br/>解析用户输入]
+        PLAN[PlanAgent<br/>任务规划<br/>生成执行计划]
+        EXEC[ExecAgent<br/>任务执行<br/>调用工具]
+        VERIFY[VerifyAgent<br/>结果验证<br/>质量审核]
     end
 
-    subgraph PlanAgent任务规划
-        PLAN[PlanAgent<br/>规划Agent<br/><br/>生成执行计划<br/>资源评估]
-        PLAN_DECOMP[TaskDecomposer<br/>任务分解器<br/><br/>复杂任务拆解<br/>依赖分析]
-        PLAN_SCHED[PlanScheduler<br/>计划调度器<br/><br/>步骤排序<br/>并行优化]
-        PLAN_RES[ResourceEstimator<br/>资源评估器<br/><br/>时间预估<br/>资源需求]
+    %% ==================== 第三行：Agent内部组件 ====================
+    subgraph L3A[IntentAgent组件]
+        direction LR
+        INTENT_PARSER[InputParser<br/>输入解析器]
+        INTENT_CLS[IntentClassifier<br/>意图分类器]
+        INTENT_SLOT[SlotFiller<br/>槽位填充器]
     end
 
-    subgraph ExecAgent任务执行
-        EXEC[ExecAgent<br/>执行Agent<br/><br/>调用工具执行<br/>结果收集]
-        EXEC_TOOL[ToolSelector<br/>工具选择器<br/><br/>工具匹配<br/>参数组装]
-        EXEC_INV[ToolInvoker<br/>工具调用器<br/><br/>执行调用<br/>超时控制]
-        EXEC_RETRY[RetryHandler<br/>重试处理器<br/><br/>失败重试<br/>退避策略]
+    subgraph L3B[PlanAgent组件]
+        direction LR
+        PLAN_DECOMP[TaskDecomposer<br/>任务分解器]
+        PLAN_SCHED[PlanScheduler<br/>计划调度器]
+        PLAN_RES[ResourceEstimator<br/>资源评估器]
     end
 
-    subgraph VerifyAgent结果验证
-        VERIFY[VerifyAgent<br/>验证Agent<br/><br/>结果检查<br/>质量审核]
-        VERIFY_RULE[RuleChecker<br/>规则检查器<br/><br/>业务规则<br/>数据校验]
-        VERIFY_QUAL[QualityScorer<br/>质量评分器<br/><br/>结果评分<br/>置信度]
-        VERIFY_FB[FeedbackGenerator<br/>反馈生成器<br/><br/>错误说明<br/>改进建议]
+    %% ==================== 第四行：更多Agent组件 ====================
+    subgraph L4A[ExecAgent组件]
+        direction LR
+        EXEC_TOOL[ToolSelector<br/>工具选择器]
+        EXEC_INV[ToolInvoker<br/>工具调用器]
+        EXEC_RETRY[RetryHandler<br/>重试处理器]
     end
 
-    subgraph Collaboration协作模块
-        COLLAB[Collaboration<br/>协作管理器<br/><br/>多Agent协调<br/>任务分发]
-        COLLAB_MSG[MsgHub<br/>消息枢纽<br/><br/>Agent通信<br/>状态同步]
-        COLLAB_LEAD[LeaderElection<br/>领导者选举<br/><br/>主从切换<br/>故障转移]
+    subgraph L4B[VerifyAgent组件]
+        direction LR
+        VERIFY_RULE[RuleChecker<br/>规则检查器]
+        VERIFY_QUAL[QualityScorer<br/>质量评分器]
+        VERIFY_FB[FeedbackGenerator<br/>反馈生成器]
     end
 
-    subgraph Negotiation博弈谈判
-        NEGOT[Negotiation<br/>谈判管理器<br/><br/>多Agent博弈<br/>策略协调]
-        NEGOT_STRAT[StrategyEngine<br/>策略引擎<br/><br/>定价策略<br/>谈判策略]
-        NEGOT_BID[BidEngine<br/>出价引擎<br/><br/>价格计算<br/>策略选择]
+    %% ==================== 第五行：协作与适配 ====================
+    subgraph L5A[Collaboration协作]
+        direction LR
+        COLLAB[Collaboration<br/>协作管理器]
+        COLLAB_MSG[MsgHub<br/>消息枢纽]
+        COLLAB_LEAD[LeaderElection<br/>领导者选举]
     end
 
-    subgraph Adapter适配层
-        ADAPT[AgentScopeAdapter<br/>AgentScope适配器<br/><br/>框架适配<br/>API转换]
-        ADAPT_LLM[LLMAdapter<br/>LLM适配器<br/><br/>模型调用<br/>响应解析]
+    subgraph L5B[Negotiation博弈]
+        direction LR
+        NEGOT[Negotiation<br/>谈判管理器]
+        NEGOT_STRAT[StrategyEngine<br/>策略引擎]
+        NEGOT_BID[BidEngine<br/>出价引擎]
     end
 
-    %% Base内部连接
+    subgraph L5C[Adapter适配]
+        direction LR
+        ADAPT[AgentScopeAdapter<br/>框架适配]
+        ADAPT_LLM[LLMAdapter<br/>LLM适配器]
+    end
+
+    %% ==================== 层间连接 ====================
     BASE --> BASE_STATE
     BASE --> BASE_CTX
     BASE --> BASE_MSG
 
-    %% IntentAgent内部连接
     INTENT --> INTENT_PARSER
     INTENT --> INTENT_CLS
     INTENT --> INTENT_SLOT
     INTENT_CLS --> INTENT_PARSER
 
-    %% PlanAgent内部连接
     PLAN --> PLAN_DECOMP
     PLAN --> PLAN_SCHED
     PLAN --> PLAN_RES
     PLAN_DECOMP --> PLAN_SCHED
 
-    %% ExecAgent内部连接
     EXEC --> EXEC_TOOL
     EXEC --> EXEC_INV
     EXEC --> EXEC_RETRY
     EXEC_INV --> EXEC_RETRY
 
-    %% VerifyAgent内部连接
     VERIFY --> VERIFY_RULE
     VERIFY --> VERIFY_QUAL
     VERIFY --> VERIFY_FB
     VERIFY_RULE --> VERIFY_QUAL
 
-    %% Collaboration内部连接
     COLLAB --> COLLAB_MSG
     COLLAB --> COLLAB_LEAD
 
-    %% Negotiation内部连接
     NEGOT --> NEGOT_STRAT
     NEGOT --> NEGOT_BID
     NEGOT_STRAT --> NEGOT_BID
 
-    %% Adapter内部连接
     ADAPT --> ADAPT_LLM
 
-    %% 继承关系
     BASE -.->|继承| INTENT
     BASE -.->|继承| PLAN
     BASE -.->|继承| EXEC
     BASE -.->|继承| VERIFY
 
-    %% 协作连接
     COLLAB_MSG --> BASE_MSG
     INTENT --> PLAN
     PLAN --> EXEC
@@ -111,12 +119,11 @@ graph TB
     EXEC --> COLLAB
     NEGOT --> COLLAB
 
-    %% 适配器连接
     INTENT --> ADAPT_LLM
     PLAN --> ADAPT_LLM
     EXEC --> ADAPT
 
-    %% 样式
+    %% ==================== 样式 ====================
     classDef base fill:#083B75,color:#fff
     classDef intent fill:#1a5f7a,color:#fff
     classDef plan fill:#2e7d32,color:#fff

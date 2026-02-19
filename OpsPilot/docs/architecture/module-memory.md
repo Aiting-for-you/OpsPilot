@@ -4,105 +4,109 @@
 
 ```mermaid
 graph TB
-    subgraph MemoryManager记忆管理器
-        MM[MemoryManager<br/>记忆管理器<br/><br/>统一记忆接口<br/>生命周期管理]
-        MM_SHORT[ShortTermMemory<br/>短期记忆<br/><br/>工作记忆<br/>上下文窗口]
-        MM_LONG[LongTermMemory<br/>长期记忆<br/><br/>持久化存储<br/>知识积累]
-        MM_WORK[WorkingMemory<br/>工作记忆<br/><br/>当前任务<br/>临时状态]
+    %% ==================== 第一行：记忆管理器 ====================
+    subgraph L1[MemoryManager记忆管理器]
+        direction LR
+        MM[MemoryManager<br/>记忆管理器<br/>统一记忆接口]
+        MM_SHORT[ShortTermMemory<br/>短期记忆<br/>工作记忆]
+        MM_LONG[LongTermMemory<br/>长期记忆<br/>持久化存储]
+        MM_WORK[WorkingMemory<br/>工作记忆<br/>当前任务]
     end
 
-    subgraph Embedding向量化
-        EMBED[EmbeddingService<br/>嵌入服务<br/><br/>文本向量化<br/>批量处理]
-        EMBED_OPEN[OpenAIEmbedding<br/>OpenAI嵌入<br/><br/>text-embedding-3<br/>1536维向量]
-        EMBED_LOCAL[LocalEmbedding<br/>本地嵌入<br/><br/>SentenceTransformer<br/>768维向量]
-        EMBED_CACHE[EmbeddingCache<br/>嵌入缓存<br/><br/>向量缓存<br/>命中率优化]
+    %% ==================== 第二行：向量化与索引 ====================
+    subgraph L2A[Embedding向量化]
+        direction LR
+        EMBED[EmbeddingService<br/>嵌入服务]
+        EMBED_OPEN[OpenAIEmbedding<br/>OpenAI嵌入]
+        EMBED_LOCAL[LocalEmbedding<br/>本地嵌入]
+        EMBED_CACHE[EmbeddingCache<br/>嵌入缓存]
     end
 
-    subgraph Indexer索引构建
-        IDX[Indexer<br/>索引构建器<br/><br/>向量索引<br/>增量更新]
-        IDX_CHROMA[ChromaIndexer<br/>Chroma索引器<br/><br/>Collection管理<br/>HNSW索引]
-        IDX_FAISS[FAISSIndexer<br/>FAISS索引器<br/><br/>IVF索引<br/>GPU加速]
-        IDX_META[MetadataIndexer<br/>元数据索引器<br/><br/>过滤索引<br/>范围查询]
+    subgraph L2B[Indexer索引构建]
+        direction LR
+        IDX[Indexer<br/>索引构建器]
+        IDX_CHROMA[ChromaIndexer<br/>Chroma索引]
+        IDX_FAISS[FAISSIndexer<br/>FAISS索引]
+        IDX_META[MetadataIndexer<br/>元数据索引]
     end
 
-    subgraph Retriever检索器
-        RET[Retriever<br/>检索器基类<br/><br/>语义检索<br/>结果排序]
-        RET_VEC[VectorRetriever<br/>向量检索器<br/><br/>ANN搜索<br/>相似度计算]
-        RET_HYB[HybridRetriever<br/>混合检索器<br/><br/>关键词+向量<br/>RRF融合]
-        RET_CTX[ContextRetriever<br/>上下文检索器<br/><br/>窗口检索<br/>关联扩展]
+    %% ==================== 第三行：检索器 ====================
+    subgraph L3[Retriever检索器]
+        direction LR
+        RET[Retriever<br/>检索器基类]
+        RET_VEC[VectorRetriever<br/>向量检索器]
+        RET_HYB[HybridRetriever<br/>混合检索器]
+        RET_CTX[ContextRetriever<br/>上下文检索]
     end
 
-    subgraph Compressor压缩器
-        COMP[Compressor<br/>压缩器基类<br/><br/>上下文压缩<br/>信息密度优化]
-        COMP_LLM[LLMCompressor<br/>LLM压缩器<br/><br/>摘要压缩<br/>关键信息提取]
-        COMP_RANK[RankCompressor<br/>排序压缩器<br/><br/>相关性排序<br/>Top-K选择]
-        COMP_SEM[SemanticCompressor<br/>语义压缩器<br/><br/>去重合并<br/>主题聚类]
+    %% ==================== 第四行：压缩器 ====================
+    subgraph L4[Compressor压缩器]
+        direction LR
+        COMP[Compressor<br/>压缩器基类]
+        COMP_LLM[LLMCompressor<br/>LLM压缩器]
+        COMP_RANK[RankCompressor<br/>排序压缩器]
+        COMP_SEM[SemanticCompressor<br/>语义压缩器]
     end
 
-    subgraph Storage存储层
-        STORE[MemoryStorage<br/>存储抽象层<br/><br/>统一存储接口]
-        STORE_PG[PostgreSQLStore<br/>PG存储<br/><br/>结构化记忆<br/>关系查询]
-        STORE_REDIS[RedisStore<br/>Redis存储<br/><br/>会话记忆<br/>快速访问]
-        STORE_CHROMA[ChromaStore<br/>Chroma存储<br/><br/>向量记忆<br/>语义检索]
-        STORE_FILE[FileStore<br/>文件存储<br/><br/>日志记忆<br/>归档备份]
+    %% ==================== 第五行：存储层 ====================
+    subgraph L5[Storage存储层]
+        direction LR
+        STORE[MemoryStorage<br/>存储抽象层]
+        STORE_PG[PostgreSQLStore<br/>PG存储]
+        STORE_REDIS[RedisStore<br/>Redis存储]
+        STORE_CHROMA[ChromaStore<br/>Chroma存储]
     end
 
-    subgraph Context上下文管理
-        CTX[ContextManager<br/>上下文管理器<br/><br/>窗口控制<br/>Token管理]
-        CTX_WIN[WindowManager<br/>窗口管理器<br/><br/>滑动窗口<br/>动态调整]
-        CTX_TOK[TokenCounter<br/>Token计数器<br/><br/>Token统计<br/>预算控制]
-        CTX_PRIO[PriorityQueue<br/>优先队列<br/><br/>重要性排序<br/>淘汰策略]
+    %% ==================== 第六行：上下文与RAG ====================
+    subgraph L6A[Context上下文管理]
+        direction LR
+        CTX[ContextManager<br/>上下文管理器]
+        CTX_WIN[WindowManager<br/>窗口管理器]
+        CTX_TOK[TokenCounter<br/>Token计数]
+        CTX_PRIO[PriorityQueue<br/>优先队列]
     end
 
-    subgraph RAGPipeline检索增强
-        RAG[RAGPipeline<br/>RAG流水线<br/><br/>检索增强生成<br/>端到端流程]
-        RAG_QUERY[QueryRewriter<br/>查询重写器<br/><br/>查询扩展<br/>意图增强]
-        RAG_DOC[DocProcessor<br/>文档处理器<br/><br/>切片分割<br/>元数据提取]
-        RAG_PROMPT[PromptBuilder<br/>提示构建器<br/><br/>模板填充<br/>上下文组装]
+    subgraph L6B[RAGPipeline检索增强]
+        direction LR
+        RAG[RAGPipeline<br/>RAG流水线]
+        RAG_QUERY[QueryRewriter<br/>查询重写]
+        RAG_DOC[DocProcessor<br/>文档处理]
+        RAG_PROMPT[PromptBuilder<br/>提示构建]
     end
 
-    %% MemoryManager内部连接
+    %% ==================== 层间连接 ====================
     MM --> MM_SHORT
     MM --> MM_LONG
     MM --> MM_WORK
 
-    %% Embedding内部连接
     EMBED --> EMBED_OPEN
     EMBED --> EMBED_LOCAL
     EMBED --> EMBED_CACHE
 
-    %% Indexer内部连接
     IDX --> IDX_CHROMA
     IDX --> IDX_FAISS
     IDX --> IDX_META
 
-    %% Retriever内部连接
     RET --> RET_VEC
     RET --> RET_HYB
     RET --> RET_CTX
 
-    %% Compressor内部连接
     COMP --> COMP_LLM
     COMP --> COMP_RANK
     COMP --> COMP_SEM
 
-    %% Storage内部连接
     STORE --> STORE_PG
     STORE --> STORE_REDIS
     STORE --> STORE_CHROMA
-    STORE --> STORE_FILE
 
-    %% Context内部连接
     CTX --> CTX_WIN
     CTX --> CTX_TOK
     CTX --> CTX_PRIO
 
-    %% RAG内部连接
     RAG --> RAG_QUERY
     RAG --> RAG_DOC
     RAG --> RAG_PROMPT
 
-    %% 模块间连接
     MM --> STORE
     MM_SHORT --> STORE_REDIS
     MM_LONG --> STORE_CHROMA
@@ -116,7 +120,7 @@ graph TB
     RAG_DOC --> IDX
     RAG_PROMPT --> CTX
 
-    %% 样式
+    %% ==================== 样式 ====================
     classDef primary fill:#083B75,color:#fff
     classDef embedding fill:#1a5f7a,color:#fff
     classDef index fill:#2e7d32,color:#fff
@@ -131,7 +135,7 @@ graph TB
     class IDX,IDX_CHROMA,IDX_FAISS,IDX_META index
     class RET,RET_VEC,RET_HYB,RET_CTX retrieval
     class COMP,COMP_LLM,COMP_RANK,COMP_SEM compress
-    class STORE,STORE_PG,STORE_REDIS,STORE_CHROMA,STORE_FILE storage
+    class STORE,STORE_PG,STORE_REDIS,STORE_CHROMA storage
     class CTX,CTX_WIN,CTX_TOK,CTX_PRIO context
     class RAG,RAG_QUERY,RAG_DOC,RAG_PROMPT rag
 ```

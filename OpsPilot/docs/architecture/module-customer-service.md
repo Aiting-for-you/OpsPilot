@@ -4,118 +4,126 @@
 
 ```mermaid
 graph TB
-    subgraph TicketRouter工单路由
-        TR[TicketRouter<br/>工单路由器<br/><br/>智能分发<br/>优先级排序]
-        TR_CLASS[Classifier<br/>分类器<br/><br/>问题分类<br/>意图识别]
-        TR_ROUTE[RoutingEngine<br/>路由引擎<br/><br/>规则匹配<br/>队列分配]
-        TR_PRIO[PriorityEngine<br/>优先级引擎<br/><br/>紧急度评估<br/>SLA计算]
+    %% ==================== 第一行：路由器 ====================
+    subgraph L1[TicketRouter工单路由]
+        direction LR
+        TR[TicketRouter<br/>工单路由器<br/>智能分发]
+        TR_CLASS[Classifier<br/>分类器<br/>问题分类]
+        TR_ROUTE[RoutingEngine<br/>路由引擎<br/>队列分配]
+        TR_PRIO[PriorityEngine<br/>优先级引擎<br/>SLA计算]
     end
 
-    subgraph TicketAgents工单Agent
-        TA_CLASSIFY[ClassifyAgent<br/>分类Agent<br/><br/>问题类型识别<br/>标签分配]
-        TA_ROUTER[RouterAgent<br/>路由Agent<br/><br/>部门分配<br/>人员匹配]
-        TA_SOLVE[SolverAgent<br/>解决Agent<br/><br/>问题解答<br/>方案生成]
-        TA_ESCALATE[EscalateAgent<br/>升级Agent<br/><br/>复杂问题升级<br/>专家调度]
-        TA_FOLLOW[FollowUpAgent<br/>跟进Agent<br/><br/>状态追踪<br/>满意度调查]
+    %% ==================== 第二行：工单Agent ====================
+    subgraph L2A[处理Agent]
+        direction LR
+        TA_CLASSIFY[ClassifyAgent<br/>分类Agent<br/>问题识别]
+        TA_ROUTER[RouterAgent<br/>路由Agent<br/>部门分配]
+        TA_SOLVE[SolverAgent<br/>解决Agent<br/>问题解答]
     end
 
-    subgraph KnowledgeBase知识库
-        KB[KnowledgeBase<br/>知识库<br/><br/>问题库/方案库<br/>FAQ管理]
-        KB_INDEX[KnowledgeIndexer<br/>知识索引器<br/><br/>向量化<br/>分类索引]
-        KB_SEARCH[KnowledgeSearcher<br/>知识检索器<br/><br/>语义匹配<br/>相似问题]
-        KB_UPDATE[KnowledgeUpdater<br/>知识更新器<br/><br/>方案沉淀<br/>知识迭代]
+    subgraph L2B[升级Agent]
+        direction LR
+        TA_ESCALATE[EscalateAgent<br/>升级Agent<br/>专家调度]
+        TA_FOLLOW[FollowUpAgent<br/>跟进Agent<br/>状态追踪]
     end
 
-    subgraph WorkQueue工作队列
-        WQ[WorkQueueManager<br/>队列管理器<br/><br/>任务队列<br/>负载均衡]
-        WQ_URGENT[UrgentQueue<br/>紧急队列<br/><br/>高优先级<br/>即时处理]
-        WQ_NORMAL[NormalQueue<br/>普通队列<br/><br/>标准优先级<br/>常规处理]
-        WQ_DELAY[DelayedQueue<br/>延迟队列<br/><br/>低优先级<br/>批量处理]
+    %% ==================== 第三行：知识库 ====================
+    subgraph L3[KnowledgeBase知识库]
+        direction LR
+        KB[KnowledgeBase<br/>知识库<br/>问题/方案库]
+        KB_INDEX[KnowledgeIndexer<br/>知识索引器<br/>向量化]
+        KB_SEARCH[KnowledgeSearcher<br/>知识检索器<br/>语义匹配]
+        KB_UPDATE[KnowledgeUpdater<br/>知识更新器<br/>方案沉淀]
     end
 
-    subgraph TicketLifecycle工单生命周期
-        TL[TicketLifecycle<br/>生命周期管理<br/><br/>状态流转<br/>时效控制]
-        TL_STATE[StateManager<br/>状态管理器<br/><br/>状态机<br/>转换规则]
-        TL_TIME[TimeTracker<br/>时效追踪器<br/><br/>响应时间<br/>解决时间]
-        TL_SLA[SLAMonitor<br/>SLA监控器<br/><br/>时效预警<br/>超时告警]
+    %% ==================== 第四行：队列与生命周期 ====================
+    subgraph L4A[WorkQueue工作队列]
+        direction LR
+        WQ[QueueManager<br/>队列管理器]
+        WQ_URGENT[UrgentQueue<br/>紧急队列]
+        WQ_NORMAL[NormalQueue<br/>普通队列]
     end
 
-    subgraph AgentAssignment客服分配
-        AA[AgentAssignment<br/>客服分配器<br/><br/>技能匹配<br/>负载均衡]
-        AA_SKILL[SkillMatcher<br/>技能匹配器<br/><br/>问题-技能映射<br/>专家定位]
-        AA_LOAD[LoadBalancer<br/>负载均衡器<br/><br/>工作量统计<br/>分配优化]
-        AA_SCHED[Scheduler<br/>调度器<br/><br/>排班管理<br/>交接处理]
+    subgraph L4B[TicketLifecycle生命周期]
+        direction LR
+        TL[LifecycleManager<br/>生命周期]
+        TL_STATE[StateManager<br/>状态管理]
+        TL_TIME[TimeTracker<br/>时效追踪]
+        TL_SLA[SLAMonitor<br/>SLA监控]
     end
 
-    subgraph ResolutionEngine解决引擎
-        RE[ResolutionEngine<br/>解决引擎<br/><br/>方案生成<br/>知识应用]
-        RE_DIAG[DiagnosticEngine<br/>诊断引擎<br/><br/>问题诊断<br/>根因分析]
-        RE_SOLUTION[SolutionGenerator<br/>方案生成器<br/><br/>方案推荐<br/>步骤生成]
-        RE_VERIFY[ResolutionVerifier<br/>解决验证器<br/><br/>效果验证<br/>满意度评估]
+    %% ==================== 第五行：分配与解决 ====================
+    subgraph L5A[AgentAssignment客服分配]
+        direction LR
+        AA[AgentAssignment<br/>客服分配器]
+        AA_SKILL[SkillMatcher<br/>技能匹配]
+        AA_LOAD[LoadBalancer<br/>负载均衡]
+        AA_SCHED[Scheduler<br/>调度器]
     end
 
-    subgraph Notification通知系统
-        NOTIF[NotificationManager<br/>通知管理器<br/><br/>多渠道通知<br/>模板管理]
-        NOTIF_EMAIL[EmailNotifier<br/>邮件通知<br/><br/>工单通知<br/>状态更新]
-        NOTIF_SMS[SMSNotifier<br/>短信通知<br/><br/>紧急提醒<br/>验证码]
-        NOTIF_PUSH[PushNotifier<br/>推送通知<br/><br/>APP推送<br/>桌面通知]
+    subgraph L5B[ResolutionEngine解决引擎]
+        direction LR
+        RE[ResolutionEngine<br/>解决引擎]
+        RE_DIAG[DiagnosticEngine<br/>诊断引擎]
+        RE_SOLUTION[SolutionGenerator<br/>方案生成]
+        RE_VERIFY[ResolutionVerifier<br/>解决验证]
     end
 
-    subgraph Analytics分析统计
-        ANALY[AnalyticsEngine<br/>分析引擎<br/><br/>数据统计<br/>报表生成]
-        ANALY_METRIC[MetricsCollector<br/>指标收集器<br/><br/>KPI统计<br/>趋势分析]
-        ANALY_REPORT[ReportGenerator<br/>报告生成器<br/><br/>日报/周报<br/>绩效报表]
-        ANALY_INSIGHT[InsightEngine<br/>洞察引擎<br/><br/>问题热点<br/>优化建议]
+    %% ==================== 第六行：通知与分析 ====================
+    subgraph L6A[Notification通知系统]
+        direction LR
+        NOTIF[NotificationManager<br/>通知管理器]
+        NOTIF_EMAIL[EmailNotifier<br/>邮件通知]
+        NOTIF_SMS[SMSNotifier<br/>短信通知]
+        NOTIF_PUSH[PushNotifier<br/>推送通知]
     end
 
-    %% TicketRouter内部连接
+    subgraph L6B[Analytics分析统计]
+        direction LR
+        ANALY[AnalyticsEngine<br/>分析引擎]
+        ANALY_METRIC[MetricsCollector<br/>指标收集]
+        ANALY_REPORT[ReportGenerator<br/>报告生成]
+        ANALY_INSIGHT[InsightEngine<br/>洞察引擎]
+    end
+
+    %% ==================== 层间连接 ====================
     TR --> TR_CLASS
     TR --> TR_ROUTE
     TR --> TR_PRIO
     TR_CLASS --> TR_ROUTE
 
-    %% TicketAgents内部连接
     TA_CLASSIFY --> TA_ROUTER
     TA_ROUTER --> TA_SOLVE
     TA_SOLVE --> TA_ESCALATE
     TA_ESCALATE --> TA_FOLLOW
 
-    %% KnowledgeBase内部连接
     KB --> KB_INDEX
     KB --> KB_SEARCH
     KB --> KB_UPDATE
 
-    %% WorkQueue内部连接
     WQ --> WQ_URGENT
     WQ --> WQ_NORMAL
-    WQ --> WQ_DELAY
 
-    %% TicketLifecycle内部连接
     TL --> TL_STATE
     TL --> TL_TIME
     TL --> TL_SLA
 
-    %% AgentAssignment内部连接
     AA --> AA_SKILL
     AA --> AA_LOAD
     AA --> AA_SCHED
 
-    %% ResolutionEngine内部连接
     RE --> RE_DIAG
     RE --> RE_SOLUTION
     RE --> RE_VERIFY
 
-    %% Notification内部连接
     NOTIF --> NOTIF_EMAIL
     NOTIF --> NOTIF_SMS
     NOTIF --> NOTIF_PUSH
 
-    %% Analytics内部连接
     ANALY --> ANALY_METRIC
     ANALY --> ANALY_REPORT
     ANALY --> ANALY_INSIGHT
 
-    %% 模块间连接
     TR_CLASS --> TA_CLASSIFY
     TR_ROUTE --> TA_ROUTER
     TR_PRIO --> WQ_URGENT
@@ -131,7 +139,7 @@ graph TB
     TA_FOLLOW --> ANALY_METRIC
     RE_VERIFY --> KB_UPDATE
 
-    %% 样式
+    %% ==================== 样式 ====================
     classDef router fill:#083B75,color:#fff
     classDef agent fill:#1a5f7a,color:#fff
     classDef knowledge fill:#2e7d32,color:#fff
@@ -145,7 +153,7 @@ graph TB
     class TR,TR_CLASS,TR_ROUTE,TR_PRIO router
     class TA_CLASSIFY,TA_ROUTER,TA_SOLVE,TA_ESCALATE,TA_FOLLOW agent
     class KB,KB_INDEX,KB_SEARCH,KB_UPDATE knowledge
-    class WQ,WQ_URGENT,WQ_NORMAL,WQ_DELAY queue
+    class WQ,WQ_URGENT,WQ_NORMAL queue
     class TL,TL_STATE,TL_TIME,TL_SLA lifecycle
     class AA,AA_SKILL,AA_LOAD,AA_SCHED assign
     class RE,RE_DIAG,RE_SOLUTION,RE_VERIFY resolution
