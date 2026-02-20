@@ -43,6 +43,12 @@ from opspilot.db.cache import (
     get_cache,
     cache_result,
 )
+from opspilot.db.persistence import (
+    TaskPersistence,
+    ApprovalPersistence,
+    TokenPersistence,
+    TicketPersistence,
+)
 
 # 向量存储延迟导入函数
 def get_vector_store_lazy():
@@ -80,6 +86,11 @@ __all__ = [
     "CustomsCRUD",
     "PlatformOrderCRUD",
     "PolicyCRUD",
+    # 持久化
+    "TaskPersistence",
+    "ApprovalPersistence",
+    "TokenPersistence",
+    "TicketPersistence",
     # 向量存储（延迟）
     "get_vector_store_lazy",
     # 缓存
