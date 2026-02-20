@@ -13,6 +13,10 @@ dependencies = [
     "fastapi>=0.100.0",
     "uvicorn>=0.23.0",
     "httpx>=0.24.0",  # HTTP 客户端（用于 LLM 连接测试）
+    # 系统监控与服务管理
+    "psutil>=5.9.0",  # 进程和系统监控
+    "pystray>=0.19.0",  # 系统托盘支持（可选）
+    "Pillow>=10.0.0",  # 图标生成（pystray 依赖）
     # AgentScope - 多智能体调度核心（决策层）
     "agentscope>=0.1.0",
     "grpcio>=1.60.0",
