@@ -96,45 +96,45 @@ export function NotificationSettings() {
       {/* Status Card */}
       <div className="bg-card border border-border rounded-lg p-4">
         <h3 className="text-sm font-semibold text-gray-900 mb-3">
-          {t('settings.notification.status') || 'Notification Status'}
+          {t('settings.status')}
         </h3>
         {loading ? (
           <div className="flex items-center gap-2 text-gray-500">
             <RefreshCw className="w-4 h-4 animate-spin" />
-            Loading...
+            {t('settings.loading') || 'Loading...'}
           </div>
         ) : status ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className={`flex items-center gap-2 p-2 rounded ${status.configured ? 'bg-green-50' : 'bg-gray-50'}`}>
               <div className={`w-2 h-2 rounded-full ${status.configured ? 'bg-green-500' : 'bg-gray-400'}`} />
               <span className="text-xs text-gray-600">
-                {status.configured ? 'Configured' : 'Not Configured'}
+                {status.configured ? t('settings.configured') : t('settings.notConfigured')}
               </span>
             </div>
             <div className={`flex items-center gap-2 p-2 rounded ${status.webhook_enabled ? 'bg-green-50' : 'bg-gray-50'}`}>
               <Webhook className="w-4 h-4" />
-              <span className="text-xs text-gray-600">Webhook</span>
+              <span className="text-xs text-gray-600">{t('settings.webhook')}</span>
               <span className={`text-xs ${status.webhook_enabled ? 'text-green-600' : 'text-gray-400'}`}>
-                {status.webhook_enabled ? 'ON' : 'OFF'}
+                {status.webhook_enabled ? t('settings.on') : t('settings.off')}
               </span>
             </div>
             <div className={`flex items-center gap-2 p-2 rounded ${status.slack_enabled ? 'bg-green-50' : 'bg-gray-50'}`}>
               <MessageSquare className="w-4 h-4" />
-              <span className="text-xs text-gray-600">Slack</span>
+              <span className="text-xs text-gray-600">{t('settings.slack')}</span>
               <span className={`text-xs ${status.slack_enabled ? 'text-green-600' : 'text-gray-400'}`}>
-                {status.slack_enabled ? 'ON' : 'OFF'}
+                {status.slack_enabled ? t('settings.on') : t('settings.off')}
               </span>
             </div>
             <div className={`flex items-center gap-2 p-2 rounded ${status.email_enabled ? 'bg-green-50' : 'bg-gray-50'}`}>
               <Mail className="w-4 h-4" />
-              <span className="text-xs text-gray-600">Email</span>
+              <span className="text-xs text-gray-600">{t('settings.email')}</span>
               <span className={`text-xs ${status.email_enabled ? 'text-green-600' : 'text-gray-400'}`}>
-                {status.email_enabled ? 'ON' : 'OFF'}
+                {status.email_enabled ? t('settings.on') : t('settings.off')}
               </span>
             </div>
           </div>
         ) : (
-          <div className="text-xs text-gray-500">Unable to load status</div>
+          <div className="text-xs text-gray-500">{t('errors.unknownError')}</div>
         )}
       </div>
 
@@ -143,13 +143,13 @@ export function NotificationSettings() {
         <div className="flex items-center gap-2 mb-4">
           <Webhook className="w-5 h-5 text-blue-500" />
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('settings.notification.webhook') || 'Webhook'}
+            {t('settings.webhook')}
           </h3>
         </div>
         <div className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('settings.notification.webhookUrl') || 'Webhook URL'}
+              {t('settings.webhookUrl')}
             </label>
             <input
               type="url"
@@ -159,7 +159,7 @@ export function NotificationSettings() {
               className="w-full px-3 py-2 text-sm border border-border rounded bg-background text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-electric"
             />
             <p className="text-xs text-gray-500 mt-1">
-              {t('settings.notification.webhookHint') || 'Will send POST request when approval events occur'}
+              {t('settings.webhookHint')}
             </p>
           </div>
         </div>
@@ -169,12 +169,12 @@ export function NotificationSettings() {
       <div className="bg-card border border-border rounded-lg p-4">
         <div className="flex items-center gap-2 mb-4">
           <MessageSquare className="w-5 h-5 text-purple-500" />
-          <h3 className="text-sm font-semibold text-gray-900">Slack</h3>
+          <h3 className="text-sm font-semibold text-gray-900">{t('settings.slack')}</h3>
         </div>
         <div className="space-y-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('settings.notification.slackToken') || 'Bot Token'}
+              {t('settings.slackToken')}
             </label>
             <div className="relative">
               <input
@@ -195,7 +195,7 @@ export function NotificationSettings() {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('settings.notification.slackChannel') || 'Channel ID'}
+              {t('settings.slackChannel')}
             </label>
             <input
               type="text"
@@ -213,13 +213,13 @@ export function NotificationSettings() {
         <div className="flex items-center gap-2 mb-4">
           <Mail className="w-5 h-5 text-orange-500" />
           <h3 className="text-sm font-semibold text-gray-900">
-            {t('settings.notification.email') || 'Email (SMTP)'}
+            {t('settings.email')}
           </h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('settings.notification.smtpHost') || 'SMTP Host'}
+              {t('settings.smtpHost')}
             </label>
             <input
               type="text"
@@ -231,7 +231,7 @@ export function NotificationSettings() {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('settings.notification.smtpPort') || 'Port'}
+              {t('settings.smtpPort')}
             </label>
             <input
               type="text"
@@ -243,7 +243,7 @@ export function NotificationSettings() {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('settings.notification.smtpUsername') || 'Username'}
+              {t('settings.smtpUsername')}
             </label>
             <input
               type="text"
@@ -255,7 +255,7 @@ export function NotificationSettings() {
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('settings.notification.smtpPassword') || 'Password'}
+              {t('settings.smtpPassword')}
             </label>
             <div className="relative">
               <input
@@ -276,7 +276,7 @@ export function NotificationSettings() {
           </div>
           <div className="md:col-span-2">
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              {t('settings.notification.smtpFromAddr') || 'From Address'}
+              {t('settings.smtpFromAddr')}
             </label>
             <input
               type="email"
@@ -294,7 +294,7 @@ export function NotificationSettings() {
         {saveSuccess && (
           <span className="flex items-center gap-1 text-green-600 text-sm">
             <Check className="w-4 h-4" />
-            {t('settings.saved') || 'Saved!'}
+            {t('settings.saved')}
           </span>
         )}
         {error && (
@@ -313,7 +313,7 @@ export function NotificationSettings() {
           ) : (
             <Save className="w-4 h-4" />
           )}
-          {t('settings.save') || 'Save'}
+          {t('settings.save')}
         </button>
       </div>
     </div>

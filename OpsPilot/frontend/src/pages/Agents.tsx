@@ -70,9 +70,9 @@ export function Agents() {
             </div>
             <div>
               <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                Communication Flow
+                {t('agents.communicationFlow')}
               </h2>
-              <p className="text-xs text-gray-500">Agent collaboration trace</p>
+              <p className="text-xs text-gray-500">{t('agents.agentCollaborationTrace')}</p>
             </div>
           </div>
 
@@ -111,7 +111,7 @@ export function Agents() {
             </div>
             <div>
               <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                Message Hub (MsgHub)
+                {t('agents.messageHub')}
               </h2>
               <p className="text-xs text-gray-500">{t('common.live')} event stream</p>
             </div>
@@ -121,7 +121,7 @@ export function Agents() {
             <div className="w-16 h-16 rounded-xl bg-white/50 border border-gray-200/50 flex items-center justify-center mb-4">
               <Network className="w-8 h-8 opacity-30" />
             </div>
-            <p className="text-sm font-medium">WebSocket Connection</p>
+            <p className="text-sm font-medium">{t('agents.websocketConnection')}</p>
             <p className="text-xs text-gray-400 mt-1">{t('tracing.noTraces')}</p>
             
             {/* Connection Status */}
@@ -143,7 +143,7 @@ export function Agents() {
           </div>
           <div>
             <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
-              {t('agents.agentList')}
+              {t('agents.agentDetails')}
             </h2>
             <p className="text-xs text-gray-500">{t('agents.statistics')}</p>
           </div>
