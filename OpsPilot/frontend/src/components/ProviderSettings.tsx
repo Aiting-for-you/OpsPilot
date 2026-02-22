@@ -51,6 +51,7 @@ export function ProviderSettings() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = async () => {
@@ -58,18 +59,19 @@ export function ProviderSettings() {
     setError(null);
     try {
       const [statusRes, listRes] = await Promise.all([
-        api.get<any>('/providers/status'),
-        api.get<any>('/providers/list'),
+        api.get<{success: boolean; data?: ProviderStatus}>('/providers/status'),
+        api.get<{success: boolean; data?: ProvidersList}>('/providers/list'),
       ]);
 
-      if (statusRes.data.success) {
-        setStatus(statusRes.data);
+      if (statusRes.data.success && statusRes.data.data) {
+        setStatus(statusRes.data.data);
       }
-      if (listRes.data.success) {
-        setProviders(listRes.data);
+      if (listRes.data.success && listRes.data.data) {
+        setProviders(listRes.data.data);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || t('errors.serverError'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('errors.serverError');
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -79,13 +81,13 @@ export function ProviderSettings() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post<any>('/providers/set', {
+      const response = await api.post<{success: boolean; message?: string}>('/providers/set', {
         provider_type: providerType,
         provider: providerName,
       });
 
       if (response.data.success) {
-        setSuccess(response.message);
+        setSuccess(response.data.message || t('settings.provider.switchSuccess'));
         // 更新状态
         if (status) {
           setStatus({
@@ -94,8 +96,9 @@ export function ProviderSettings() {
           });
         }
       }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || '切换失败');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('settings.provider.switchFailed');
+      setError(message);
     } finally {
       setLoading(false);
     }

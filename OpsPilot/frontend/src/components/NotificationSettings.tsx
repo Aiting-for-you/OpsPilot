@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, Save, Check, X, Webhook, MessageSquare, Mail, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { Save, Check, X, Webhook, MessageSquare, Mail, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
 
 interface NotificationConfig {
@@ -80,8 +80,9 @@ export function NotificationSettings() {
       await loadStatus();
       
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err: any) {
-      setError(err.message || t('errors.serverError'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('errors.serverError');
+      setError(message);
     } finally {
       setSaving(false);
     }
