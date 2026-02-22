@@ -50,7 +50,7 @@ export function NotificationSettings() {
   const loadStatus = async () => {
     try {
       setLoading(true);
-      const data = await api.get<NotificationStatus>('/notification/status');
+      const data = await api.getNotificationStatus();
       setStatus(data);
     } catch (err) {
       console.error('Failed to load notification status:', err);
@@ -65,7 +65,7 @@ export function NotificationSettings() {
       setError(null);
       setSaveSuccess(false);
       
-      await api.post('/notification/config', {
+      await api.configureNotification({
         webhook_url: config.webhook_url || undefined,
         slack_token: config.slack_token || undefined,
         slack_channel: config.slack_channel || undefined,
@@ -81,7 +81,7 @@ export function NotificationSettings() {
       
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err: any) {
-      setError(err.message || 'Failed to save notification config');
+      setError(err.message || t('errors.serverError'));
     } finally {
       setSaving(false);
     }

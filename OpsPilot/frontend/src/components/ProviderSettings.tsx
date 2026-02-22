@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -41,6 +42,7 @@ interface ProvidersList {
 }
 
 export function ProviderSettings() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<ProviderStatus | null>(null);
   const [providers, setProviders] = useState<ProvidersList | null>(null);
   const [loading, setLoading] = useState(false);
@@ -56,18 +58,18 @@ export function ProviderSettings() {
     setError(null);
     try {
       const [statusRes, listRes] = await Promise.all([
-        api.get('/providers/status'),
-        api.get('/providers/list'),
+        api.get<any>('/providers/status'),
+        api.get<any>('/providers/list'),
       ]);
 
-      if (statusRes.success) {
-        setStatus(statusRes);
+      if (statusRes.data.success) {
+        setStatus(statusRes.data);
       }
-      if (listRes.success) {
-        setProviders(listRes);
+      if (listRes.data.success) {
+        setProviders(listRes.data);
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || '获取数据失败');
+      setError(err.response?.data?.detail || t('errors.serverError'));
     } finally {
       setLoading(false);
     }
@@ -77,12 +79,12 @@ export function ProviderSettings() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post('/providers/set', {
+      const response = await api.post<any>('/providers/set', {
         provider_type: providerType,
         provider: providerName,
       });
 
-      if (response.success) {
+      if (response.data.success) {
         setSuccess(response.message);
         // 更新状态
         if (status) {
