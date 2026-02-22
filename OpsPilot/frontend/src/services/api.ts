@@ -407,6 +407,33 @@ class ApiService {
     const response = await this.client.get('/customer-service/agents/status');
     return response.data;
   }
+
+  // ==================== Notification APIs ====================
+
+  async getNotificationStatus(): Promise<{
+    success: boolean;
+    configured: boolean;
+    webhook_enabled: boolean;
+    slack_enabled: boolean;
+    email_enabled: boolean;
+  }> {
+    const response = await this.client.get('/notification/status');
+    return response.data;
+  }
+
+  async configureNotification(config: {
+    webhook_url?: string;
+    slack_token?: string;
+    slack_channel?: string;
+    smtp_host?: string;
+    smtp_port?: number;
+    smtp_username?: string;
+    smtp_password?: string;
+    smtp_from_addr?: string;
+  }): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.post('/notification/config', config);
+    return response.data;
+  }
 }
 
 export const api = new ApiService();

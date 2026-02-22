@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Settings as SettingsIcon, Save, RefreshCw, Check, X, Eye, EyeOff, Zap, Server, Key, Plus, List, Download, Cpu, Shield, Info, Globe, Link } from 'lucide-react';
+import { Settings as SettingsIcon, Save, RefreshCw, Check, X, Eye, EyeOff, Zap, Server, Key, Plus, List, Download, Cpu, Shield, Info, Globe, Link, Bell } from 'lucide-react';
 import { api } from '../services/api';
 import { LLMProviderConfig, LLMProviderType, LLMTestResult, ModelInfo } from '../types';
 import { MCPServerSettings } from '../components/MCPServerSettings';
 import { ProviderSettings } from '../components/ProviderSettings';
+import { NotificationSettings } from '../components/NotificationSettings';
 
 // Provider display info
 const PROVIDER_INFO: Record<LLMProviderType, { nameKey: string; color: string }> = {
@@ -51,7 +52,7 @@ export function Settings() {
   const [defaultModelSelect, setDefaultModelSelect] = useState<string>('');
   
   // Tab state
-  const [activeTab, setActiveTab] = useState<'llm' | 'mcp' | 'providers'>('llm');
+  const [activeTab, setActiveTab] = useState<'llm' | 'mcp' | 'providers' | 'notification'>('llm');
 
   useEffect(() => {
     loadConfigs();
@@ -300,12 +301,28 @@ export function Settings() {
             <Shield className="w-3.5 h-3.5" />
             Providers
           </button>
+          <button
+            onClick={() => setActiveTab('notification')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-all ${
+              activeTab === 'notification'
+                ? 'bg-electric text-navy-950'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Bell className="w-3.5 h-3.5" />
+            {t('settings.notification') || 'Notification'}
+          </button>
         </div>
       </div>
 
       {/* Providers Tab Content */}
       {activeTab === 'providers' && (
         <ProviderSettings />
+      )}
+
+      {/* Notification Tab Content */}
+      {activeTab === 'notification' && (
+        <NotificationSettings />
       )}
 
       {/* LLM Tab Content */}
