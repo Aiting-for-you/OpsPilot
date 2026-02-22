@@ -157,7 +157,7 @@ export function Tasks() {
                     <span className={`badge badge-${
                       task.state === TaskState.SUCCESS ? 'success' :
                       task.state === TaskState.FAILED ? 'error' :
-                      task.state === 'RUNNING' ? 'processing' : 'idle'
+                      task.state === TaskState.EXECUTING ? 'processing' : 'idle'
                     }`}>
                       {taskStateLabels[task.state] || task.state}
                     </span>
@@ -217,7 +217,7 @@ export function Tasks() {
                   <span className={`badge badge-${
                     selectedTask.state === TaskState.SUCCESS ? 'success' :
                     selectedTask.state === TaskState.FAILED ? 'error' :
-                    selectedTask.state === 'RUNNING' ? 'processing' : 'idle'
+                    selectedTask.state === TaskState.EXECUTING ? 'processing' : 'idle'
                   }`}>
                     {taskStateLabels[selectedTask.state] || selectedTask.state}
                   </span>

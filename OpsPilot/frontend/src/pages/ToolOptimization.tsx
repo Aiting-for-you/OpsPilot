@@ -115,21 +115,22 @@ const ToolOptimization: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get<any>('/tools');
-      if (response.success) {
-        const tools = response.tools || [];
-        const indexRes = await api.post<any>('/tools/index', {
+      const response = await api.get<{success: boolean; data?: any}>('/tools');
+      if (response.data.success) {
+        const tools = response.data.data.tools || [];
+        const indexRes = await api.post<{success: boolean; data?: any}>('/tools/index', {
           tools,
           force_rebuild: true,
         });
         
-        if (indexRes.success) {
-          setIndexStats(indexRes);
-          setSuccess(t('toolOptimization.indexedSuccess', { count: indexRes.indexed_count }));
+        if (indexRes.data.success) {
+          setIndexStats(indexRes.data.data);
+          setSuccess(t('toolOptimization.indexedSuccess', { count: indexRes.data.data.indexed_count }));
         }
       }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || t('toolOptimization.indexError'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('toolOptimization.indexError');
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -144,20 +145,21 @@ const ToolOptimization: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post<any>('/tools/retrieve', {
+      const response = await api.post<{success: boolean; data?: any}>('/tools/retrieve', {
         query,
         max_tools: maxTools,
         max_tokens: maxTokens,
         strategy,
       });
 
-      if (response.success) {
-        setRetrievedTools(response.tools);
-        setRetrievalTime(response.retrieval_time_ms);
-        setSuccess(t('toolOptimization.retrievedSuccess', { count: response.tools.length }));
+      if (response.data.success) {
+        setRetrievedTools(response.data.data.tools);
+        setRetrievalTime(response.data.data.retrieval_time_ms);
+        setSuccess(t('toolOptimization.retrievedSuccess', { count: response.data.data.tools.length }));
       }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || t('toolOptimization.searchError'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('toolOptimization.searchError');
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -172,23 +174,24 @@ const ToolOptimization: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post<any>('/tools/compress', {
+      const response = await api.post<{success: boolean; data?: any}>('/tools/compress', {
         tools: retrievedTools,
         level: compressLevel,
         max_tokens_per_tool: maxTokensPerTool,
       });
 
-      if (response.success) {
-        setCompressedTools(response.compressed_tools);
+      if (response.data.success) {
+        setCompressedTools(response.data.data.compressed_tools);
         setCompressionStats({
-          original_tokens: response.original_tokens,
-          compressed_tokens: response.compressed_tokens,
-          compression_ratio: response.compression_ratio,
+          original_tokens: response.data.data.original_tokens,
+          compressed_tokens: response.data.data.compressed_tokens,
+          compression_ratio: response.data.data.compression_ratio,
         });
-        setSuccess(t('toolOptimization.compressSuccess', { ratio: (response.compression_ratio * 100).toFixed(1) }));
+        setSuccess(t('toolOptimization.compressSuccess', { ratio: (response.data.data.compression_ratio * 100).toFixed(1) }));
       }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || t('toolOptimization.compressError'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('toolOptimization.compressError');
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -215,22 +218,23 @@ const ToolOptimization: React.FC = () => {
         return;
       }
 
-      const response = await api.post<any>('/tools/heal', {
+      const response = await api.post<{success: boolean; data?: any}>('/tools/heal', {
         tool_name: healToolName,
         params,
         error_info: errorInfo,
         max_retries: 3,
       });
 
-      if (response.success) {
-        setHealResult(response);
+      if (response.data.success) {
+        setHealResult(response.data.data);
         setSuccess(t('toolOptimization.healSuccess'));
       } else {
-        setHealResult(response);
+        setHealResult(response.data.data);
         setError(t('toolOptimization.healError'));
       }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || t('toolOptimization.healError'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('toolOptimization.healError');
+      setError(message);
     } finally {
       setLoading(false);
     }

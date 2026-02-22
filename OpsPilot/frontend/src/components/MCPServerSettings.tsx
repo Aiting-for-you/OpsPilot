@@ -243,7 +243,6 @@ function ServerModal({
     name: server?.name || '',
     command: server?.command || 'npx',
     args: server?.args || [],
-    env: {},
     enabled: server?.enabled ?? true,
     auto_connect: server?.auto_connect ?? false,
     description: server?.description || '',
@@ -390,6 +389,7 @@ function ToolsModal({
   serverName: string;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">

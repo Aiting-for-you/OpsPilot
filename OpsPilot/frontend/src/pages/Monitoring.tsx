@@ -90,23 +90,23 @@ const Monitoring: React.FC = () => {
     setError(null);
     try {
       const [usageRes, agentRes, modelRes, obsRes] = await Promise.all([
-        api.get<any>('/tokens/usage'),
-        api.get<any>('/tokens/by-agent'),
-        api.get<any>('/tokens/by-model'),
-        api.get<any>('/observability/status'),
+        api.get<{success: boolean; data?: any}>('/tokens/usage'),
+        api.get<{success: boolean; data?: any}>('/tokens/by-agent'),
+        api.get<{success: boolean; data?: any}>('/tokens/by-model'),
+        api.get<{success: boolean; data?: any}>('/observability/status'),
       ]);
       
-      if (usageRes.success) {
-        setTokenUsage(usageRes.data.total);
+      if (usageRes.data.success) {
+        setTokenUsage(usageRes.data.data.total);
       }
-      if (agentRes.success) {
-        setAgentUsage(agentRes.data);
+      if (agentRes.data.success) {
+        setAgentUsage(agentRes.data.data);
       }
-      if (modelRes.success) {
-        setModelUsage(modelRes.data);
+      if (modelRes.data.success) {
+        setModelUsage(modelRes.data.data);
       }
-      if (obsRes.success) {
-        setObservability(obsRes.data);
+      if (obsRes.data.success) {
+        setObservability(obsRes.data.data);
       }
     } catch (err: any) {
       setError(err.message || t('monitoring.fetchError'));

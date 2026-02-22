@@ -24,6 +24,30 @@ import {
 import { api } from '../services/api';
 import { format, subDays } from 'date-fns';
 
+interface DailyTrendItem {
+  date: string;
+  count: number;
+}
+
+interface AgentPerformanceItem {
+  agent_id?: string;
+  agent_name: string;
+  task_count?: number;
+  total_tasks?: number;
+  success_rate: number;
+  avg_execution_time?: number;
+}
+
+interface ToolAnalyticsItem {
+  tool_name: string;
+  usage_count?: number;
+  total_calls?: number;
+  successful_calls?: number;
+  failed_calls?: number;
+  success_rate?: number;
+  avg_duration?: number;
+}
+
 export function Analytics() {
   const { t } = useTranslation();
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('7d');
@@ -232,8 +256,8 @@ export function Analytics() {
             </div>
           ) : (
             <div className="h-48 flex items-end justify-between gap-2">
-              {(taskStats?.daily_completion_trend || []).map((item, index) => {
-                const maxCount = Math.max(...(taskStats?.daily_completion_trend || []).map(d => d.count), 1);
+              {(taskStats?.daily_completion_trend || []).map((item: DailyTrendItem, index: number) => {
+                const maxCount = Math.max(...(taskStats?.daily_completion_trend || []).map((d: DailyTrendItem) => d.count), 1);
                 const height = (item.count / maxCount) * 100;
                 return (
                   <div key={index} className="flex-1 flex flex-col items-center gap-2">
@@ -285,7 +309,7 @@ export function Analytics() {
             </div>
           ) : (
             <div className="space-y-3">
-              {agentPerformance.slice(0, 5).map((agent, index) => (
+              {agentPerformance.slice(0, 5).map((agent: AgentPerformanceItem, index: number) => (
                 <div
                   key={agent.agent_id}
                   className="flex items-center justify-between p-3 rounded-lg bg-white/50 border border-gray-200/50 hover:border-gray-300 transition-all"
@@ -354,7 +378,7 @@ export function Analytics() {
             </div>
           ) : (
             <div className="space-y-3">
-              {toolAnalytics.slice(0, 5).map((tool, index) => (
+              {toolAnalytics.slice(0, 5).map((tool: ToolAnalyticsItem, index: number) => (
                 <div
                   key={tool.tool_name}
                   className="flex items-center justify-between p-3 rounded-lg bg-white/50 border border-gray-200/50 hover:border-gray-300 transition-all"
@@ -384,7 +408,7 @@ export function Analytics() {
                       </span>
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      {t('analytics.successRate')} {(tool.success_rate * 100).toFixed(0)}%
+                      {t('analytics.successRate')} {((tool.success_rate ?? 0) * 100).toFixed(0)}%
                     </div>
                   </div>
                 </div>

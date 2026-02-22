@@ -147,18 +147,21 @@ const MemoryOptimization: React.FC = () => {
         return;
       }
 
-      const response = await api.post<any>('/memory/weight', {
+      const response = await api.post<{success: boolean; weight?: number; factors?: string[]}>('/memory/weight', {
         memory_id: weightMemoryId || `mem-${Date.now()}`,
         content: weightContent,
         metadata,
       });
 
-      if (response.success) {
+      if (response.data.success) {
+        const factors = response.data.factors;
         setWeightResult({
-          weight: response.weight,
-          factors: response.factors,
+          weight: response.data.weight ?? 0,
+          factors: Array.isArray(factors) 
+            ? { time_decay: 0, frequency: 0, relevance: 0, timeliness: 0, confidence: 0 }
+            : (factors ?? { time_decay: 0, frequency: 0, relevance: 0, timeliness: 0, confidence: 0 }),
         });
-        setSuccess(t('memoryOptimization.weightComplete', { weight: response.weight.toFixed(4) }));
+        setSuccess(t('memoryOptimization.weightComplete', { weight: (response.data.weight ?? 0).toFixed(4) }));
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || t('memoryOptimization.weightError'));
@@ -180,15 +183,15 @@ const MemoryOptimization: React.FC = () => {
         return;
       }
 
-      const response = await api.post<any>('/memory/conflict', {
+      const response = await api.post<{success: boolean; conflicts?: any[]; resolutions?: any[]; conflict_count?: number}>('/memory/conflict', {
         memories,
         check_type: conflictCheckType,
       });
 
-      if (response.success) {
-        setConflicts(response.conflicts);
-        setResolutions(response.resolutions);
-        setSuccess(t('memoryOptimization.conflictDetected', { count: response.conflict_count }));
+      if (response.data.success) {
+        setConflicts(response.data.conflicts ?? []);
+        setResolutions(response.data.resolutions ?? []);
+        setSuccess(t('memoryOptimization.conflictDetected', { count: response.data.conflict_count ?? 0 }));
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || t('memoryOptimization.conflictError'));
@@ -210,20 +213,20 @@ const MemoryOptimization: React.FC = () => {
         return;
       }
 
-      const response = await api.post<any>('/memory/consolidate', {
+      const response = await api.post<{success: boolean; clusters?: any[]; patterns?: any[]; consolidated_count?: number; reduction_ratio?: number}>('/memory/consolidate', {
         memories,
         consolidation_type: consolidateType,
         min_cluster_size: minClusterSize,
       });
 
-      if (response.success) {
-        setClusters(response.clusters);
-        setPatterns(response.patterns);
+      if (response.data.success) {
+        setClusters(response.data.clusters ?? []);
+        setPatterns(response.data.patterns ?? []);
         setConsolidationStats({
-          consolidated_count: response.consolidated_count,
-          reduction_ratio: response.reduction_ratio,
+          consolidated_count: response.data.consolidated_count ?? 0,
+          reduction_ratio: response.data.reduction_ratio ?? 0,
         });
-        setSuccess(t('memoryOptimization.consolidateComplete', { ratio: (response.reduction_ratio * 100).toFixed(1) }));
+        setSuccess(t('memoryOptimization.consolidateComplete', { ratio: ((response.data.reduction_ratio ?? 0) * 100).toFixed(1) }));
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || t('memoryOptimization.consolidateError'));
@@ -236,13 +239,14 @@ const MemoryOptimization: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get<any>('/memory/stats');
-      if (response.success) {
-        setMemoryStats(response);
+      const response = await api.get<{success: boolean; data?: any}>('/memory/stats');
+      if (response.data.success && response.data.data) {
+        setMemoryStats(response.data.data);
         setSuccess(t('memoryOptimization.statsSuccess'));
       }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || t('memoryOptimization.statsError'));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('memoryOptimization.statsError');
+      setError(message);
     } finally {
       setLoading(false);
     }
