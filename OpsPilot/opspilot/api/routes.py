@@ -2491,8 +2491,16 @@ async def set_provider(request: SetProviderRequest):
 async def list_providers():
     """获取提供者列表"""
     from opspilot.approval import ApprovalProvider
+    from opspilot.approval.langchain_approval import LangChainApprovalHandler
     from opspilot.memory import MemoryProvider
+    from opspilot.memory.reme_memory import ReMeMemory
     from opspilot.evaluation import EvaluationProvider
+    from opspilot.evaluation.agentscope_evaluator import AgentScopeEvaluator
+    
+    # 检查框架可用性
+    langchain_approval_available = LangChainApprovalHandler.is_available()
+    reme_memory_available = ReMeMemory.is_available()
+    agentscope_evaluator_available = AgentScopeEvaluator.is_available()
     
     # 审批提供者
     approval_providers = [
@@ -2506,7 +2514,7 @@ async def list_providers():
         ProviderInfo(
             name=ApprovalProvider.LANGCHAIN.value,
             type="approval",
-            available=True,
+            available=langchain_approval_available,
             description="LangChain人工审批回调",
             features=["工具调用拦截", "人工确认", "审批日志"],
         ),
@@ -2524,7 +2532,7 @@ async def list_providers():
         ProviderInfo(
             name=MemoryProvider.REME.value,
             type="memory",
-            available=True,
+            available=reme_memory_available,
             description="AgentScope ReMe记忆管理",
             features=["短期记忆", "长期记忆", "向量检索", "知识图谱"],
         ),
@@ -2542,7 +2550,7 @@ async def list_providers():
         ProviderInfo(
             name=EvaluationProvider.AGENTSCOPE.value,
             type="evaluation",
-            available=True,
+            available=agentscope_evaluator_available,
             description="AgentScope评估框架",
             features=["专业评估", "排行榜", "评估报告", "优化建议"],
         ),

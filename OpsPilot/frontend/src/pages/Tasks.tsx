@@ -66,14 +66,14 @@ export function Tasks() {
           ============================================ */}
       <div className="card">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
-            <Terminal className="w-4 h-4 text-electric" />
+          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <Terminal className="w-4 h-4 text-accent" />
           </div>
           <div>
-            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h2 className="font-display text-sm font-semibold text-primary uppercase tracking-wide">
               {t('tasks.createTask')}
             </h2>
-            <p className="text-xs text-steel-500">{t('tasks.enterTask')}</p>
+            <p className="text-xs text-tertiary">{t('tasks.enterTask')}</p>
           </div>
         </div>
 
@@ -86,7 +86,7 @@ export function Tasks() {
               placeholder={t('tasks.placeholder')}
               className="input pr-10"
             />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-steel-600">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-tertiary">
               <Zap className="w-4 h-4" />
             </div>
           </div>
@@ -116,16 +116,16 @@ export function Tasks() {
         <div className="lg:col-span-4 card">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
                 <Clock className="w-4 h-4 text-warning" />
               </div>
-              <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              <h2 className="font-display text-sm font-semibold text-primary uppercase tracking-wide">
                 {t('tasks.taskQueue')}
               </h2>
             </div>
             <button
               onClick={() => queryClient.invalidateQueries({ queryKey: ['tasks'] })}
-              className="p-1.5 rounded-md text-steel-500 hover:text-electric hover:bg-steel-800/50 transition-all"
+              className="p-1.5 rounded-md text-tertiary hover:text-accent hover:bg-tertiary transition-all"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -133,9 +133,11 @@ export function Tasks() {
 
           <div className="space-y-2 max-h-[500px] overflow-y-auto scrollbar-custom">
             {tasks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-steel-500">
-                <Terminal className="w-8 h-8 mb-2 opacity-30" />
-                <p className="text-sm">{t('tasks.noActiveTasks')}</p>
+              <div className="empty-state">
+                <div className="empty-state-icon">
+                  <Terminal className="w-5 h-5" />
+                </div>
+                <p className="empty-state-title">{t('tasks.noActiveTasks')}</p>
               </div>
             ) : (
               tasks.map((task, idx) => (
@@ -146,8 +148,8 @@ export function Tasks() {
                     group flex items-center justify-between p-3 rounded-lg cursor-pointer
                     border transition-all duration-150
                     ${selectedTask?.task_id === task.task_id
-                      ? 'bg-electric/5 border-electric/30'
-                      : 'bg-navy-1000/50 border-steel-800/50 hover:border-steel-700'
+                      ? 'bg-accent-glow border-accent/30'
+                      : 'bg-tertiary border-border-light hover:border-border'
                     }
                   `}
                 >
@@ -155,25 +157,25 @@ export function Tasks() {
                     <span className={`badge badge-${
                       task.state === TaskState.SUCCESS ? 'success' :
                       task.state === TaskState.FAILED ? 'error' :
-                      task.state === TaskState.RUNNING ? 'processing' : 'idle'
+                      task.state === 'RUNNING' ? 'processing' : 'idle'
                     }`}>
-                      {taskStateLabels[task.state]}
+                      {taskStateLabels[task.state] || task.state}
                     </span>
                     <div>
-                      <span className="font-mono text-sm text-electric">
+                      <span className="font-mono text-sm text-accent">
                         {task.task_id.slice(0, 8)}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-steel-500 font-mono">
-                      {new Date(task.created_at).toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US', { 
+                    <span className="text-xs text-tertiary font-mono">
+                      {task.created_at ? new Date(task.created_at).toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
-                      })}
+                      }) : '—'}
                     </span>
-                    <ChevronRight className={`w-4 h-4 text-steel-600 group-hover:text-electric transition-colors ${
-                      selectedTask?.task_id === task.task_id ? 'text-electric' : ''
+                    <ChevronRight className={`w-4 h-4 text-tertiary group-hover:text-accent transition-colors ${
+                      selectedTask?.task_id === task.task_id ? 'text-accent' : ''
                     }`} />
                   </div>
                 </div>
@@ -185,49 +187,51 @@ export function Tasks() {
         {/* Task Detail */}
         <div className="lg:col-span-8 card">
           <div className="flex items-center gap-3 mb-5">
-            <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
               <ArrowRight className="w-4 h-4 text-success" />
             </div>
-            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h2 className="font-display text-sm font-semibold text-primary uppercase tracking-wide">
               {t('tasks.taskDetails')}
             </h2>
           </div>
 
           {!selectedTask ? (
-            <div className="flex flex-col items-center justify-center py-16 text-steel-500">
-              <Terminal className="w-12 h-12 mb-3 opacity-20" />
-              <p className="text-sm">{t('tools.noToolSelected')}</p>
+            <div className="empty-state">
+              <div className="empty-state-icon">
+                <Terminal className="w-6 h-6" />
+              </div>
+              <p className="empty-state-title">{t('tools.noToolSelected')}</p>
             </div>
           ) : (
             <div className="space-y-5">
               {/* Basic Info Grid */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                <div className="p-3 rounded-lg bg-tertiary border border-border-light">
                   <div className="label">{t('dashboard.taskId')}</div>
-                  <div className="font-mono text-sm text-electric break-all">
+                  <div className="font-mono text-sm text-accent break-all">
                     {selectedTask.task_id}
                   </div>
                 </div>
-                <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                <div className="p-3 rounded-lg bg-tertiary border border-border-light">
                   <div className="label">{t('dashboard.status')}</div>
                   <span className={`badge badge-${
                     selectedTask.state === TaskState.SUCCESS ? 'success' :
                     selectedTask.state === TaskState.FAILED ? 'error' :
-                    selectedTask.state === TaskState.RUNNING ? 'processing' : 'idle'
+                    selectedTask.state === 'RUNNING' ? 'processing' : 'idle'
                   }`}>
-                    {taskStateLabels[selectedTask.state]}
+                    {taskStateLabels[selectedTask.state] || selectedTask.state}
                   </span>
                 </div>
-                <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                <div className="p-3 rounded-lg bg-tertiary border border-border-light">
                   <div className="label">{t('dashboard.intent')}</div>
-                  <div className="text-text-secondary">
+                  <div className="text-secondary">
                     {selectedTask.intent || '—'}
                   </div>
                 </div>
-                <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                <div className="p-3 rounded-lg bg-tertiary border border-border-light">
                   <div className="label">{t('dashboard.created')}</div>
-                  <div className="font-mono text-sm text-text-secondary">
-                    {new Date(selectedTask.created_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US')}
+                  <div className="font-mono text-sm text-secondary">
+                    {selectedTask.created_at ? new Date(selectedTask.created_at).toLocaleString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : '—'}
                   </div>
                 </div>
               </div>
@@ -240,7 +244,7 @@ export function Tasks() {
                     {taskResult.execution_trace.map((trace, idx) => (
                       <div
                         key={idx}
-                        className="flex items-start gap-3 p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50"
+                        className="flex items-start gap-3 p-3 rounded-lg bg-tertiary border border-border-light"
                       >
                         <div className={`mt-0.5 ${
                           trace.status === 'success' ? 'text-success' :
@@ -255,9 +259,9 @@ export function Tasks() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-text-primary text-sm">{trace.action}</div>
-                          <div className="font-mono text-xs text-steel-500 mt-1">
-                            {new Date(trace.timestamp).toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US')}
+                          <div className="text-primary text-sm">{trace.action}</div>
+                          <div className="font-mono text-xs text-tertiary mt-1">
+                            {trace.timestamp ? new Date(trace.timestamp).toLocaleTimeString(i18n.language === 'zh-CN' ? 'zh-CN' : 'en-US') : '—'}
                           </div>
                         </div>
                       </div>

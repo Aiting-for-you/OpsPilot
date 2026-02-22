@@ -82,10 +82,10 @@ export function SOP() {
               <GitBranch className="w-4 h-4 text-electric" />
             </div>
             <div>
-              <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
                 {t('sop.sopLibrary')}
               </h2>
-              <p className="text-xs text-steel-500">{t('sop.availableSOPs')}</p>
+              <p className="text-xs text-gray-500">{t('sop.availableSOPs')}</p>
             </div>
           </div>
 
@@ -104,7 +104,7 @@ export function SOP() {
                     p-3 rounded-lg cursor-pointer border transition-all
                     ${selectedSOP === sopName
                       ? 'bg-electric/5 border-electric/30'
-                      : 'bg-navy-1000/50 border-steel-800/50 hover:border-steel-700'
+                      : 'bg-white/50 border-gray-200/50 hover:border-gray-300'
                     }
                   `}
                 >
@@ -112,11 +112,11 @@ export function SOP() {
                     <div className={`w-1.5 h-1.5 rounded-full ${
                       selectedSOP === sopName ? 'bg-electric' : 'bg-steel-600'
                     }`} />
-                    <span className="font-display text-sm font-medium text-text-primary">
+                    <span className="font-display text-sm font-medium text-gray-900">
                       {sopName}
                     </span>
                   </div>
-                  <p className="text-xs text-steel-500 ml-3.5">
+                  <p className="text-xs text-gray-500 ml-3.5">
                     {info?.description || t('sop.description')}
                   </p>
                 </div>
@@ -131,27 +131,27 @@ export function SOP() {
             <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
               <Terminal className="w-4 h-4 text-success" />
             </div>
-            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
               {t('sop.executeSOP')}
             </h2>
           </div>
 
           {!sopInfo ? (
-            <div className="flex flex-col items-center justify-center py-16 text-steel-500">
+            <div className="flex flex-col items-center justify-center py-16 text-gray-500">
               <GitBranch className="w-12 h-12 mb-3 opacity-20" />
               <p className="text-sm">{t('sop.noSOPSelected')}</p>
             </div>
           ) : (
             <div className="space-y-5">
               {/* SOP Info */}
-              <div className="p-4 rounded-lg bg-navy-1000/50 border border-electric/20">
+              <div className="p-4 rounded-lg bg-white/50 border border-electric/20">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 rounded-full bg-electric" />
                   <span className="font-display text-sm font-semibold text-electric">
                     {sopInfo.name}
                   </span>
                 </div>
-                <p className="text-sm text-steel-400 ml-4">
+                <p className="text-sm text-gray-600 ml-4">
                   {sopInfo.description}
                 </p>
               </div>
@@ -161,7 +161,7 @@ export function SOP() {
                 <div className="label mb-4">{t('sop.steps')}</div>
                 <div className="relative">
                   {/* Vertical Line */}
-                  <div className="absolute left-3.5 top-2 bottom-2 w-px bg-steel-800" />
+                  <div className="absolute left-3.5 top-2 bottom-2 w-px bg-gray-200" />
                   
                   <div className="space-y-3">
                     {sopInfo.steps.map((step, idx) => {
@@ -179,7 +179,7 @@ export function SOP() {
                                 ? 'bg-success border-success'
                                 : isCurrent
                                 ? 'bg-warning border-warning animate-pulse'
-                                : 'bg-navy-1000 border-steel-700'
+                                : 'bg-white border-gray-300'
                               }
                             `}
                           >
@@ -188,16 +188,16 @@ export function SOP() {
                             ) : isCurrent ? (
                               <Loader2 className="w-3 h-3 text-navy-950 animate-spin" />
                             ) : (
-                              <span className="text-xs text-steel-500 font-mono">{idx + 1}</span>
+                              <span className="text-xs text-gray-500 font-mono">{idx + 1}</span>
                             )}
                           </div>
                           
                           {/* Step Content */}
-                          <div className="flex-1 p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-                            <div className="font-display text-sm font-medium text-text-primary">
+                          <div className="flex-1 p-3 rounded-lg bg-white/50 border border-gray-200/50">
+                            <div className="font-display text-sm font-medium text-gray-900">
                               {step.name}
                             </div>
-                            <div className="text-xs text-steel-500 mt-1">{step.action}</div>
+                            <div className="text-xs text-gray-500 mt-1">{step.action}</div>
                           </div>
                         </div>
                       );
@@ -209,7 +209,7 @@ export function SOP() {
               {/* Variables Input */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-4 h-4 text-steel-500" />
+                  <Zap className="w-4 h-4 text-gray-500" />
                   <span className="label mb-0">{t('tools.parameters')} (JSON)</span>
                 </div>
                 <textarea
@@ -241,18 +241,18 @@ export function SOP() {
 
               {/* Result */}
               {executeSOPMutation.data && (
-                <div className="p-4 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+                <div className="p-4 rounded-lg bg-white/50 border border-gray-200/50">
                   <div className="flex items-center gap-2 mb-3">
                     {executeSOPMutation.data.success ? (
                       <CheckCircle className="w-4 h-4 text-success" />
                     ) : (
                       <XCircle className="w-4 h-4 text-error" />
                     )}
-                    <span className="text-sm font-medium text-text-primary">
+                    <span className="text-sm font-medium text-gray-900">
                       {executeSOPMutation.data.message}
                     </span>
                   </div>
-                  <div className="text-xs text-steel-500 mb-3">
+                  <div className="text-xs text-gray-500 mb-3">
                     {t('sop.steps')} {executeSOPMutation.data.steps_executed}
                   </div>
                   {executeSOPMutation.data.results.length > 0 && (

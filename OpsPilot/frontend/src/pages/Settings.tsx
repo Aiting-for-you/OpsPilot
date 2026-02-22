@@ -256,23 +256,23 @@ export function Settings() {
             <Cpu className="w-4 h-4 text-electric" />
           </div>
           <div>
-            <h1 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h1 className="font-display text-sm font-semibold text-primary uppercase tracking-wide">
               {t('settings.title') || 'Settings'}
             </h1>
-            <p className="text-xs text-steel-500">
+            <p className="text-xs text-gray-500">
               {activeTab === 'llm' ? t('settings.provider') : 'External MCP Servers'}
             </p>
           </div>
         </div>
         
         {/* Tab Buttons */}
-        <div className="flex items-center gap-1 p-1 bg-navy-1000/50 rounded-lg border border-steel-800/50">
+        <div className="flex items-center gap-1 p-1 bg-tertiary rounded-lg border border-border">
           <button
             onClick={() => setActiveTab('llm')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-all ${
               activeTab === 'llm'
                 ? 'bg-electric text-navy-950'
-                : 'text-steel-400 hover:text-text-primary'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
@@ -283,7 +283,7 @@ export function Settings() {
             className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-all ${
               activeTab === 'mcp'
                 ? 'bg-electric text-navy-950'
-                : 'text-steel-400 hover:text-text-primary'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <Link className="w-3.5 h-3.5" />
@@ -294,7 +294,7 @@ export function Settings() {
             className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-all ${
               activeTab === 'providers'
                 ? 'bg-electric text-navy-950'
-                : 'text-steel-400 hover:text-text-primary'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
             <Shield className="w-3.5 h-3.5" />
@@ -322,22 +322,22 @@ export function Settings() {
                 setFetchError(null);
                 setShowFetchModal(true);
               }}
-              className="btn-secondary"
+              className="btn btn-secondary"
             >
               <Download className="w-4 h-4" />
               {t('settings.fetchModels')}
             </button>
-            <button onClick={loadConfigs} className="btn-secondary">
+            <button onClick={loadConfigs} className="btn btn-secondary">
               <RefreshCw className="w-4 h-4" />
               {t('common.refresh') || 'Refresh'}
             </button>
           </div>
 
       {/* Info Banner */}
-      <div className="p-4 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+      <div className="p-4 rounded-lg bg-white/50 border border-gray-200/50">
         <div className="flex items-start gap-3">
           <Info className="w-5 h-5 text-electric flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-steel-400">
+          <p className="text-sm text-gray-600">
             {t('settings.llmConfig')} - {t('settings.apiKey')} & {t('settings.model')}
           </p>
         </div>
@@ -366,7 +366,7 @@ export function Settings() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-display text-sm font-semibold text-text-primary">
+                    <span className="font-display text-sm font-semibold text-gray-900">
                       {t(info.nameKey)}
                     </span>
                     {provider.is_default && (
@@ -379,23 +379,23 @@ export function Settings() {
                         {t('settings.enabled').toUpperCase()}
                       </span>
                     )}
-                    <span className="text-xs text-steel-600">
+                    <span className="text-xs text-gray-400">
                       {provider.available_models.length} models
                     </span>
                   </div>
-                  <p className="text-xs text-steel-500 mt-0.5">
+                  <p className="text-xs text-gray-500 mt-0.5">
                     {provider.api_key_masked || t('common.noData')}
                   </p>
                 </div>
               </div>
-              <span className="text-steel-500 text-xs font-mono">
+              <span className="text-gray-500 text-xs font-mono">
                 {isExpanded ? 'CLOSE' : 'EXPAND'}
               </span>
             </div>
 
             {/* Expanded Content */}
             {isExpanded && (
-              <div className="mt-5 pt-5 border-t border-steel-800/50 space-y-4">
+              <div className="mt-5 pt-5 border-t border-gray-200/50 space-y-4">
                 {/* API Key */}
                 <div>
                   <label className="label">
@@ -413,7 +413,7 @@ export function Settings() {
                     <button
                       type="button"
                       onClick={() => setShowApiKey((prev) => ({ ...prev, [provider.provider]: !prev[provider.provider] }))}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-steel-500 hover:text-electric transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-electric transition-colors"
                     >
                       {showApiKey[provider.provider] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -496,12 +496,12 @@ export function Settings() {
                 </div>
 
                 {/* Enable Toggle */}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-                  <span className="text-sm text-steel-400">{t('settings.enabled')}</span>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 border border-gray-200/50">
+                  <span className="text-sm text-gray-600">{t('settings.enabled')}</span>
                   <button
                     onClick={() => updateEditConfig(provider.provider, 'is_enabled', !config.is_enabled)}
                     className={`w-11 h-6 rounded-full transition-colors relative ${
-                      config.is_enabled ? 'bg-electric' : 'bg-steel-700'
+                      config.is_enabled ? 'bg-electric' : 'bg-gray-300'
                     }`}
                   >
                     <div
@@ -526,12 +526,12 @@ export function Settings() {
                 )}
 
                 {/* Actions */}
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => handleTestConnection(provider.provider)}
                       disabled={isTesting || saving}
-                      className="btn-secondary"
+                      className="btn btn-secondary"
                     >
                       {isTesting ? (
                         <RefreshCw className="w-4 h-4 animate-spin" />
@@ -543,7 +543,7 @@ export function Settings() {
                     {!provider.is_default && config.is_enabled && (
                       <button
                         onClick={() => handleSetDefault(provider.provider)}
-                        className="btn-secondary"
+                        className="btn btn-secondary"
                       >
                         <Shield className="w-4 h-4" />
                         {t('settings.setDefault')}
@@ -553,7 +553,7 @@ export function Settings() {
                   <button
                     onClick={() => handleSaveConfig(provider.provider)}
                     disabled={saving}
-                    className="btn-primary"
+                    className="btn btn-primary"
                   >
                     {saving ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
@@ -571,20 +571,20 @@ export function Settings() {
 
       {/* Fetch Models Modal */}
       {showFetchModal && (
-        <div className="fixed inset-0 bg-navy-1000/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-navy-950 border border-steel-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
                   <List className="w-4 h-4 text-electric" />
                 </div>
-                <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+                <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
                   {t('settings.fetchModels')}
                 </h2>
               </div>
               <button
                 onClick={() => setShowFetchModal(false)}
-                className="p-1 rounded text-steel-500 hover:text-electric transition-colors"
+                className="p-1 rounded text-gray-500 hover:text-electric transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -627,7 +627,7 @@ export function Settings() {
               <button
                 onClick={handleFetchModels}
                 disabled={fetching}
-                className="btn-primary w-full"
+                className="btn btn-primary w-full"
               >
                 {fetching ? (
                   <RefreshCw className="w-4 h-4 animate-spin" />
@@ -649,7 +649,7 @@ export function Settings() {
             {fetchedModels.length > 0 && (
               <div className="flex-1 overflow-hidden flex flex-col">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs text-steel-500">
+                  <span className="text-xs text-gray-500">
                     {fetchedModels.length} models, {selectedModels.size} selected
                   </span>
                   <button
@@ -676,7 +676,7 @@ export function Settings() {
                 </div>
 
                 {/* Model Grid */}
-                <div className="flex-1 overflow-y-auto border border-steel-800/50 rounded-lg p-3 scrollbar-custom">
+                <div className="flex-1 overflow-y-auto border border-gray-200/50 rounded-lg p-3 scrollbar-custom">
                   <div className="grid grid-cols-2 gap-2">
                     {fetchedModels.map((model) => (
                       <div
@@ -685,18 +685,18 @@ export function Settings() {
                         className={`p-2 rounded-lg cursor-pointer border transition-all ${
                           selectedModels.has(model.id)
                             ? 'border-electric bg-electric/5'
-                            : 'border-steel-800/50 hover:border-steel-700'
+                            : 'border-gray-200/50 hover:border-gray-300'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <div className={`w-4 h-4 rounded border flex items-center justify-center ${
                             selectedModels.has(model.id)
                               ? 'border-electric bg-electric'
-                              : 'border-steel-600'
+                              : 'border-gray-400'
                           }`}>
                             {selectedModels.has(model.id) && <Check className="w-3 h-3 text-navy-950" />}
                           </div>
-                          <span className="text-xs text-text-secondary truncate font-mono">{model.id}</span>
+                          <span className="text-xs text-gray-600 truncate font-mono">{model.id}</span>
                         </div>
                       </div>
                     ))}
@@ -708,7 +708,7 @@ export function Settings() {
                   <button
                     onClick={handleBatchAddModels}
                     disabled={batchAdding || selectedModels.size === 0}
-                    className="btn-primary w-full"
+                    className="btn btn-primary w-full"
                   >
                     {batchAdding ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
@@ -737,25 +737,25 @@ export function Settings() {
             <Globe className="w-4 h-4 text-electric" />
           </div>
           <div>
-            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
               {t('settings.languageSettings')}
             </h2>
-            <p className="text-xs text-steel-500">{t('settings.selectLanguage')}</p>
+            <p className="text-xs text-gray-500">{t('settings.selectLanguage')}</p>
           </div>
         </div>
         
-        <div className="p-4 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-          <p className="text-sm text-steel-400 mb-3">
+        <div className="p-4 rounded-lg bg-white/50 border border-gray-200/50">
+          <p className="text-sm text-gray-600 mb-3">
             {t('settings.selectLanguage')}
           </p>
-          <div className="flex items-center gap-2 text-sm text-steel-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
             <span>🌐</span>
             <span>{t('settings.language')}: </span>
             <span className="text-electric">
               {t('settings.selectLanguage') === '选择语言' ? '简体中文' : 'English'}
             </span>
           </div>
-          <p className="text-xs text-steel-600 mt-2">
+          <p className="text-xs text-gray-400 mt-2">
             {t('settings.languageSettings')} - {t('settings.selectLanguage')}
           </p>
         </div>
@@ -766,25 +766,25 @@ export function Settings() {
       {activeTab === 'llm' && (
       <div className="card">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-steel-800/50 flex items-center justify-center">
-            <Info className="w-4 h-4 text-steel-500" />
+          <div className="w-8 h-8 rounded-lg bg-gray-200/50 flex items-center justify-center">
+            <Info className="w-4 h-4 text-gray-500" />
           </div>
-          <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+          <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
             About
           </h2>
         </div>
         <div className="grid grid-cols-3 gap-4">
-          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-            <div className="text-xs text-steel-500 mb-1">{t('common.version')}</div>
+          <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
+            <div className="text-xs text-gray-500 mb-1">{t('common.version')}</div>
             <div className="font-mono text-sm text-electric">v0.1.0</div>
           </div>
-          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-            <div className="text-xs text-steel-500 mb-1">Build Date</div>
-            <div className="font-mono text-sm text-text-secondary">2026-02-16</div>
+          <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
+            <div className="text-xs text-gray-500 mb-1">Build Date</div>
+            <div className="font-mono text-sm text-gray-600">2026-02-16</div>
           </div>
-          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-            <div className="text-xs text-steel-500 mb-1">Tech Stack</div>
-            <div className="font-mono text-xs text-text-secondary">React + TypeScript</div>
+          <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
+            <div className="text-xs text-gray-500 mb-1">Tech Stack</div>
+            <div className="font-mono text-xs text-gray-600">React + TypeScript</div>
           </div>
         </div>
       </div>

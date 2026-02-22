@@ -147,18 +147,18 @@ const MemoryOptimization: React.FC = () => {
         return;
       }
 
-      const response = await api.post('/memory/weight', {
+      const response = await api.post<any>('/memory/weight', {
         memory_id: weightMemoryId || `mem-${Date.now()}`,
         content: weightContent,
         metadata,
       });
 
-      if (response.data.success) {
+      if (response.success) {
         setWeightResult({
-          weight: response.data.weight,
-          factors: response.data.factors,
+          weight: response.weight,
+          factors: response.factors,
         });
-        setSuccess(t('memoryOptimization.weightComplete', { weight: response.data.weight.toFixed(4) }));
+        setSuccess(t('memoryOptimization.weightComplete', { weight: response.weight.toFixed(4) }));
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || t('memoryOptimization.weightError'));
@@ -180,15 +180,15 @@ const MemoryOptimization: React.FC = () => {
         return;
       }
 
-      const response = await api.post('/memory/conflict', {
+      const response = await api.post<any>('/memory/conflict', {
         memories,
         check_type: conflictCheckType,
       });
 
-      if (response.data.success) {
-        setConflicts(response.data.conflicts);
-        setResolutions(response.data.resolutions);
-        setSuccess(t('memoryOptimization.conflictDetected', { count: response.data.conflict_count }));
+      if (response.success) {
+        setConflicts(response.conflicts);
+        setResolutions(response.resolutions);
+        setSuccess(t('memoryOptimization.conflictDetected', { count: response.conflict_count }));
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || t('memoryOptimization.conflictError'));
@@ -210,20 +210,20 @@ const MemoryOptimization: React.FC = () => {
         return;
       }
 
-      const response = await api.post('/memory/consolidate', {
+      const response = await api.post<any>('/memory/consolidate', {
         memories,
         consolidation_type: consolidateType,
         min_cluster_size: minClusterSize,
       });
 
-      if (response.data.success) {
-        setClusters(response.data.clusters);
-        setPatterns(response.data.patterns);
+      if (response.success) {
+        setClusters(response.clusters);
+        setPatterns(response.patterns);
         setConsolidationStats({
-          consolidated_count: response.data.consolidated_count,
-          reduction_ratio: response.data.reduction_ratio,
+          consolidated_count: response.consolidated_count,
+          reduction_ratio: response.reduction_ratio,
         });
-        setSuccess(t('memoryOptimization.consolidateComplete', { ratio: (response.data.reduction_ratio * 100).toFixed(1) }));
+        setSuccess(t('memoryOptimization.consolidateComplete', { ratio: (response.reduction_ratio * 100).toFixed(1) }));
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || t('memoryOptimization.consolidateError'));
@@ -236,9 +236,9 @@ const MemoryOptimization: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/memory/stats');
-      if (response.data.success) {
-        setMemoryStats(response.data);
+      const response = await api.get<any>('/memory/stats');
+      if (response.success) {
+        setMemoryStats(response);
         setSuccess(t('memoryOptimization.statsSuccess'));
       }
     } catch (err: any) {

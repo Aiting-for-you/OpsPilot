@@ -8,12 +8,23 @@ export function Agents() {
 
   // Mock message flow
   const messages = [
-    { from: 'Orchestrator', to: 'IntentAgent', content: '分发任务: 查询库存', time: '10:23:45', type: 'dispatch' },
-    { from: 'IntentAgent', to: 'Orchestrator', content: '意图识别完成: query_stock', time: '10:23:47', type: 'response' },
-    { from: 'Orchestrator', to: 'PlanAgent', content: '制定执行计划', time: '10:23:48', type: 'dispatch' },
-    { from: 'PlanAgent', to: 'ExecAgent', content: '执行工具调用: query_erp', time: '10:23:50', type: 'dispatch' },
-    { from: 'ExecAgent', to: 'VerifyAgent', content: '结果验证请求', time: '10:23:55', type: 'dispatch' },
+    { from: 'Orchestrator', to: 'IntentAgent', content: 'Dispatch: Query Stock', time: '10:23:45', type: 'dispatch' },
+    { from: 'IntentAgent', to: 'Orchestrator', content: 'Intent识别完成: query_stock', time: '10:23:47', type: 'response' },
+    { from: 'Orchestrator', to: 'PlanAgent', content: 'Create Execution Plan', time: '10:23:48', type: 'dispatch' },
+    { from: 'PlanAgent', to: 'ExecAgent', content: 'Execute Tool: query_erp', time: '10:23:50', type: 'dispatch' },
+    { from: 'ExecAgent', to: 'VerifyAgent', content: 'Request Verification', time: '10:23:55', type: 'dispatch' },
   ];
+
+  // Translate status
+  const getStatusLabel = (status: string) => {
+    const statusMap: Record<string, string> = {
+      idle: t('agents.statusIdle'),
+      running: t('agents.statusRunning'),
+      busy: t('agents.statusBusy'),
+      error: t('agents.statusError'),
+    };
+    return statusMap[status] || status;
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -31,7 +42,7 @@ export function Agents() {
             <div className={`status-dot status-${agent.status} mb-3`} />
             
             {/* Agent Name */}
-            <div className="font-display text-sm font-semibold text-text-primary text-center">
+            <div className="font-display text-sm font-semibold text-gray-900 text-center">
               {agent.name}
             </div>
             
@@ -40,7 +51,7 @@ export function Agents() {
             
             {/* Status Badge */}
             <span className={`badge badge-${agent.status} mt-2`}>
-              {agent.status}
+              {getStatusLabel(agent.status)}
             </span>
           </div>
         ))}
@@ -58,10 +69,10 @@ export function Agents() {
               <GitBranch className="w-4 h-4 text-electric" />
             </div>
             <div>
-              <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
                 Communication Flow
               </h2>
-              <p className="text-xs text-steel-500">Agent collaboration trace</p>
+              <p className="text-xs text-gray-500">Agent collaboration trace</p>
             </div>
           </div>
 
@@ -69,22 +80,22 @@ export function Agents() {
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-3 p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50 hover:border-steel-700 transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg bg-white/50 border border-gray-200/50 hover:border-gray-300 transition-colors"
               >
                 {/* Message Flow */}
                 <div className="flex items-center gap-2 min-w-[180px]">
                   <span className="font-mono text-xs text-electric">{msg.from}</span>
-                  <ArrowRight className="w-3 h-3 text-steel-600" />
+                  <ArrowRight className="w-3 h-3 text-gray-400" />
                   <span className="font-mono text-xs text-warning">{msg.to}</span>
                 </div>
                 
                 {/* Content */}
-                <div className="flex-1 text-sm text-steel-300 truncate">
+                <div className="flex-1 text-sm text-gray-700 truncate">
                   {msg.content}
                 </div>
                 
                 {/* Timestamp */}
-                <div className="font-mono text-xs text-steel-600">
+                <div className="font-mono text-xs text-gray-400">
                   {msg.time}
                 </div>
               </div>
@@ -99,24 +110,24 @@ export function Agents() {
               <MessageSquare className="w-4 h-4 text-success" />
             </div>
             <div>
-              <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
                 Message Hub (MsgHub)
               </h2>
-              <p className="text-xs text-steel-500">{t('common.live')} event stream</p>
+              <p className="text-xs text-gray-500">{t('common.live')} event stream</p>
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-center py-12 text-steel-500">
-            <div className="w-16 h-16 rounded-xl bg-navy-1000/50 border border-steel-800/50 flex items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+            <div className="w-16 h-16 rounded-xl bg-white/50 border border-gray-200/50 flex items-center justify-center mb-4">
               <Network className="w-8 h-8 opacity-30" />
             </div>
             <p className="text-sm font-medium">WebSocket Connection</p>
-            <p className="text-xs text-steel-600 mt-1">{t('tracing.noTraces')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('tracing.noTraces')}</p>
             
             {/* Connection Status */}
-            <div className="flex items-center gap-2 mt-4 px-3 py-1.5 rounded-md bg-steel-900/50 border border-steel-800/50">
+            <div className="flex items-center gap-2 mt-4 px-3 py-1.5 rounded-md bg-gray-100/50 border border-gray-200/50">
               <div className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
-              <span className="text-xs text-steel-400">{t('common.loading')}</span>
+              <span className="text-xs text-gray-600">{t('common.loading')}</span>
             </div>
           </div>
         </div>
@@ -131,30 +142,30 @@ export function Agents() {
             <Cpu className="w-4 h-4 text-warning" />
           </div>
           <div>
-            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
               {t('agents.agentList')}
             </h2>
-            <p className="text-xs text-steel-500">{t('agents.statistics')}</p>
+            <p className="text-xs text-gray-500">{t('agents.statistics')}</p>
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-steel-800/50">
-                <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
+              <tr className="border-b border-gray-200/50">
+                <th className="text-left text-xs font-mono text-gray-500 uppercase tracking-wider pb-3 pr-4">
                   {t('agents.agentName')}
                 </th>
-                <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
+                <th className="text-left text-xs font-mono text-gray-500 uppercase tracking-wider pb-3 pr-4">
                   {t('agents.role')}
                 </th>
-                <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
+                <th className="text-left text-xs font-mono text-gray-500 uppercase tracking-wider pb-3 pr-4">
                   {t('agents.status')}
                 </th>
-                <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3 pr-4">
+                <th className="text-left text-xs font-mono text-gray-500 uppercase tracking-wider pb-3 pr-4">
                   {t('agents.currentTask')}
                 </th>
-                <th className="text-left text-xs font-mono text-steel-500 uppercase tracking-wider pb-3">
+                <th className="text-left text-xs font-mono text-gray-500 uppercase tracking-wider pb-3">
                   {t('agents.lastActivity')}
                 </th>
               </tr>
@@ -163,31 +174,31 @@ export function Agents() {
               {agents.map((agent) => (
                 <tr 
                   key={agent.name}
-                  className="hover:bg-navy-1000/30 transition-colors"
+                  className="hover:bg-white/30 transition-colors"
                 >
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4 text-electric" />
-                      <span className="font-display text-sm font-medium text-text-primary">
+                      <span className="font-display text-sm font-medium text-gray-900">
                         {agent.name}
                       </span>
                     </div>
                   </td>
                   <td className="py-3 pr-4">
-                    <span className="text-sm text-steel-400">{agent.role}</span>
+                    <span className="text-sm text-gray-600">{agent.role}</span>
                   </td>
                   <td className="py-3 pr-4">
                     <span className={`badge badge-${agent.status}`}>
-                      {agent.status}
+                      {getStatusLabel(agent.status)}
                     </span>
                   </td>
                   <td className="py-3 pr-4">
-                    <span className="text-sm text-steel-400">
+                    <span className="text-sm text-gray-600">
                       {agent.current_task || '—'}
                     </span>
                   </td>
                   <td className="py-3">
-                    <span className="font-mono text-xs text-steel-500">
+                    <span className="font-mono text-xs text-gray-500">
                       {agent.last_activity || '—'}
                     </span>
                   </td>

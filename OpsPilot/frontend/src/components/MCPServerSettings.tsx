@@ -42,7 +42,7 @@ interface MCPTool {
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string; label: string }> = {
     connected: { bg: 'bg-success/20', text: 'text-success', label: 'Connected' },
-    disconnected: { bg: 'bg-steel-700', text: 'text-steel-400', label: 'Disconnected' },
+    disconnected: { bg: 'bg-gray-300', text: 'text-gray-600', label: 'Disconnected' },
     connecting: { bg: 'bg-warning/20', text: 'text-warning', label: 'Connecting...' },
     error: { bg: 'bg-error/20', text: 'text-error', label: 'Error' },
   };
@@ -90,18 +90,18 @@ function ServerCard({
         <div className="flex items-center gap-4">
           <div
             className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-              isConnected ? 'bg-success/10' : 'bg-steel-800'
+              isConnected ? 'bg-success/10' : 'bg-gray-200'
             }`}
           >
             <Server
               className={`w-5 h-5 ${
-                isConnected ? 'text-success' : 'text-steel-500'
+                isConnected ? 'text-success' : 'text-gray-500'
               }`}
             />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-display text-sm font-semibold text-text-primary">
+              <span className="font-display text-sm font-semibold text-gray-900">
                 {server.name}
               </span>
               <StatusBadge status={server.status} />
@@ -111,32 +111,32 @@ function ServerCard({
                 </span>
               )}
               {server.tool_count > 0 && (
-                <span className="text-xs text-steel-600">
+                <span className="text-xs text-gray-400">
                   {server.tool_count} tools
                 </span>
               )}
             </div>
-            <p className="text-xs text-steel-500 mt-0.5 font-mono">
+            <p className="text-xs text-gray-500 mt-0.5 font-mono">
               {server.command} {server.args.join(' ')}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {expanded ? (
-            <ChevronDown className="w-4 h-4 text-steel-500" />
+            <ChevronDown className="w-4 h-4 text-gray-500" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-steel-500" />
+            <ChevronRight className="w-4 h-4 text-gray-500" />
           )}
         </div>
       </div>
 
       {/* Expanded Content */}
       {expanded && (
-        <div className="mt-5 pt-5 border-t border-steel-800/50 space-y-4">
+        <div className="mt-5 pt-5 border-t border-gray-200/50 space-y-4">
           {/* Description */}
           {server.description && (
-            <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-              <p className="text-sm text-steel-400">{server.description}</p>
+            <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
+              <p className="text-sm text-gray-600">{server.description}</p>
             </div>
           )}
 
@@ -150,7 +150,7 @@ function ServerCard({
 
           {/* Connected At */}
           {isConnected && server.connected_at && (
-            <div className="text-xs text-steel-500">
+            <div className="text-xs text-gray-500">
               Connected at: {new Date(server.connected_at).toLocaleString()}
             </div>
           )}
@@ -165,7 +165,7 @@ function ServerCard({
                     onDisconnect();
                   }}
                   disabled={loading}
-                  className="btn-secondary"
+                  className="btn btn-secondary"
                 >
                   <Square className="w-4 h-4" />
                   {t('common.disconnect') || 'Disconnect'}
@@ -177,7 +177,7 @@ function ServerCard({
                     onConnect();
                   }}
                   disabled={loading || isConnecting}
-                  className="btn-primary"
+                  className="btn btn-primary"
                 >
                   {isConnecting ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />
@@ -193,7 +193,7 @@ function ServerCard({
                     e.stopPropagation();
                     onViewTools();
                   }}
-                  className="btn-secondary"
+                  className="btn btn-secondary"
                 >
                   <Wrench className="w-4 h-4" />
                   View Tools
@@ -204,7 +204,7 @@ function ServerCard({
                   e.stopPropagation();
                   onEdit();
                 }}
-                className="btn-secondary"
+                className="btn btn-secondary"
               >
                 Edit
               </button>
@@ -257,20 +257,20 @@ function ServerModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-navy-1000/80 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-navy-950 border border-steel-800 rounded-lg p-6 w-full max-w-lg">
+    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 w-full max-w-lg">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
               <Terminal className="w-4 h-4 text-electric" />
             </div>
-            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
               {server ? 'Edit Server' : 'Add MCP Server'}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded text-steel-500 hover:text-electric transition-colors"
+            className="p-1 rounded text-gray-500 hover:text-electric transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -327,12 +327,12 @@ function ServerModal({
 
           {/* Toggles */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-              <span className="text-sm text-steel-400">Enabled</span>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 border border-gray-200/50">
+              <span className="text-sm text-gray-600">Enabled</span>
               <button
                 onClick={() => setFormData({ ...formData, enabled: !formData.enabled })}
                 className={`w-11 h-6 rounded-full transition-colors relative ${
-                  formData.enabled ? 'bg-electric' : 'bg-steel-700'
+                  formData.enabled ? 'bg-electric' : 'bg-gray-300'
                 }`}
               >
                 <div
@@ -342,12 +342,12 @@ function ServerModal({
                 />
               </button>
             </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-              <span className="text-sm text-steel-400">Auto Connect</span>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 border border-gray-200/50">
+              <span className="text-sm text-gray-600">Auto Connect</span>
               <button
                 onClick={() => setFormData({ ...formData, auto_connect: !formData.auto_connect })}
                 className={`w-11 h-6 rounded-full transition-colors relative ${
-                  formData.auto_connect ? 'bg-electric' : 'bg-steel-700'
+                  formData.auto_connect ? 'bg-electric' : 'bg-gray-300'
                 }`}
               >
                 <div
@@ -361,10 +361,10 @@ function ServerModal({
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">
-            <button onClick={onClose} className="btn-secondary">
+            <button onClick={onClose} className="btn btn-secondary">
               Cancel
             </button>
-            <button onClick={handleSubmit} disabled={loading} className="btn-primary">
+            <button onClick={handleSubmit} disabled={loading} className="btn btn-primary">
               {loading ? (
                 <RefreshCw className="w-4 h-4 animate-spin" />
               ) : (
@@ -390,23 +390,23 @@ function ToolsModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 bg-navy-1000/80 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-navy-950 border border-steel-800 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
               <Wrench className="w-4 h-4 text-electric" />
             </div>
             <div>
-              <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
                 Server Tools
               </h2>
-              <p className="text-xs text-steel-500">{serverName}</p>
+              <p className="text-xs text-gray-500">{serverName}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded text-steel-500 hover:text-electric transition-colors"
+            className="p-1 rounded text-gray-500 hover:text-electric transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -414,23 +414,23 @@ function ToolsModal({
 
         <div className="flex-1 overflow-y-auto space-y-3 scrollbar-custom">
           {tools.length === 0 ? (
-            <div className="text-center py-8 text-steel-500">No tools available</div>
+            <div className="text-center py-8 text-gray-500">No tools available</div>
           ) : (
             tools.map((tool) => (
               <div
                 key={tool.name}
-                className="p-4 rounded-lg bg-navy-1000/50 border border-steel-800/50"
+                className="p-4 rounded-lg bg-white/50 border border-gray-200/50"
               >
                 <div className="flex items-start justify-between mb-2">
                   <span className="font-mono text-sm text-electric">{tool.name}</span>
                   {tool.server && (
-                    <span className="text-xs text-steel-600">{tool.server}</span>
+                    <span className="text-xs text-gray-400">{tool.server}</span>
                   )}
                 </div>
-                <p className="text-xs text-steel-400 mb-3">{tool.description || 'No description'}</p>
+                <p className="text-xs text-gray-600 mb-3">{tool.description || 'No description'}</p>
                 {tool.inputSchema && tool.inputSchema.properties && (
-                  <div className="text-xs text-steel-500">
-                    <span className="text-steel-600">Parameters:</span>{' '}
+                  <div className="text-xs text-gray-500">
+                    <span className="text-gray-400">Parameters:</span>{' '}
                     {Object.keys(tool.inputSchema.properties).join(', ')}
                   </div>
                 )}
@@ -553,22 +553,22 @@ export function MCPServerSettings() {
             <Server className="w-4 h-4 text-electric" />
           </div>
           <div>
-            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
               MCP Servers
             </h2>
-            <p className="text-xs text-steel-500">
+            <p className="text-xs text-gray-500">
               External MCP Server connections
             </p>
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={loadServers} className="btn-secondary">
+          <button onClick={loadServers} className="btn btn-secondary">
             <RefreshCw className="w-4 h-4" />
             Refresh
           </button>
           <button
             onClick={() => setShowAddModal(true)}
-            className="btn-primary"
+            className="btn btn-primary"
           >
             <Plus className="w-4 h-4" />
             Add Server
@@ -579,14 +579,14 @@ export function MCPServerSettings() {
       {/* Server List */}
       {servers.length === 0 ? (
         <div className="card text-center py-12">
-          <Server className="w-12 h-12 text-steel-600 mx-auto mb-4" />
-          <p className="text-steel-500 mb-2">No MCP Servers configured</p>
-          <p className="text-xs text-steel-600 mb-4">
+          <Server className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500 mb-2">No MCP Servers configured</p>
+          <p className="text-xs text-gray-400 mb-4">
             Add an external MCP Server to extend functionality
           </p>
           <button
             onClick={() => setShowAddModal(true)}
-            className="btn-primary mx-auto"
+            className="btn btn-primary mx-auto"
           >
             <Plus className="w-4 h-4" />
             Add Server
@@ -611,21 +611,21 @@ export function MCPServerSettings() {
 
       {/* Example Servers Info */}
       <div className="card">
-        <h3 className="font-display text-sm font-semibold text-text-primary mb-3">
+        <h3 className="font-display text-sm font-semibold text-gray-900 mb-3">
           Example MCP Servers
         </h3>
         <div className="space-y-2 text-xs">
-          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+          <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
             <div className="font-mono text-electric mb-1">filesystem</div>
-            <div className="text-steel-500">npx -y @modelcontextprotocol/server-filesystem /path</div>
+            <div className="text-gray-500">npx -y @modelcontextprotocol/server-filesystem /path</div>
           </div>
-          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+          <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
             <div className="font-mono text-electric mb-1">github</div>
-            <div className="text-steel-500">npx -y @modelcontextprotocol/server-github</div>
+            <div className="text-gray-500">npx -y @modelcontextprotocol/server-github</div>
           </div>
-          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+          <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
             <div className="font-mono text-electric mb-1">postgres</div>
-            <div className="text-steel-500">npx -y @modelcontextprotocol/server-postgres</div>
+            <div className="text-gray-500">npx -y @modelcontextprotocol/server-postgres</div>
           </div>
         </div>
       </div>

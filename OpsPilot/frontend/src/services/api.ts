@@ -45,6 +45,18 @@ class ApiService {
     });
   }
 
+  // ==================== 通用接口方法 ====================
+
+  async get<T = any>(url: string, params?: any): Promise<{ data: T }> {
+    const response = await this.client.get(url, { params });
+    return response.data;
+  }
+
+  async post<T = any>(url: string, data?: any): Promise<{ data: T }> {
+    const response = await this.client.post(url, data);
+    return response.data;
+  }
+
   // ==================== 任务接口 ====================
 
   async createTask(userInput: string): Promise<{ task_id: string; status: string }> {
@@ -254,10 +266,10 @@ class ApiService {
     return response.data;
   }
 
-  async callMCPTool(toolName: string, arguments: any, serverName?: string): Promise<any> {
+  async callMCPTool(toolName: string, args: any, serverName?: string): Promise<any> {
     const response = await this.client.post('/mcp/tools/call', {
       tool_name: toolName,
-      arguments,
+      arguments: args,
       server_name: serverName,
     });
     return response.data;

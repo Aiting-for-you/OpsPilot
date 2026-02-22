@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 # 尝试导入AgentScope
 try:
     import agentscope
-    from agentscope.memory import TemporaryMemory, LongTermMemory
+    from agentscope.memory import InMemoryMemory, LongTermMemoryBase
     AGENTSCOPE_MEMORY_AVAILABLE = True
 except ImportError:
     AGENTSCOPE_MEMORY_AVAILABLE = False
-    TemporaryMemory = object
-    LongTermMemory = object
+    InMemoryMemory = object
+    LongTermMemoryBase = object
     logger.warning("AgentScope未安装，ReMe记忆管理不可用")
 
 from opspilot.memory.base import MemoryEntry, SearchResult
@@ -38,7 +38,7 @@ class ReMeConfig:
     similarity_threshold: float = 0.7
 
 
-class ReMeMemory(TemporaryMemory if AGENTSCOPE_MEMORY_AVAILABLE else object):
+class ReMeMemory(InMemoryMemory if AGENTSCOPE_MEMORY_AVAILABLE else object):
     """
     AgentScope ReMe记忆管理
     

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -72,6 +73,7 @@ interface ObservabilityStatus {
 }
 
 const Monitoring: React.FC = () => {
+  const { t } = useTranslation();
   const [tokenUsage, setTokenUsage] = useState<TokenUsage | null>(null);
   const [agentUsage, setAgentUsage] = useState<Record<string, AgentUsage>>({});
   const [modelUsage, setModelUsage] = useState<Record<string, ModelUsage>>({});
@@ -88,26 +90,26 @@ const Monitoring: React.FC = () => {
     setError(null);
     try {
       const [usageRes, agentRes, modelRes, obsRes] = await Promise.all([
-        api.get('/tokens/usage'),
-        api.get('/tokens/by-agent'),
-        api.get('/tokens/by-model'),
-        api.get('/observability/status'),
+        api.get<any>('/tokens/usage'),
+        api.get<any>('/tokens/by-agent'),
+        api.get<any>('/tokens/by-model'),
+        api.get<any>('/observability/status'),
       ]);
       
-      if (usageRes.data.success) {
-        setTokenUsage(usageRes.data.data.total);
+      if (usageRes.success) {
+        setTokenUsage(usageRes.data.total);
       }
-      if (agentRes.data.success) {
-        setAgentUsage(agentRes.data.data);
+      if (agentRes.success) {
+        setAgentUsage(agentRes.data);
       }
-      if (modelRes.data.success) {
-        setModelUsage(modelRes.data.data);
+      if (modelRes.success) {
+        setModelUsage(modelRes.data);
       }
-      if (obsRes.data.success) {
-        setObservability(obsRes.data.data);
+      if (obsRes.success) {
+        setObservability(obsRes.data);
       }
     } catch (err: any) {
-      setError(err.message || '获取数据失败');
+      setError(err.message || t('monitoring.fetchError'));
     } finally {
       setLoading(false);
     }
@@ -144,7 +146,7 @@ const Monitoring: React.FC = () => {
       await api.post('/tokens/reset');
       fetchAllData();
     } catch (err: any) {
-      setError(err.message || '重置失败');
+      setError(err.message || t('monitoring.resetError'));
     }
   };
 
@@ -155,7 +157,7 @@ const Monitoring: React.FC = () => {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AssessmentIcon /> 监控面板
+          <AssessmentIcon /> {t('monitoring.title')}
         </Typography>
         <Button
           variant="outlined"
@@ -163,7 +165,7 @@ const Monitoring: React.FC = () => {
           onClick={fetchAllData}
           disabled={loading}
         >
-          刷新
+          {t('monitoring.refresh')}
         </Button>
       </Box>
 
@@ -173,9 +175,9 @@ const Monitoring: React.FC = () => {
         </Alert>
       )}
 
-      {/* Token 使用概览 */}
+      {/* Token Usage Overview */}
       <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <TokenIcon color="primary" /> Token 使用概览
+        <TokenIcon color="primary" /> {t('monitoring.tokenUsage')}
       </Typography>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -186,13 +188,13 @@ const Monitoring: React.FC = () => {
           }}>
             <CardContent>
               <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
-                总 Tokens
+                {t('monitoring.totalTokens')}
               </Typography>
               <Typography variant="h4">
                 {tokenUsage ? formatTokens(tokenUsage.total_tokens) : '0'}
               </Typography>
               <Typography variant="body2" sx={{ opacity: 0.8, mt: 1 }}>
-                {tokenUsage?.record_count || 0} 次调用
+                {tokenUsage?.record_count || 0} {t('monitoring.calls')}
               </Typography>
             </CardContent>
           </Card>
@@ -205,7 +207,7 @@ const Monitoring: React.FC = () => {
           }}>
             <CardContent>
               <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
-                提示词 Tokens
+                {t('monitoring.promptTokens')}
               </Typography>
               <Typography variant="h4">
                 {tokenUsage ? formatTokens(tokenUsage.prompt_tokens) : '0'}
@@ -221,7 +223,7 @@ const Monitoring: React.FC = () => {
           }}>
             <CardContent>
               <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
-                补全 Tokens
+                {t('monitoring.completionTokens')}
               </Typography>
               <Typography variant="h4">
                 {tokenUsage ? formatTokens(tokenUsage.completion_tokens) : '0'}
@@ -237,7 +239,7 @@ const Monitoring: React.FC = () => {
           }}>
             <CardContent>
               <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
-                总成本
+                {t('monitoring.totalCost')}
               </Typography>
               <Typography variant="h4">
                 {tokenUsage ? formatCost(tokenUsage.total_cost) : '$0.00'}
@@ -253,13 +255,13 @@ const Monitoring: React.FC = () => {
           color="warning"
           onClick={handleResetTokens}
         >
-          重置统计
+          {t('monitoring.resetStats')}
         </Button>
       </Box>
 
-      {/* 可观测性控制 */}
+      {/* Observability Control */}
       <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <MemoryIcon color="primary" /> 可观测性控制
+        <MemoryIcon color="primary" /> {t('monitoring.observabilityControl')}
       </Typography>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -270,7 +272,7 @@ const Monitoring: React.FC = () => {
                 <Box>
                   <Typography variant="h6">AgentScope Studio</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    多智能体可视化监控面板
+                    {t('monitoring.multiAgentPanel')}
                   </Typography>
                 </Box>
                 <FormControlLabel
@@ -293,14 +295,14 @@ const Monitoring: React.FC = () => {
                     endIcon={<OpenInNewIcon />}
                     onClick={() => window.open(observability.studio.dashboard_url!, '_blank')}
                   >
-                    打开 Dashboard
+                    {t('monitoring.openDashboard')}
                   </Button>
                 </Box>
               )}
               
               {!observability?.studio.available && (
                 <Alert severity="warning" sx={{ mt: 2 }}>
-                  AgentScope 未安装，Studio 功能不可用
+                  {t('monitoring.notInstalled')}
                 </Alert>
               )}
             </CardContent>
@@ -314,7 +316,7 @@ const Monitoring: React.FC = () => {
                 <Box>
                   <Typography variant="h6">LangSmith</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    LangChain 链路追踪平台
+                    {t('monitoring.langchainPanel')}
                   </Typography>
                 </Box>
                 <FormControlLabel
@@ -332,7 +334,7 @@ const Monitoring: React.FC = () => {
               {observability?.langsmith.initialized && observability.langsmith.project_url && (
                 <Box sx={{ mt: 2 }}>
                   <Typography variant="body2" color="text.secondary">
-                    项目: {observability.langsmith.project}
+                    {t('monitoring.project')}: {observability.langsmith.project}
                   </Typography>
                   <Button
                     variant="outlined"
@@ -341,14 +343,14 @@ const Monitoring: React.FC = () => {
                     onClick={() => window.open(observability.langsmith.project_url!, '_blank')}
                     sx={{ mt: 1 }}
                   >
-                    打开 LangSmith
+                    {t('monitoring.openLangSmith')}
                   </Button>
                 </Box>
               )}
               
               {!observability?.langsmith.available && (
                 <Alert severity="warning" sx={{ mt: 2 }}>
-                  LANGCHAIN_API_KEY 未设置
+                  {t('monitoring.notSet')}
                 </Alert>
               )}
             </CardContent>
@@ -356,9 +358,9 @@ const Monitoring: React.FC = () => {
         </Grid>
       </Grid>
 
-      {/* Agent 使用统计 */}
+      {/* Agent Token Usage */}
       <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <TrendingUpIcon color="primary" /> Agent Token 使用
+        <TrendingUpIcon color="primary" /> {t('monitoring.agentTokenUsage')}
       </Typography>
 
       <Card sx={{ mb: 3 }}>
@@ -367,18 +369,18 @@ const Monitoring: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Agent</TableCell>
-                <TableCell align="right">调用次数</TableCell>
-                <TableCell align="right">提示词 Tokens</TableCell>
-                <TableCell align="right">补全 Tokens</TableCell>
-                <TableCell align="right">总 Tokens</TableCell>
-                <TableCell align="right">成本</TableCell>
+                <TableCell align="right">{t('monitoring.callCount')}</TableCell>
+                <TableCell align="right">{t('monitoring.promptTokens')}</TableCell>
+                <TableCell align="right">{t('monitoring.completionTokens')}</TableCell>
+                <TableCell align="right">{t('monitoring.totalTokens')}</TableCell>
+                <TableCell align="right">{t('monitoring.cost')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {Object.entries(agentUsage).length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} align="center">
-                    暂无数据
+                    {t('monitoring.noData')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -400,9 +402,9 @@ const Monitoring: React.FC = () => {
         </TableContainer>
       </Card>
 
-      {/* 模型使用统计 */}
+      {/* Model Token Usage */}
       <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <MemoryIcon color="primary" /> 模型 Token 使用
+        <MemoryIcon color="primary" /> {t('monitoring.modelUsage')}
       </Typography>
 
       <Card>
@@ -410,19 +412,19 @@ const Monitoring: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>模型</TableCell>
-                <TableCell align="right">调用次数</TableCell>
-                <TableCell align="right">提示词 Tokens</TableCell>
-                <TableCell align="right">补全 Tokens</TableCell>
-                <TableCell align="right">总 Tokens</TableCell>
-                <TableCell align="right">成本</TableCell>
+                <TableCell>{t('monitoring.model')}</TableCell>
+                <TableCell align="right">{t('monitoring.callCount')}</TableCell>
+                <TableCell align="right">{t('monitoring.promptTokens')}</TableCell>
+                <TableCell align="right">{t('monitoring.completionTokens')}</TableCell>
+                <TableCell align="right">{t('monitoring.totalTokens')}</TableCell>
+                <TableCell align="right">{t('monitoring.cost')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {Object.entries(modelUsage).length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} align="center">
-                    暂无数据
+                    {t('monitoring.noData')}
                   </TableCell>
                 </TableRow>
               ) : (

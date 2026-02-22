@@ -146,35 +146,35 @@ export function Tracing() {
     if (name.startsWith('llm.')) return <MessageSquare className="w-4 h-4 text-warning" />;
     if (name.startsWith('agent.')) return <Cpu className="w-4 h-4 text-electric" />;
     if (name.startsWith('tool.')) return <Wrench className="w-4 h-4 text-success" />;
-    return <Activity className="w-4 h-4 text-steel-500" />;
+    return <Activity className="w-4 h-4 text-gray-500" />;
   };
 
   // Get status icon
   const getStatusIcon = (status: string) => {
     if (status === 'OK') return <CheckCircle className="w-4 h-4 text-success" />;
     if (status === 'ERROR') return <XCircle className="w-4 h-4 text-error" />;
-    return <Clock className="w-4 h-4 text-steel-500" />;
+    return <Clock className="w-4 h-4 text-gray-500" />;
   };
 
   // Span detail panel
   const SpanDetail = ({ span }: { span: TraceSpan }) => (
     <div className="space-y-4">
-      <div className="flex items-center justify-between p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+      <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 border border-gray-200/50">
         <div className="flex items-center gap-2">
           {getSpanIcon(span.name)}
-          <span className="font-display text-sm font-medium text-text-primary">{span.name}</span>
+          <span className="font-display text-sm font-medium text-gray-900">{span.name}</span>
         </div>
         {getStatusIcon(span.status)}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-          <div className="text-xs text-steel-500 mb-1">{t('tracing.spanName')}</div>
+        <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
+          <div className="text-xs text-gray-500 mb-1">{t('tracing.spanName')}</div>
           <div className="font-mono text-xs text-electric">{span.span_id}</div>
         </div>
-        <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
-          <div className="text-xs text-steel-500 mb-1">{t('tracing.duration')}</div>
-          <div className="font-mono text-xs text-text-secondary">{span.duration_ms.toFixed(2)}ms</div>
+        <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
+          <div className="text-xs text-gray-500 mb-1">{t('tracing.duration')}</div>
+          <div className="font-mono text-xs text-gray-600">{span.duration_ms.toFixed(2)}ms</div>
         </div>
       </div>
 
@@ -182,11 +182,11 @@ export function Tracing() {
       {Object.keys(span.attributes).length > 0 && (
         <div>
           <div className="label mb-2">{t('tracing.attributes')}</div>
-          <div className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50 font-mono text-xs space-y-1">
+          <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50 font-mono text-xs space-y-1">
             {Object.entries(span.attributes).map(([key, value]) => (
               <div key={key} className="flex">
                 <span className="text-electric">{key}:</span>
-                <span className="text-steel-400 ml-2">
+                <span className="text-gray-600 ml-2">
                   {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                 </span>
               </div>
@@ -201,13 +201,13 @@ export function Tracing() {
           <div className="label mb-2">{t('tracing.details')}</div>
           <div className="space-y-2">
             {span.events.map((event, idx) => (
-              <div key={idx} className="p-3 rounded-lg bg-navy-1000/50 border border-steel-800/50">
+              <div key={idx} className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
                 <div className="flex items-center gap-2">
                   <Zap className="w-3 h-3 text-warning" />
-                  <span className="text-xs text-text-primary">{event.name}</span>
+                  <span className="text-xs text-gray-900">{event.name}</span>
                 </div>
                 {Object.keys(event.attributes).length > 0 && (
-                  <div className="mt-2 font-mono text-xs text-steel-500">
+                  <div className="mt-2 font-mono text-xs text-gray-500">
                     {JSON.stringify(event.attributes)}
                   </div>
                 )}
@@ -226,13 +226,13 @@ export function Tracing() {
     const timeline = getTimelinePosition(span);
 
     return (
-      <div className="border-l border-steel-800/50 ml-3">
+      <div className="border-l border-gray-200/50 ml-3">
         <div
           className={`
             flex items-center gap-3 py-2.5 px-3 cursor-pointer transition-all
             ${selectedSpan?.span_id === span.span_id 
               ? 'bg-electric/5 border-l-2 border-l-electric -ml-0.5 pl-2.5' 
-              : 'hover:bg-navy-1000/30'
+              : 'hover:bg-white/30'
             }
           `}
           style={{ paddingLeft: `${depth * 16 + 12}px` }}
@@ -244,7 +244,7 @@ export function Tracing() {
                 e.stopPropagation();
                 toggleExpand(span.span_id);
               }}
-              className="text-steel-500 hover:text-electric transition-colors"
+              className="text-gray-500 hover:text-electric transition-colors"
             >
               {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </button>
@@ -252,14 +252,14 @@ export function Tracing() {
           {children.length === 0 && <div className="w-4" />}
           
           {getSpanIcon(span.name)}
-          <span className="text-sm text-text-secondary flex-1 truncate">{span.name}</span>
-          <span className="font-mono text-xs text-steel-500">{span.duration_ms.toFixed(1)}ms</span>
+          <span className="text-sm text-gray-600 flex-1 truncate">{span.name}</span>
+          <span className="font-mono text-xs text-gray-500">{span.duration_ms.toFixed(1)}ms</span>
           {getStatusIcon(span.status)}
         </div>
 
         {/* Timeline bar */}
         <div 
-          className="h-1 bg-navy-1000/50 relative mb-1 rounded-full overflow-hidden"
+          className="h-1 bg-white/50 relative mb-1 rounded-full overflow-hidden"
           style={{ marginLeft: `${depth * 16 + 28}px`, marginRight: '16px' }}
         >
           <div
@@ -288,10 +288,10 @@ export function Tracing() {
             <Network className="w-4 h-4 text-electric" />
           </div>
           <div>
-            <h1 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h1 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
               {t('tracing.title')}
             </h1>
-            <p className="text-xs text-steel-500">OpenTelemetry · LLM/Agent/Tool traces</p>
+            <p className="text-xs text-gray-500">OpenTelemetry · LLM/Agent/Tool traces</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -302,7 +302,7 @@ export function Tracing() {
               className={`px-3 py-1.5 rounded-md text-xs font-mono uppercase transition-all ${
                 filter === f
                   ? 'bg-electric/20 text-electric border border-electric/30'
-                  : 'bg-navy-1000/50 text-steel-500 border border-steel-800/50 hover:border-steel-700'
+                  : 'bg-white/50 text-gray-500 border border-gray-200/50 hover:border-gray-300'
               }`}
             >
               {f}
@@ -339,7 +339,7 @@ export function Tracing() {
             <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
               <Activity className="w-4 h-4 text-success" />
             </div>
-            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
               Call Chain
             </h2>
           </div>
@@ -356,14 +356,14 @@ export function Tracing() {
             <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
               <Zap className="w-4 h-4 text-warning" />
             </div>
-            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
               {t('tracing.details')}
             </h2>
           </div>
           {selectedSpan ? (
             <SpanDetail span={selectedSpan} />
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-steel-500">
+            <div className="flex flex-col items-center justify-center py-12 text-gray-500">
               <Activity className="w-10 h-10 mb-3 opacity-20" />
               <p className="text-sm">{t('tracing.noTraces')}</p>
             </div>
@@ -377,13 +377,13 @@ export function Tracing() {
           <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center">
             <Clock className="w-4 h-4 text-electric" />
           </div>
-          <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+          <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
             {t('tracing.timeline')}
           </h2>
         </div>
         
         {/* Time markers */}
-        <div className="flex justify-between text-xs text-steel-600 mb-3 font-mono px-44">
+        <div className="flex justify-between text-xs text-gray-400 mb-3 font-mono px-44">
           <span>0ms</span>
           <span>1s</span>
           <span>2s</span>
@@ -398,10 +398,10 @@ export function Tracing() {
             const timeline = getTimelinePosition(span);
             return (
               <div key={span.span_id} className="flex items-center gap-3">
-                <div className="w-40 text-xs text-steel-400 truncate font-mono">
+                <div className="w-40 text-xs text-gray-600 truncate font-mono">
                   {span.name}
                 </div>
-                <div className="flex-1 h-6 bg-navy-1000/50 rounded relative overflow-hidden">
+                <div className="flex-1 h-6 bg-white/50 rounded relative overflow-hidden">
                   <div
                     className={`absolute h-full rounded flex items-center px-2 text-xs ${
                       span.status === 'OK' ? 'bg-electric' : 

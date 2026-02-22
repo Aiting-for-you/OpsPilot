@@ -115,17 +115,17 @@ const ToolOptimization: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/tools');
-      if (response.data.success) {
-        const tools = response.data.tools || [];
-        const indexRes = await api.post('/tools/index', {
+      const response = await api.get<any>('/tools');
+      if (response.success) {
+        const tools = response.tools || [];
+        const indexRes = await api.post<any>('/tools/index', {
           tools,
           force_rebuild: true,
         });
         
-        if (indexRes.data.success) {
-          setIndexStats(indexRes.data);
-          setSuccess(t('toolOptimization.indexedSuccess', { count: indexRes.data.indexed_count }));
+        if (indexRes.success) {
+          setIndexStats(indexRes);
+          setSuccess(t('toolOptimization.indexedSuccess', { count: indexRes.indexed_count }));
         }
       }
     } catch (err: any) {
@@ -144,17 +144,17 @@ const ToolOptimization: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post('/tools/retrieve', {
+      const response = await api.post<any>('/tools/retrieve', {
         query,
         max_tools: maxTools,
         max_tokens: maxTokens,
         strategy,
       });
 
-      if (response.data.success) {
-        setRetrievedTools(response.data.tools);
-        setRetrievalTime(response.data.retrieval_time_ms);
-        setSuccess(t('toolOptimization.retrievedSuccess', { count: response.data.tools.length }));
+      if (response.success) {
+        setRetrievedTools(response.tools);
+        setRetrievalTime(response.retrieval_time_ms);
+        setSuccess(t('toolOptimization.retrievedSuccess', { count: response.tools.length }));
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || t('toolOptimization.searchError'));
@@ -172,20 +172,20 @@ const ToolOptimization: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post('/tools/compress', {
+      const response = await api.post<any>('/tools/compress', {
         tools: retrievedTools,
         level: compressLevel,
         max_tokens_per_tool: maxTokensPerTool,
       });
 
-      if (response.data.success) {
-        setCompressedTools(response.data.compressed_tools);
+      if (response.success) {
+        setCompressedTools(response.compressed_tools);
         setCompressionStats({
-          original_tokens: response.data.original_tokens,
-          compressed_tokens: response.data.compressed_tokens,
-          compression_ratio: response.data.compression_ratio,
+          original_tokens: response.original_tokens,
+          compressed_tokens: response.compressed_tokens,
+          compression_ratio: response.compression_ratio,
         });
-        setSuccess(t('toolOptimization.compressSuccess', { ratio: (response.data.compression_ratio * 100).toFixed(1) }));
+        setSuccess(t('toolOptimization.compressSuccess', { ratio: (response.compression_ratio * 100).toFixed(1) }));
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || t('toolOptimization.compressError'));
@@ -215,18 +215,18 @@ const ToolOptimization: React.FC = () => {
         return;
       }
 
-      const response = await api.post('/tools/heal', {
+      const response = await api.post<any>('/tools/heal', {
         tool_name: healToolName,
         params,
         error_info: errorInfo,
         max_retries: 3,
       });
 
-      if (response.data.success) {
-        setHealResult(response.data);
+      if (response.success) {
+        setHealResult(response);
         setSuccess(t('toolOptimization.healSuccess'));
       } else {
-        setHealResult(response.data);
+        setHealResult(response);
         setError(t('toolOptimization.healError'));
       }
     } catch (err: any) {

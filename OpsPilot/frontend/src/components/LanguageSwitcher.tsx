@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { Globe, Check } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { languages, LanguageCode } from '../../i18n';
+import { languages, LanguageCode } from '../i18n';
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
@@ -15,7 +15,6 @@ export function LanguageSwitcher() {
     setIsOpen(false);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -29,49 +28,28 @@ export function LanguageSwitcher() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-md 
-          bg-steel-900/50 border border-steel-800/50 
-          hover:border-steel-700 hover:bg-steel-800/50 
-          transition-all duration-150"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md hover:bg-gray-100 transition-colors"
       >
-        <Globe className="w-4 h-4 text-steel-400" />
-        <span className="text-sm text-steel-300">{currentLanguage.flag}</span>
-        <span className="text-xs text-steel-400 font-medium hidden sm:inline">
-          {currentLanguage.name}
-        </span>
+        <Globe className="w-4 h-4 text-gray-500" />
+        <span className="text-sm text-gray-600">{currentLanguage.flag}</span>
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
-        <div
-          className="absolute right-0 mt-2 w-40 py-1 rounded-lg 
-            bg-steel-900/95 backdrop-blur-xl border border-steel-800/50 
-            shadow-lg shadow-navy-950/50 z-50
-            animate-fade-in"
-        >
+        <div className="absolute right-0 mt-1 py-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[120px]">
           {languages.map((lang) => (
             <button
               key={lang.code}
               onClick={() => changeLanguage(lang.code)}
-              className={`
-                w-full flex items-center justify-between px-3 py-2 
-                text-sm transition-colors
-                ${i18n.language === lang.code
-                  ? 'text-electric bg-electric/5'
-                  : 'text-steel-300 hover:text-text-primary hover:bg-steel-800/50'
-                }
-              `}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
+                i18n.language === lang.code
+                  ? 'text-blue-600 bg-blue-50'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
             >
-              <div className="flex items-center gap-2">
-                <span>{lang.flag}</span>
-                <span>{lang.name}</span>
-              </div>
-              {i18n.language === lang.code && (
-                <Check className="w-4 h-4 text-electric" />
-              )}
+              <span>{lang.flag}</span>
+              <span>{lang.name}</span>
             </button>
           ))}
         </div>

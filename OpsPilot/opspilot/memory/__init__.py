@@ -26,6 +26,11 @@ from opspilot.memory.base import (
     MemoryManager,
 )
 
+from opspilot.memory.memory_factory import (
+    MemoryFactory,
+    MemoryProvider,
+)
+
 from opspilot.memory.short_term import (
     InMemoryShortTermStore,
     ShortTermMemory,
@@ -111,6 +116,10 @@ __all__ = [
     "SearchResult",
     "BaseMemoryStore",
     "MemoryManager",
+    # 工厂
+    "MemoryFactory",
+    "MemoryProvider",
+    "create_memory_handler",
     # 短期记忆（Redis）
     "InMemoryShortTermStore",
     "ShortTermMemory",

@@ -16,11 +16,11 @@ logger = logging.getLogger(__name__)
 # 尝试导入AgentScope
 try:
     import agentscope
-    from agentscope.evaluation import Evaluator
+    from agentscope.evaluate import EvaluatorBase
     AGENTSCOPE_AVAILABLE = True
 except ImportError:
     AGENTSCOPE_AVAILABLE = False
-    Evaluator = object
+    EvaluatorBase = object
     logger.warning("AgentScope未安装，AgentScopeEvaluator不可用")
 
 from opspilot.evaluation.metrics import (
@@ -58,7 +58,7 @@ class AgentMetrics:
         }
 
 
-class AgentScopeEvaluator(Evaluator if AGENTSCOPE_AVAILABLE else object):
+class AgentScopeEvaluator(EvaluatorBase if AGENTSCOPE_AVAILABLE else object):
     """
     AgentScope评估器
     

@@ -6,15 +6,19 @@
 - 管理任务执行流程
 - 集成状态机、记忆、工具
 """
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, TYPE_CHECKING
 from datetime import datetime
 import asyncio
 
 from opspilot.core.state_machine import StateMachine, State
 from opspilot.core.context import TaskContext, ContextManager
 from opspilot.core.events import EventBus, StateChangedEvent, TaskCreatedEvent, TaskCompletedEvent
-from opspilot.agents.base import AgentRegistry, BaseAgent, AgentContext
-from opspilot.agents.intent_agent import IntentType
+
+# 使用 TYPE_CHECKING 避免循环导入
+if TYPE_CHECKING:
+    from opspilot.agents.base import AgentRegistry, BaseAgent, AgentContext
+    from opspilot.agents.intent_agent import IntentType
+
 from opspilot.memory.base import MemoryManager
 from opspilot.memory.short_term import ShortTermMemory
 from opspilot.memory.knowledge import KnowledgeBase
@@ -30,7 +34,7 @@ class Orchestrator:
 
     def __init__(
         self,
-        agent_registry: Optional[AgentRegistry] = None,
+        agent_registry: Optional["AgentRegistry"] = None,
         context_manager: Optional[ContextManager] = None,
         memory_manager: Optional[MemoryManager] = None,
         tool_router: Optional[ToolRouter] = None
@@ -44,7 +48,9 @@ class Orchestrator:
             memory_manager: 记忆管理器
             tool_router: 工具路由器
         """
-        self._agent_registry = agent_registry or AgentRegistry()
+        # 延迟导入避免循环依赖
+        from opspilot.agents.base import AgentRegistry as _AgentRegistry
+        self._agent_registry = agent_registry or _AgentRegistry()
         self._context_manager = context_manager or ContextManager()
         self._memory_manager = memory_manager or MemoryManager()
         self._tool_router = tool_router
@@ -196,6 +202,7 @@ class Orchestrator:
     async def _run_intent_agent(self, task_context: TaskContext) -> Dict[str, Any]:
         """运行意图识别 Agent"""
         from opspilot.agents.intent_agent import MockIntentAgent
+        from opspilot.agents.base import AgentContext
 
         agent = self._agent_registry.get("IntentAgent") or MockIntentAgent()
 
@@ -211,6 +218,7 @@ class Orchestrator:
     async def _run_plan_agent(self, task_context: TaskContext) -> Dict[str, Any]:
         """运行规划 Agent"""
         from opspilot.agents.plan_agent import MockPlanAgent
+        from opspilot.agents.base import AgentContext
 
         agent = self._agent_registry.get("PlanAgent") or MockPlanAgent()
 
@@ -253,6 +261,7 @@ class Orchestrator:
     async def _run_exec_agent(self, task_context: TaskContext) -> Dict[str, Any]:
         """运行执行 Agent"""
         from opspilot.agents.exec_agent import MockExecAgent
+        from opspilot.agents.base import AgentContext
 
         agent = self._agent_registry.get("ExecAgent") or MockExecAgent()
 
@@ -272,6 +281,7 @@ class Orchestrator:
     async def _run_verify_agent(self, task_context: TaskContext) -> Dict[str, Any]:
         """运行验证 Agent"""
         from opspilot.agents.verify_agent import MockVerifyAgent
+        from opspilot.agents.base import AgentContext
 
         agent = self._agent_registry.get("VerifyAgent") or MockVerifyAgent()
 

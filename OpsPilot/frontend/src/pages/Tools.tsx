@@ -51,10 +51,10 @@ export function Tools() {
               <Wrench className="w-4 h-4 text-electric" />
             </div>
             <div>
-              <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+              <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
                 {t('tools.toolLibrary')}
               </h2>
-              <p className="text-xs text-steel-500">{tools.length} {t('tools.availableTools').toLowerCase()}</p>
+              <p className="text-xs text-gray-500">{tools.length} {t('tools.availableTools').toLowerCase()}</p>
             </div>
           </div>
 
@@ -65,7 +65,7 @@ export function Tools() {
           ) : (
             <div className="space-y-2 max-h-[500px] overflow-y-auto scrollbar-custom">
               {tools.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-steel-500">
+                <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                   <Wrench className="w-8 h-8 mb-2 opacity-30" />
                   <p className="text-sm">{t('tools.noTools')}</p>
                 </div>
@@ -81,7 +81,7 @@ export function Tools() {
                       group p-3 rounded-lg cursor-pointer border transition-all duration-150
                       ${selectedTool?.name === tool.name
                         ? 'bg-electric/5 border-electric/30'
-                        : 'bg-navy-1000/50 border-steel-800/50 hover:border-steel-700'
+                        : 'bg-white/50 border-gray-200/50 hover:border-gray-300'
                       }
                     `}
                   >
@@ -89,11 +89,11 @@ export function Tools() {
                       <div className={`w-1.5 h-1.5 rounded-full ${
                         selectedTool?.name === tool.name ? 'bg-electric' : 'bg-steel-600'
                       }`} />
-                      <span className="font-display text-sm font-medium text-text-primary">
+                      <span className="font-display text-sm font-medium text-gray-900">
                         {tool.name}
                       </span>
                     </div>
-                    <p className="text-xs text-steel-500 line-clamp-2 ml-3.5">
+                    <p className="text-xs text-gray-500 line-clamp-2 ml-3.5">
                       {tool.description}
                     </p>
                   </div>
@@ -109,27 +109,27 @@ export function Tools() {
             <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
               <Terminal className="w-4 h-4 text-success" />
             </div>
-            <h2 className="font-display text-sm font-semibold text-text-primary uppercase tracking-wide">
+            <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
               {t('tools.executeTool')}
             </h2>
           </div>
 
           {!selectedTool ? (
-            <div className="flex flex-col items-center justify-center py-16 text-steel-500">
+            <div className="flex flex-col items-center justify-center py-16 text-gray-500">
               <Wrench className="w-12 h-12 mb-3 opacity-20" />
               <p className="text-sm">{t('tools.noToolSelected')}</p>
             </div>
           ) : (
             <div className="space-y-5">
               {/* Tool Info */}
-              <div className="p-4 rounded-lg bg-navy-1000/50 border border-electric/20">
+              <div className="p-4 rounded-lg bg-white/50 border border-electric/20">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 rounded-full bg-electric" />
                   <span className="font-display text-sm font-semibold text-electric">
                     {selectedTool.name}
                   </span>
                 </div>
-                <p className="text-sm text-steel-400 ml-4">
+                <p className="text-sm text-gray-600 ml-4">
                   {selectedTool.description}
                 </p>
               </div>
@@ -138,7 +138,7 @@ export function Tools() {
               {selectedTool.input_schema && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Code className="w-4 h-4 text-steel-500" />
+                    <Code className="w-4 h-4 text-gray-500" />
                     <span className="label mb-0">Input Schema</span>
                   </div>
                   <pre className="code-block max-h-40 text-xs">
@@ -150,7 +150,7 @@ export function Tools() {
               {/* Params Input */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-4 h-4 text-steel-500" />
+                  <Zap className="w-4 h-4 text-gray-500" />
                   <span className="label mb-0">{t('tools.parameters')} (JSON)</span>
                 </div>
                 <textarea
@@ -192,10 +192,10 @@ export function Tools() {
                     <span className="label mb-0">{t('tools.result')}</span>
                   </div>
                   
-                  <div className="p-4 rounded-lg bg-navy-1000/50 border border-steel-800/50 space-y-3">
+                  <div className="p-4 rounded-lg bg-white/50 border border-gray-200/50 space-y-3">
                     {/* Latency */}
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-steel-500">{t('tools.executionTime')}</span>
+                      <span className="text-xs text-gray-500">{t('tools.executionTime')}</span>
                       <span className="font-mono text-xs text-electric">
                         {callToolMutation.data.latency_ms}ms
                       </span>
@@ -204,7 +204,7 @@ export function Tools() {
                     {/* Fallback Mode */}
                     {callToolMutation.data.fallback_mode && (
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-steel-500">Fallback Mode</span>
+                        <span className="text-xs text-gray-500">Fallback Mode</span>
                         <span className="font-mono text-xs text-warning">
                           {callToolMutation.data.fallback_mode}
                         </span>

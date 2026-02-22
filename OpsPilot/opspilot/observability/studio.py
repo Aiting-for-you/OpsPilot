@@ -103,16 +103,19 @@ class StudioIntegration:
         try:
             import agentscope
             
-            # 初始化 AgentScope with Studio
+            # 初始化 AgentScope (AgentScope 1.0.16+ API)
+            # 注意：studio_url 需要 Studio 服务器运行才能连接
+            # 这里先不设置 studio_url，让它可以独立运行
             agentscope.init(
-                model_configs=self.config.model_configs,
-                **self.config.to_agentscope_config()
+                project="opsilot",
+                name="opsilot-studio",
+                logging_path=self.config.save_dir,
+                logging_level="INFO" if self.config.enable_logging else "WARNING",
             )
             
             self._initialized = True
             logger.info(
-                f"AgentScope Studio started at "
-                f"http://{self.config.host}:{self.config.port}"
+                f"AgentScope initialized (studio_url can be set when Studio server is running)"
             )
             return True
             

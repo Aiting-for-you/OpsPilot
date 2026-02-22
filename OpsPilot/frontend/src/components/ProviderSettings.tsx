@@ -60,11 +60,11 @@ export function ProviderSettings() {
         api.get('/providers/list'),
       ]);
 
-      if (statusRes.data.success) {
-        setStatus(statusRes.data);
+      if (statusRes.success) {
+        setStatus(statusRes);
       }
-      if (listRes.data.success) {
-        setProviders(listRes.data);
+      if (listRes.success) {
+        setProviders(listRes);
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || '获取数据失败');
@@ -82,8 +82,8 @@ export function ProviderSettings() {
         provider: providerName,
       });
 
-      if (response.data.success) {
-        setSuccess(response.data.message);
+      if (response.success) {
+        setSuccess(response.message);
         // 更新状态
         if (status) {
           setStatus({
@@ -137,16 +137,18 @@ export function ProviderSettings() {
                 选择用于处理敏感操作审批的服务
               </Typography>
               
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>当前审批提供者</InputLabel>
+              <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                <InputLabel id="approval-provider-label">当前审批提供者</InputLabel>
                 <Select
+                  labelId="approval-provider-label"
                   value={status?.approval_provider || ''}
                   onChange={(e) => handleProviderChange('approval', e.target.value)}
                   disabled={loading}
+                  label="当前审批提供者"
                 >
                   {providers?.approval_providers.map((provider) => (
                     <MenuItem key={provider.name} value={provider.name}>
-                      <Box>
+                      <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
                         <Typography>{provider.description}</Typography>
                         {provider.name === status?.approval_provider && (
                           <Chip
@@ -200,16 +202,18 @@ export function ProviderSettings() {
                 选择用于管理对话记忆的服务
               </Typography>
               
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>当前记忆提供者</InputLabel>
+              <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                <InputLabel id="memory-provider-label">当前记忆提供者</InputLabel>
                 <Select
+                  labelId="memory-provider-label"
                   value={status?.memory_provider || ''}
                   onChange={(e) => handleProviderChange('memory', e.target.value)}
                   disabled={loading}
+                  label="当前记忆提供者"
                 >
                   {providers?.memory_providers.map((provider) => (
                     <MenuItem key={provider.name} value={provider.name}>
-                      <Box>
+                      <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
                         <Typography>{provider.description}</Typography>
                         {provider.name === status?.memory_provider && (
                           <Chip
@@ -263,16 +267,18 @@ export function ProviderSettings() {
                 选择用于评估Agent性能的服务
               </Typography>
               
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>当前评估提供者</InputLabel>
+              <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
+                <InputLabel id="evaluation-provider-label">当前评估提供者</InputLabel>
                 <Select
+                  labelId="evaluation-provider-label"
                   value={status?.evaluation_provider || ''}
                   onChange={(e) => handleProviderChange('evaluation', e.target.value)}
                   disabled={loading}
+                  label="当前评估提供者"
                 >
                   {providers?.evaluation_providers.map((provider) => (
                     <MenuItem key={provider.name} value={provider.name}>
-                      <Box>
+                      <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
                         <Typography>{provider.description}</Typography>
                         {provider.name === status?.evaluation_provider && (
                           <Chip

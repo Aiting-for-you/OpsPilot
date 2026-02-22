@@ -495,12 +495,12 @@ class ModernTheme:
     }
     
     # 字体
-    FONTS: Dict[str, tuple[str, int, Optional[str]]] = {
+    FONTS: Dict[str, tuple[str, int, str]] = {
         "title": ("Segoe UI", 18, "bold"),
         "subtitle": ("Segoe UI", 12, "bold"),
-        "normal": ("Segoe UI", 10, None),
-        "small": ("Segoe UI", 9, None),
-        "mono": ("Consolas", 9, None),
+        "normal": ("Segoe UI", 10, "normal"),
+        "small": ("Segoe UI", 9, "normal"),
+        "mono": ("Consolas", 9, "normal"),
     }
 
 
@@ -734,9 +734,7 @@ class ManagerGUI:
         self.service_widgets: Dict[str, Dict[str, Any]] = {}
         
         for idx, (name, config) in enumerate(self.manager.SERVICES.items()):
-            card = self.create_service_card(cards_frame, name, config)
-            card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0 if idx == 0 else 10, 0))
-            
+            # 先初始化 service_widgets
             self.service_widgets[name] = {
                 'status_label': None,
                 'link_label': None,
@@ -748,6 +746,9 @@ class ManagerGUI:
                 'stop_btn': None,
                 'restart_btn': None,
             }
+            # 再创建卡片
+            card = self.create_service_card(cards_frame, name, config)
+            card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0 if idx == 0 else 10, 0))
     
     def create_service_card(self, parent: tk.Widget, name: str, config: ServiceConfig) -> ttk.Frame:
         """创建单个服务卡片"""
