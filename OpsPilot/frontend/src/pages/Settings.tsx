@@ -261,7 +261,7 @@ export function Settings() {
               {t('settings.title') || 'Settings'}
             </h1>
             <p className="text-xs text-gray-500">
-              {activeTab === 'llm' ? t('settings.provider') : 'External MCP Servers'}
+              {activeTab === 'llm' ? t('settings.provider') : t('settings.externalMCPServers')}
             </p>
           </div>
         </div>
@@ -406,7 +406,7 @@ export function Settings() {
                 </div>
               </div>
               <span className="text-gray-500 text-xs font-mono">
-                {isExpanded ? 'CLOSE' : 'EXPAND'}
+                {isExpanded ? t('settings.close') : t('settings.expand')}
               </span>
             </div>
 
@@ -673,7 +673,7 @@ export function Settings() {
                     onClick={toggleSelectAll}
                     className="text-xs text-electric hover:underline"
                   >
-                    {selectedModels.size === fetchedModels.length ? 'Deselect All' : 'Select All'}
+                    {selectedModels.size === fetchedModels.length ? t('settings.deselectAll') : t('settings.selectAll')}
                   </button>
                 </div>
 

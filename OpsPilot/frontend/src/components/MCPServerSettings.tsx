@@ -40,11 +40,12 @@ interface MCPTool {
 
 // Status Badge Component
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const config: Record<string, { bg: string; text: string; label: string }> = {
-    connected: { bg: 'bg-success/20', text: 'text-success', label: 'Connected' },
-    disconnected: { bg: 'bg-gray-300', text: 'text-gray-600', label: 'Disconnected' },
-    connecting: { bg: 'bg-warning/20', text: 'text-warning', label: 'Connecting...' },
-    error: { bg: 'bg-error/20', text: 'text-error', label: 'Error' },
+    connected: { bg: 'bg-success/20', text: 'text-success', label: t('mcp.connected') },
+    disconnected: { bg: 'bg-gray-300', text: 'text-gray-600', label: t('mcp.disconnected') },
+    connecting: { bg: 'bg-warning/20', text: 'text-warning', label: t('mcp.connecting') },
+    error: { bg: 'bg-error/20', text: 'text-error', label: t('mcp.error') },
   };
   const { bg, text, label } = config[status] || config.disconnected;
 
@@ -265,7 +266,7 @@ function ServerModal({
               <Terminal className="w-4 h-4 text-electric" />
             </div>
             <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
-              {server ? 'Edit Server' : 'Add MCP Server'}
+              {server ? t('mcp.editServer') : t('mcp.addServer')}
             </h2>
           </div>
           <button
@@ -427,7 +428,7 @@ function ToolsModal({
                     <span className="text-xs text-gray-400">{tool.server}</span>
                   )}
                 </div>
-                <p className="text-xs text-gray-600 mb-3">{tool.description || 'No description'}</p>
+                <p className="text-xs text-gray-600 mb-3">{tool.description || t('common.noDescription')}</p>
                 {tool.inputSchema && tool.inputSchema.properties && (
                   <div className="text-xs text-gray-500">
                     <span className="text-gray-400">Parameters:</span>{' '}
