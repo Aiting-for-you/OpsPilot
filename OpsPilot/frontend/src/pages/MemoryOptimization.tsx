@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -30,7 +31,7 @@ import {
 } from '@mui/material';
 import {
   Memory as MemoryIcon,
-  Weight as WeightIcon,
+  FitnessCenter as WeightIcon,
   Warning as WarningIcon,
   Merge as MergeIcon,
   Assessment as AssessmentIcon,
@@ -87,6 +88,7 @@ interface KnowledgePattern {
 }
 
 const MemoryOptimization: React.FC = () => {
+  const { t } = useTranslation();
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +131,7 @@ const MemoryOptimization: React.FC = () => {
 
   const handleCalculateWeight = async () => {
     if (!weightContent.trim()) {
-      setError('请输入记忆内容');
+      setError(t('memoryOptimization.contentRequired'));
       return;
     }
 
@@ -140,7 +142,7 @@ const MemoryOptimization: React.FC = () => {
       try {
         metadata = JSON.parse(weightMetadata);
       } catch {
-        setError('元数据格式不正确');
+        setError(t('memoryOptimization.metadataFormatError'));
         setLoading(false);
         return;
       }
@@ -156,10 +158,10 @@ const MemoryOptimization: React.FC = () => {
           weight: response.data.weight,
           factors: response.data.factors,
         });
-        setSuccess(`权重计算完成: ${response.data.weight.toFixed(4)}`);
+        setSuccess(t('memoryOptimization.weightComplete', { weight: response.data.weight.toFixed(4) }));
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || '权重计算失败');
+      setError(err.response?.data?.detail || t('memoryOptimization.weightError'));
     } finally {
       setLoading(false);
     }
@@ -173,7 +175,7 @@ const MemoryOptimization: React.FC = () => {
       try {
         memories = JSON.parse(conflictMemories);
       } catch {
-        setError('记忆列表格式不正确');
+        setError(t('memoryOptimization.memoryListFormatError'));
         setLoading(false);
         return;
       }
@@ -186,10 +188,10 @@ const MemoryOptimization: React.FC = () => {
       if (response.data.success) {
         setConflicts(response.data.conflicts);
         setResolutions(response.data.resolutions);
-        setSuccess(`检测到 ${response.data.conflict_count} 个冲突`);
+        setSuccess(t('memoryOptimization.conflictDetected', { count: response.data.conflict_count }));
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || '冲突检测失败');
+      setError(err.response?.data?.detail || t('memoryOptimization.conflictError'));
     } finally {
       setLoading(false);
     }
@@ -203,7 +205,7 @@ const MemoryOptimization: React.FC = () => {
       try {
         memories = JSON.parse(consolidateMemories);
       } catch {
-        setError('记忆列表格式不正确');
+        setError(t('memoryOptimization.memoryListFormatError'));
         setLoading(false);
         return;
       }
@@ -221,10 +223,10 @@ const MemoryOptimization: React.FC = () => {
           consolidated_count: response.data.consolidated_count,
           reduction_ratio: response.data.reduction_ratio,
         });
-        setSuccess(`巩固完成，压缩率: ${(response.data.reduction_ratio * 100).toFixed(1)}%`);
+        setSuccess(t('memoryOptimization.consolidateComplete', { ratio: (response.data.reduction_ratio * 100).toFixed(1) }));
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || '记忆巩固失败');
+      setError(err.response?.data?.detail || t('memoryOptimization.consolidateError'));
     } finally {
       setLoading(false);
     }
@@ -237,10 +239,10 @@ const MemoryOptimization: React.FC = () => {
       const response = await api.get('/memory/stats');
       if (response.data.success) {
         setMemoryStats(response.data);
-        setSuccess('统计信息获取成功');
+        setSuccess(t('memoryOptimization.statsSuccess'));
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || '统计信息获取失败');
+      setError(err.response?.data?.detail || t('memoryOptimization.statsError'));
     } finally {
       setLoading(false);
     }
@@ -253,7 +255,7 @@ const MemoryOptimization: React.FC = () => {
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
       <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <MemoryIcon /> 记忆优化管理
+        <MemoryIcon /> {t('memoryOptimization.title')}
       </Typography>
 
       {error && (
@@ -275,7 +277,7 @@ const MemoryOptimization: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="text.secondary" gutterBottom>
-                  总记忆数
+                  {t('memoryOptimization.totalMemories')}
                 </Typography>
                 <Typography variant="h4">{memoryStats.total_memories}</Typography>
               </CardContent>
@@ -285,7 +287,7 @@ const MemoryOptimization: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="text.secondary" gutterBottom>
-                  已加权记忆
+                  {t('memoryOptimization.weightedMemories')}
                 </Typography>
                 <Typography variant="h4">{memoryStats.weighted_memories}</Typography>
               </CardContent>
@@ -295,7 +297,7 @@ const MemoryOptimization: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="text.secondary" gutterBottom>
-                  冲突数
+                  {t('memoryOptimization.conflictCount')}
                 </Typography>
                 <Typography variant="h4">{memoryStats.conflict_count}</Typography>
               </CardContent>
@@ -305,7 +307,7 @@ const MemoryOptimization: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="text.secondary" gutterBottom>
-                  已巩固记忆
+                  {t('memoryOptimization.consolidatedMemories')}
                 </Typography>
                 <Typography variant="h4">{memoryStats.consolidated_memories}</Typography>
               </CardContent>
@@ -315,7 +317,7 @@ const MemoryOptimization: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="text.secondary" gutterBottom>
-                  提取模式数
+                  {t('memoryOptimization.patternsExtracted')}
                 </Typography>
                 <Typography variant="h4">{memoryStats.patterns_extracted}</Typography>
               </CardContent>
@@ -326,10 +328,10 @@ const MemoryOptimization: React.FC = () => {
 
       <Card>
         <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
-          <Tab icon={<WeightIcon />} label="权重计算" />
-          <Tab icon={<WarningIcon />} label="冲突检测" />
-          <Tab icon={<MergeIcon />} label="记忆巩固" />
-          <Tab icon={<AssessmentIcon />} label="统计分析" />
+          <Tab icon={<WeightIcon />} label={t('memoryOptimization.weightCalc')} />
+          <Tab icon={<WarningIcon />} label={t('memoryOptimization.conflictDetect')} />
+          <Tab icon={<MergeIcon />} label={t('memoryOptimization.memoryConsolidate')} />
+          <Tab icon={<AssessmentIcon />} label={t('memoryOptimization.memoryStats')} />
         </Tabs>
 
         <CardContent>
@@ -339,10 +341,10 @@ const MemoryOptimization: React.FC = () => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="记忆ID（可选）"
+                  label={t('memoryOptimization.memoryId')}
                   value={weightMemoryId}
                   onChange={(e) => setWeightMemoryId(e.target.value)}
-                  placeholder="留空将自动生成"
+                  placeholder={t('memoryOptimization.memoryIdPlaceholder')}
                 />
               </Grid>
 
@@ -351,10 +353,10 @@ const MemoryOptimization: React.FC = () => {
                   fullWidth
                   multiline
                   rows={4}
-                  label="记忆内容"
+                  label={t('memoryOptimization.memoryContent')}
                   value={weightContent}
                   onChange={(e) => setWeightContent(e.target.value)}
-                  placeholder="输入记忆内容"
+                  placeholder={t('memoryOptimization.contentPlaceholder')}
                 />
               </Grid>
 
@@ -363,7 +365,7 @@ const MemoryOptimization: React.FC = () => {
                   fullWidth
                   multiline
                   rows={3}
-                  label="元数据 (JSON)"
+                  label={t('memoryOptimization.metadata')}
                   value={weightMetadata}
                   onChange={(e) => setWeightMetadata(e.target.value)}
                   placeholder='{"source": "user", "timestamp": "2026-02-18"}'
@@ -377,7 +379,7 @@ const MemoryOptimization: React.FC = () => {
                   onClick={handleCalculateWeight}
                   disabled={loading}
                 >
-                  计算权重
+                  {t('memoryOptimization.calculateWeight')}
                 </Button>
               </Grid>
 
@@ -386,39 +388,39 @@ const MemoryOptimization: React.FC = () => {
                   <Card variant="outlined">
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
-                        权重结果
+                        {t('memoryOptimization.weightResult')}
                       </Typography>
                       <Typography variant="h4" color="primary" gutterBottom>
                         {weightResult.weight.toFixed(4)}
                       </Typography>
                       <Divider sx={{ my: 2 }} />
                       <Typography variant="subtitle2" gutterBottom>
-                        权重因子:
+                        {t('memoryOptimization.weightFactors')}:
                       </Typography>
                       <Grid container spacing={2}>
                         <Grid item xs={6}>
                           <Typography variant="body2" color="text.secondary">
-                            时间衰减: {weightResult.factors.time_decay.toFixed(4)}
+                            {t('memoryOptimization.timeDecay')}: {weightResult.factors.time_decay.toFixed(4)}
                           </Typography>
                         </Grid>
                         <Grid item xs={6}>
                           <Typography variant="body2" color="text.secondary">
-                            访问频率: {weightResult.factors.frequency.toFixed(4)}
+                            {t('memoryOptimization.frequency')}: {weightResult.factors.frequency.toFixed(4)}
                           </Typography>
                         </Grid>
                         <Grid item xs={6}>
                           <Typography variant="body2" color="text.secondary">
-                            相关性: {weightResult.factors.relevance.toFixed(4)}
+                            {t('memoryOptimization.relevance')}: {weightResult.factors.relevance.toFixed(4)}
                           </Typography>
                         </Grid>
                         <Grid item xs={6}>
                           <Typography variant="body2" color="text.secondary">
-                            时效性: {weightResult.factors.timeliness.toFixed(4)}
+                            {t('memoryOptimization.timeliness')}: {weightResult.factors.timeliness.toFixed(4)}
                           </Typography>
                         </Grid>
                         <Grid item xs={6}>
                           <Typography variant="body2" color="text.secondary">
-                            可信度: {weightResult.factors.confidence.toFixed(4)}
+                            {t('memoryOptimization.confidence')}: {weightResult.factors.confidence.toFixed(4)}
                           </Typography>
                         </Grid>
                       </Grid>
@@ -437,7 +439,7 @@ const MemoryOptimization: React.FC = () => {
                   fullWidth
                   multiline
                   rows={6}
-                  label="记忆列表 (JSON)"
+                  label={t('memoryOptimization.memoryList')}
                   value={conflictMemories}
                   onChange={(e) => setConflictMemories(e.target.value)}
                   placeholder='[{"id": "1", "content": "价格=10"}, {"id": "2", "content": "价格=15"}]'
@@ -446,14 +448,14 @@ const MemoryOptimization: React.FC = () => {
 
               <Grid item xs={12}>
                 <FormControl fullWidth>
-                  <InputLabel>检查类型</InputLabel>
+                  <InputLabel>{t('memoryOptimization.checkType')}</InputLabel>
                   <Select
                     value={conflictCheckType}
                     onChange={(e) => setConflictCheckType(e.target.value)}
                   >
-                    <MenuItem value="all">全部检查</MenuItem>
-                    <MenuItem value="contradiction">矛盾检测</MenuItem>
-                    <MenuItem value="duplicate">重复检测</MenuItem>
+                    <MenuItem value="all">{t('memoryOptimization.checkAll')}</MenuItem>
+                    <MenuItem value="contradiction">{t('memoryOptimization.contradictionCheck')}</MenuItem>
+                    <MenuItem value="duplicate">{t('memoryOptimization.duplicateCheck')}</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -465,26 +467,25 @@ const MemoryOptimization: React.FC = () => {
                   onClick={handleDetectConflicts}
                   disabled={loading}
                 >
-                  检测冲突
+                  {t('memoryOptimization.detectConflicts')}
                 </Button>
               </Grid>
 
-              {conflicts.length > 0 && (
-                <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    检测到的冲突
-                  </Typography>
-                  <TableContainer component={Paper}>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>冲突类型</TableCell>
-                          <TableCell>描述</TableCell>
-                          <TableCell>严重程度</TableCell>
-                          <TableCell>涉及记忆</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
+                              {conflicts.length > 0 && (
+                              <Grid item xs={12}>
+                                <Typography variant="h6" gutterBottom>
+                                  {t('memoryOptimization.detectedConflicts')}
+                                </Typography>
+                                <TableContainer component={Paper}>
+                                  <Table>
+                                    <TableHead>
+                                      <TableRow>
+                                        <TableCell>{t('memoryOptimization.conflictType')}</TableCell>
+                                        <TableCell>{t('memoryOptimization.description')}</TableCell>
+                                        <TableCell>{t('memoryOptimization.severity')}</TableCell>
+                                        <TableCell>{t('memoryOptimization.involvedMemories')}</TableCell>
+                                      </TableRow>
+                                    </TableHead>                      <TableBody>
                         {conflicts.map((conflict, index) => (
                           <TableRow key={index}>
                             <TableCell>
@@ -510,14 +511,14 @@ const MemoryOptimization: React.FC = () => {
               {resolutions.length > 0 && (
                 <Grid item xs={12}>
                   <Typography variant="h6" gutterBottom>
-                    解决方案
+                    {t('memoryOptimization.solution')}
                   </Typography>
                   <List>
                     {resolutions.map((resolution, index) => (
                       <ListItem key={index}>
                         <ListItemText
-                          primary={`策略: ${resolution.strategy}`}
-                          secondary={`保留记忆: ${resolution.kept_memory_id} - ${resolution.reason}`}
+                          primary={`${t('memoryOptimization.strategy')}: ${resolution.strategy}`}
+                          secondary={`${t('memoryOptimization.keptMemory')}: ${resolution.kept_memory_id} - ${resolution.reason}`}
                         />
                       </ListItem>
                     ))}
@@ -535,7 +536,7 @@ const MemoryOptimization: React.FC = () => {
                   fullWidth
                   multiline
                   rows={6}
-                  label="待巩固记忆列表 (JSON)"
+                  label={t('memoryOptimization.memoriesToConsolidate')}
                   value={consolidateMemories}
                   onChange={(e) => setConsolidateMemories(e.target.value)}
                   placeholder='[{"content": "记忆1"}, {"content": "记忆2"}]'
@@ -544,14 +545,14 @@ const MemoryOptimization: React.FC = () => {
 
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
-                  <InputLabel>巩固类型</InputLabel>
+                  <InputLabel>{t('memoryOptimization.consolidateType')}</InputLabel>
                   <Select
                     value={consolidateType}
                     onChange={(e) => setConsolidateType(e.target.value)}
                   >
-                    <MenuItem value="auto">自动</MenuItem>
-                    <MenuItem value="cluster">聚类</MenuItem>
-                    <MenuItem value="pattern">模式提取</MenuItem>
+                    <MenuItem value="auto">{t('memoryOptimization.auto')}</MenuItem>
+                    <MenuItem value="cluster">{t('memoryOptimization.clustering')}</MenuItem>
+                    <MenuItem value="pattern">{t('memoryOptimization.patternExtraction')}</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -560,7 +561,7 @@ const MemoryOptimization: React.FC = () => {
                 <TextField
                   fullWidth
                   type="number"
-                  label="最小簇大小"
+                  label={t('memoryOptimization.minClusterSize')}
                   value={minClusterSize}
                   onChange={(e) => setMinClusterSize(parseInt(e.target.value))}
                 />
@@ -573,7 +574,7 @@ const MemoryOptimization: React.FC = () => {
                   onClick={handleConsolidate}
                   disabled={loading}
                 >
-                  执行巩固
+                  {t('memoryOptimization.executeConsolidate')}
                 </Button>
               </Grid>
 
@@ -582,17 +583,17 @@ const MemoryOptimization: React.FC = () => {
                   <Card variant="outlined">
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
-                        巩固统计
+                        {t('memoryOptimization.consolidationStats')}
                       </Typography>
                       <Grid container spacing={2}>
                         <Grid item xs={6}>
                           <Typography variant="body2" color="text.secondary">
-                            巩固记忆数: {consolidationStats.consolidated_count}
+                            {t('memoryOptimization.consolidatedCount')}: {consolidationStats.consolidated_count}
                           </Typography>
                         </Grid>
                         <Grid item xs={6}>
                           <Typography variant="body2" color="text.secondary">
-                            压缩率: {(consolidationStats.reduction_ratio * 100).toFixed(1)}%
+                            {t('memoryOptimization.reductionRatio')}: {(consolidationStats.reduction_ratio * 100).toFixed(1)}%
                           </Typography>
                         </Grid>
                       </Grid>
@@ -604,13 +605,13 @@ const MemoryOptimization: React.FC = () => {
               {clusters.length > 0 && (
                 <Grid item xs={12}>
                   <Typography variant="h6" gutterBottom>
-                    记忆簇 ({clusters.length})
+                    {t('memoryOptimization.memoryClusters')} ({clusters.length})
                   </Typography>
                   {clusters.map((cluster) => (
                     <Card key={cluster.id} variant="outlined" sx={{ mb: 1 }}>
                       <CardContent>
                         <Typography variant="subtitle1">
-                          {cluster.theme} ({cluster.size} 个记忆)
+                          {cluster.theme} ({cluster.size} {t('memoryOptimization.memories')})
                         </Typography>
                         <List dense>
                           {cluster.memories.slice(0, 3).map((mem, i) => (
@@ -621,7 +622,7 @@ const MemoryOptimization: React.FC = () => {
                           {cluster.memories.length > 3 && (
                             <ListItem>
                               <ListItemText
-                                secondary={`还有 ${cluster.memories.length - 3} 个记忆...`}
+                                secondary={`${t('memoryOptimization.moreMemories')} ${cluster.memories.length - 3}...`}
                               />
                             </ListItem>
                           )}
@@ -635,15 +636,15 @@ const MemoryOptimization: React.FC = () => {
               {patterns.length > 0 && (
                 <Grid item xs={12}>
                   <Typography variant="h6" gutterBottom>
-                    提取的知识模式
+                    {t('memoryOptimization.knowledgePatterns')}
                   </Typography>
                   <TableContainer component={Paper}>
                     <Table>
                       <TableHead>
                         <TableRow>
-                          <TableCell>模式</TableCell>
-                          <TableCell>频率</TableCell>
-                          <TableCell>置信度</TableCell>
+                          <TableCell>{t('memoryOptimization.pattern')}</TableCell>
+                          <TableCell>{t('memoryOptimization.frequency')}</TableCell>
+                          <TableCell>{t('memoryOptimization.confidence')}</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -672,7 +673,7 @@ const MemoryOptimization: React.FC = () => {
                   onClick={handleFetchStats}
                   disabled={loading}
                 >
-                  刷新统计
+                  {t('memoryOptimization.refreshStats')}
                 </Button>
               </Grid>
 
@@ -683,18 +684,18 @@ const MemoryOptimization: React.FC = () => {
                       <Card variant="outlined">
                         <CardContent>
                           <Typography variant="h6" gutterBottom>
-                            记忆总览
+                            {t('memoryOptimization.memoryOverview')}
                           </Typography>
                           <List>
                             <ListItem>
                               <ListItemText
-                                primary="总记忆数"
+                                primary={t('memoryOptimization.totalMemories')}
                                 secondary={memoryStats.total_memories}
                               />
                             </ListItem>
                             <ListItem>
                               <ListItemText
-                                primary="已加权记忆"
+                                primary={t('memoryOptimization.weightedMemories')}
                                 secondary={memoryStats.weighted_memories}
                               />
                             </ListItem>
@@ -707,24 +708,24 @@ const MemoryOptimization: React.FC = () => {
                       <Card variant="outlined">
                         <CardContent>
                           <Typography variant="h6" gutterBottom>
-                            优化统计
+                            {t('memoryOptimization.optimizationStats')}
                           </Typography>
                           <List>
                             <ListItem>
                               <ListItemText
-                                primary="冲突数"
+                                primary={t('memoryOptimization.conflictCount')}
                                 secondary={memoryStats.conflict_count}
                               />
                             </ListItem>
                             <ListItem>
                               <ListItemText
-                                primary="已巩固记忆"
+                                primary={t('memoryOptimization.consolidatedMemories')}
                                 secondary={memoryStats.consolidated_memories}
                               />
                             </ListItem>
                             <ListItem>
                               <ListItemText
-                                primary="提取模式数"
+                                primary={t('memoryOptimization.patternsExtracted')}
                                 secondary={memoryStats.patterns_extracted}
                               />
                             </ListItem>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Ticket, 
@@ -17,6 +18,7 @@ import { api } from '../services/api';
 import type { Ticket as TicketType } from '../types';
 
 export function TicketManagement() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   
   // 表单状态
@@ -79,7 +81,7 @@ export function TicketManagement() {
           </div>
           <div className="stat-content">
             <div className="stat-value">{totalTickets}</div>
-            <div className="stat-label">总工单数</div>
+            <div className="stat-label">{t('ticket.totalTickets')}</div>
           </div>
         </div>
         
@@ -89,7 +91,7 @@ export function TicketManagement() {
           </div>
           <div className="stat-content">
             <div className="stat-value">{resolvedTickets}</div>
-            <div className="stat-label">已解决</div>
+            <div className="stat-label">{t('ticket.resolved')}</div>
           </div>
         </div>
         
@@ -99,7 +101,7 @@ export function TicketManagement() {
           </div>
           <div className="stat-content">
             <div className="stat-value">{pendingTickets}</div>
-            <div className="stat-label">待处理</div>
+            <div className="stat-label">{t('ticket.pending')}</div>
           </div>
         </div>
         
@@ -109,7 +111,7 @@ export function TicketManagement() {
           </div>
           <div className="stat-content">
             <div className="stat-value">{agentStatus?.agents ? Object.keys(agentStatus.agents).length : 0}</div>
-            <div className="stat-label">活跃Agent</div>
+            <div className="stat-label">{t('ticket.activeAgents')}</div>
           </div>
         </div>
       </div>
@@ -117,47 +119,45 @@ export function TicketManagement() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 创建工单 */}
         <div className="card">
-          <h2 className="text-lg font-semibold mb-4">创建工单</h2>
-          
+                      <h2 className="text-lg font-semibold mb-4">{t('ticket.createTicket')}</h2>          
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                客户ID
+                {t('ticket.customerId')}
               </label>
               <input
                 type="text"
                 value={customerId}
                 onChange={(e) => setCustomerId(e.target.value)}
                 className="input-field"
-                placeholder="输入客户ID"
+                placeholder={t('ticket.customerIdPlaceholder')}
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                工单内容
+                {t('ticket.ticketContent')}
               </label>
               <textarea
                 value={ticketContent}
                 onChange={(e) => setTicketContent(e.target.value)}
                 className="input-field min-h-[100px]"
-                placeholder="描述客户问题..."
+                placeholder={t('ticket.contentPlaceholder')}
               />
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                优先级
+                {t('ticket.priorityLabel')}
               </label>
               <select
                 value={ticketPriority}
                 onChange={(e) => setTicketPriority(e.target.value as any)}
                 className="input-field"
               >
-                <option value="low">低</option>
-                <option value="normal">普通</option>
-                <option value="high">高</option>
-              </select>
+                              <option value="low">{t('ticket.low')}</option>
+                              <option value="normal">{t('ticket.normal')}</option>
+                              <option value="high">{t('ticket.high')}</option>              </select>
             </div>
             
             <button
@@ -170,15 +170,14 @@ export function TicketManagement() {
               ) : (
                 <Send className="w-4 h-4" />
               )}
-              创建并处理工单
+              {t('ticket.createAndProcess')}
             </button>
           </div>
         </div>
         
         {/* Agent状态 */}
         <div className="card">
-          <h2 className="text-lg font-semibold mb-4">Agent状态</h2>
-          
+                      <h2 className="text-lg font-semibold mb-4">{t('ticket.agentStatus')}</h2>          
           <div className="space-y-3">
             {agentStatus?.agents && Object.entries(agentStatus.agents).map(([name, info]) => (
               <div key={name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -193,7 +192,7 @@ export function TicketManagement() {
                   <div className="text-sm font-medium">
                     {info.tickets_processed || info.tickets_routed || info.tickets_solved || info.tickets_reviewed || 0}
                   </div>
-                  <div className="text-xs text-gray-500">已处理</div>
+                  <div className="text-xs text-gray-500">{t('ticket.processed')}</div>
                 </div>
               </div>
             ))}
@@ -203,28 +202,27 @@ export function TicketManagement() {
       
       {/* 工单列表 */}
       <div className="card">
-        <h2 className="text-lg font-semibold mb-4">工单列表</h2>
-        
+                    <h2 className="text-lg font-semibold mb-4">{t('ticket.ticketList')}</h2>        
         {ticketsLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
           </div>
         ) : tickets.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            暂无工单
+            {t('ticket.noTickets')}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-3 px-4">工单ID</th>
-                  <th className="text-left py-3 px-4">客户</th>
-                  <th className="text-left py-3 px-4">类型</th>
-                  <th className="text-left py-3 px-4">优先级</th>
-                  <th className="text-left py-3 px-4">状态</th>
-                  <th className="text-left py-3 px-4">部门</th>
-                  <th className="text-left py-3 px-4">操作</th>
+                  <th className="text-left py-3 px-4">{t('ticket.ticketIdLabel')}</th>
+                  <th className="text-left py-3 px-4">{t('ticket.customer')}</th>
+                  <th className="text-left py-3 px-4">{t('ticket.type')}</th>
+                  <th className="text-left py-3 px-4">{t('ticket.priorityLabel')}</th>
+                  <th className="text-left py-3 px-4">{t('ticket.statusLabel')}</th>
+                  <th className="text-left py-3 px-4">{t('ticket.department')}</th>
+                  <th className="text-left py-3 px-4">{t('ticket.action')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -261,7 +259,7 @@ export function TicketManagement() {
                         onClick={() => setSelectedTicket(ticket)}
                         className="text-blue-600 hover:text-blue-800 text-sm"
                       >
-                        查看详情
+                        {t('ticket.viewDetails')}
                       </button>
                     </td>
                   </tr>
@@ -277,7 +275,7 @@ export function TicketManagement() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">工单详情: {selectedTicket.ticket_id}</h3>
+              <h3 className="text-lg font-semibold">{t('ticket.ticketDetails')}: {selectedTicket.ticket_id}</h3>
               <button
                 onClick={() => setSelectedTicket(null)}
                 className="text-gray-500 hover:text-gray-700"
@@ -288,12 +286,12 @@ export function TicketManagement() {
             
             <div className="space-y-4">
               <div>
-                <div className="text-sm text-gray-500">客户ID</div>
+                <div className="text-sm text-gray-500">{t('ticket.customerIdLabel')}</div>
                 <div className="font-medium">{selectedTicket.customer_id}</div>
               </div>
               
               <div>
-                <div className="text-sm text-gray-500">工单内容</div>
+                <div className="text-sm text-gray-500">{t('ticket.ticketContent')}</div>
                 <div className="font-medium">{selectedTicket.content}</div>
               </div>
               
@@ -301,7 +299,7 @@ export function TicketManagement() {
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <MessageSquare className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium text-blue-700">分类结果</span>
+                    <span className="font-medium text-blue-700">{t('ticket.classificationResult')}</span>
                   </div>
                   <pre className="text-sm overflow-x-auto">{JSON.stringify(selectedTicket.classification, null, 2)}</pre>
                 </div>
@@ -311,7 +309,7 @@ export function TicketManagement() {
                 <div className="p-4 bg-green-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Route className="w-4 h-4 text-green-600" />
-                    <span className="font-medium text-green-700">路由信息</span>
+                    <span className="font-medium text-green-700">{t('ticket.routingInfo')}</span>
                   </div>
                   <pre className="text-sm overflow-x-auto">{JSON.stringify(selectedTicket.routing, null, 2)}</pre>
                 </div>
@@ -321,7 +319,7 @@ export function TicketManagement() {
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Wrench className="w-4 h-4 text-purple-600" />
-                    <span className="font-medium text-purple-700">解决方案</span>
+                    <span className="font-medium text-purple-700">{t('ticket.solution')}</span>
                   </div>
                   <pre className="text-sm overflow-x-auto">{JSON.stringify(selectedTicket.solution, null, 2)}</pre>
                 </div>
@@ -331,7 +329,7 @@ export function TicketManagement() {
                 <div className="p-4 bg-yellow-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Shield className="w-4 h-4 text-yellow-600" />
-                    <span className="font-medium text-yellow-700">审核结果</span>
+                    <span className="font-medium text-yellow-700">{t('ticket.reviewResult')}</span>
                   </div>
                   <pre className="text-sm overflow-x-auto">{JSON.stringify(selectedTicket.review, null, 2)}</pre>
                 </div>
@@ -343,7 +341,7 @@ export function TicketManagement() {
                 onClick={() => setSelectedTicket(null)}
                 className="btn-secondary"
               >
-                关闭
+                {t('ticket.close')}
               </button>
             </div>
           </div>
@@ -355,7 +353,7 @@ export function TicketManagement() {
         <div className="fixed bottom-4 right-4 bg-green-100 text-green-800 px-4 py-3 rounded-lg shadow-lg">
           <div className="flex items-center gap-2">
             <CheckCircle className="w-5 h-5" />
-            <span>工单处理完成，处理耗时: {processTicketMutation.data.processing_time_ms.toFixed(0)}ms</span>
+            <span>{t('ticket.ticketCompleted')} {processTicketMutation.data.processing_time_ms.toFixed(0)}ms</span>
           </div>
         </div>
       )}
