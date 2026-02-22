@@ -14,6 +14,12 @@ from typing import Any, Dict, List, Optional
 import logging
 
 from opspilot.approval.config import ApprovalConfig, ApprovalRule, ApprovalLevel
+from opspilot.notification import (
+    NotificationMessage,
+    NotificationType,
+    get_notification_service,
+    send_approval_notification,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -148,6 +154,20 @@ class OpsPilotApprovalHandler:
         del self._pending_requests[request_id]
         
         logger.info(f"审批已批准: {request_id}, 审批人: {approver}")
+        
+        # 发送审批通过通知
+        notification_service = get_notification_service()
+        if notification_service and notification_service.is_configured():
+            await send_approval_notification(
+                notification_type=NotificationType.APPROVAL_APPROVED,
+                request_id=request.request_id,
+                tool_name=request.tool_name,
+                requester=request.requester,
+                approver=approver,
+                level=request.level.value,
+                reason=reason,
+            )
+        
         return True
     
     async def reject(
@@ -175,6 +195,20 @@ class OpsPilotApprovalHandler:
         del self._pending_requests[request_id]
         
         logger.info(f"审批已拒绝: {request_id}, 审批人: {approver}, 原因: {reason}")
+        
+        # 发送审批拒绝通知
+        notification_service = get_notification_service()
+        if notification_service and notification_service.is_configured():
+            await send_approval_notification(
+                notification_type=NotificationType.APPROVAL_REJECTED,
+                request_id=request.request_id,
+                tool_name=request.tool_name,
+                requester=request.requester,
+                approver=approver,
+                level=request.level.value,
+                reason=reason,
+            )
+        
         return True
     
     def get_status(self, request_id: str) -> Optional[ApprovalRequest]:
@@ -196,25 +230,28 @@ class OpsPilotApprovalHandler:
     
     async def _send_notification(self, request: ApprovalRequest, rule: ApprovalRule):
         """发送审批通知"""
-        # TODO: 集成通知系统（Slack、邮件等）
         opspilot_config = self.config.opspilot_config
         
-        message = f"""
-审批请求
-----------
+        message = f"""审批请求
 工具: {request.tool_name}
 级别: {request.level.value}
 请求人: {request.requester}
 原因: {request.reason}
-参数: {request.params}
-        """
+参数: {request.params}"""
         
         logger.info(f"审批通知:\n{message}")
         
-        # 如果配置了webhook，发送通知
-        if opspilot_config.get("webhook_url"):
-            # TODO: 实现webhook通知
-            pass
+        # 使用通知服务发送通知
+        notification_service = get_notification_service()
+        if notification_service and notification_service.is_configured():
+            await send_approval_notification(
+                notification_type=NotificationType.APPROVAL_REQUEST,
+                request_id=request.request_id,
+                tool_name=request.tool_name,
+                requester=request.requester,
+                level=request.level.value,
+                reason=request.reason,
+            )
     
     async def _auto_approve_after_timeout(self, request_id: str, timeout: int):
         """超时后自动批准"""

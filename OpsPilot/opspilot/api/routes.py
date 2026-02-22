@@ -2684,14 +2684,297 @@ async def get_ticket(ticket_id: str):
 
 
 @router.get(
+
+
     "/customer-service/agents/status",
+
+
     response_model=AgentStatusResponse,
+
+
     summary="获取Agent状态",
+
+
     description="获取客服Agent的状态信息"
+
+
 )
+
+
 async def get_customer_service_agent_status():
+
+
     """获取客服Agent状态"""
+
+
     return await customer_service_api.get_agent_status()
+
+
+
+
+
+
+
+
+# ==================== 通知配置 API ====================
+
+
+
+
+
+class NotificationConfigRequest(BaseRequestModel):
+
+
+    """通知配置请求"""
+
+
+    webhook_url: Optional[str] = None
+
+
+    slack_token: Optional[str] = None
+
+
+    slack_channel: Optional[str] = None
+
+
+    smtp_host: Optional[str] = None
+
+
+    smtp_port: Optional[int] = None
+
+
+    smtp_username: Optional[str] = None
+
+
+    smtp_password: Optional[str] = None
+
+
+    smtp_from_addr: Optional[str] = None
+
+
+
+
+
+
+
+
+class NotificationStatusResponse(BaseResponse):
+
+
+    """通知状态响应"""
+
+
+    configured: bool = False
+
+
+    webhook_enabled: bool = False
+
+
+    slack_enabled: bool = False
+
+
+    email_enabled: bool = False
+
+
+
+
+
+
+
+
+@router.post(
+
+
+    "/notification/config",
+
+
+    response_model=BaseResponse,
+
+
+    summary="配置通知服务",
+
+
+    description="配置Webhook、Slack或邮件通知服务"
+
+
+)
+
+
+async def configure_notification(config: NotificationConfigRequest):
+
+
+    """配置通知服务"""
+
+
+    try:
+
+
+        from opspilot.notification import init_notification_service
+
+
+        
+
+
+        smtp_config = None
+
+
+        if config.smtp_host and config.smtp_username:
+
+
+            smtp_config = {
+
+
+                "host": config.smtp_host,
+
+
+                "port": config.smtp_port or 587,
+
+
+                "username": config.smtp_username,
+
+
+                "password": config.smtp_password,
+
+
+                "from_addr": config.smtp_from_addr or config.smtp_username,
+
+
+            }
+
+
+        
+
+
+        init_notification_service(
+
+
+            webhook_url=config.webhook_url,
+
+
+            slack_token=config.slack_token,
+
+
+            slack_channel=config.slack_channel,
+
+
+            smtp_config=smtp_config,
+
+
+        )
+
+
+        
+
+
+        return BaseResponse(
+
+
+            success=True,
+
+
+            message="通知服务配置成功"
+
+
+        )
+
+
+    except Exception as e:
+
+
+        return BaseResponse(
+
+
+            success=False,
+
+
+            message=f"配置失败: {str(e)}"
+
+
+        )
+
+
+
+
+
+
+
+
+@router.get(
+
+
+    "/notification/status",
+
+
+    response_model=NotificationStatusResponse,
+
+
+    summary="获取通知状态",
+
+
+    description="获取当前通知服务配置状态"
+
+
+)
+
+
+async def get_notification_status():
+
+
+    """获取通知服务状态"""
+
+
+    from opspilot.notification import get_notification_service
+
+
+    
+
+
+    service = get_notification_service()
+
+
+    if not service:
+
+
+        return NotificationStatusResponse(configured=False)
+
+
+    
+
+
+    return NotificationStatusResponse(
+
+
+        configured=service.is_configured(),
+
+
+        webhook_enabled=bool(service.webhook_url),
+
+
+        slack_enabled=bool(service.slack_token and service.slack_channel),
+
+
+        email_enabled=bool(service.smtp_config),
+
+
+    )
+
+
+
+
+
+
+
+
+# Pydantic基础模型
+
+
+class BaseRequestModel(BaseResponse):
+
+
+    """基础请求模型"""
+
+
+    pass
 
 
 
