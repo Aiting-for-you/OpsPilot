@@ -4143,8 +4143,53 @@ const [activeTab, setActiveTab] = useState<'llm' | 'mcp' | 'providers'>('llm');
 - 继续完善其他页面的i18n适配
 - 添加更多业务术语的翻译
 
+---
 
+## [2026-02-22] - Provider Settings修复与通知系统添加
 
+### 开发目标
+- 修复Provider Settings下拉框UI问题
+- 添加通知系统功能
+- 完善前端i18n适配
 
+### 完成内容
+- [x] 修复Provider Settings下拉框UI
+  - Select组件添加InputLabel和labelId属性
+  - 修复前端API调用response.data.success -> response.success
+- [x] 修复AgentScope 1.0.16+ API兼容
+  - EvaluatorBase替代Evaluator
+  - InMemoryMemory替代TemporaryMemory
+  - 修复AgentScope Studio初始化API
+- [x] 修复memory/__init__.py导入错误
+- [x] 添加api.ts通用get/post方法
+- [x] 修复providers/list检查实际可用性
+- [x] 添加Home首页及favicon图标
 
+- [x] 添加通知系统后端模块 (opspilot/notification/)
+  - 支持Webhook、Slack、邮件三种通知方式
+  - 异步发送通知
+  - 审批请求/通过/拒绝时自动发送通知
+- [x] 添加通知API端点
+  - POST /notification/config - 配置通知服务
+  - GET /notification/status - 获取通知状态
+- [x] 添加通知设置前端页面
+  - Settings页面新增Notification Tab
+  - 支持Webhook、Slack、邮件配置界面
+- [x] 完善i18n中英文适配
+  - 通知设置页面全量i18n适配
+  - Agent监控页面通信流程、消息中心、Agent详情等i18n适配
+  - 添加通知相关翻译键到中英文语言包
+
+### 提交记录
+```
+31d3cec fix: 修复Provider Settings下拉框及多个页面API响应问题
+f33e5e3 feat: 添加通知系统(Webhook/Slack/邮件)
+759c33b feat: 添加前端通知设置页面
+b610ec3 fix: 完善i18n中英文适配
+```
+
+### 下一步计划
+- 测试通知系统功能
+- 继续完善其他页面的i18n适配
+- 添加更多业务术语的翻译
 
