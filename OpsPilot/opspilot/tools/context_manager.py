@@ -128,9 +128,9 @@ class ToolContextManager:
         # 缓存
         self._cache: Dict[str, CacheEntry] = {}
     
-    def _compute_query_hash(self, query: str, **kwargs) -> str:
+    def _compute_query_hash(self, query: str, top_k: int = None, strategy: str = None, compression: str = None, max_tokens: int = None, **kwargs) -> str:
         """计算查询哈希"""
-        key = f"{query}|{kwargs}"
+        key = f"{query}|{top_k}|{strategy}|{compression}|{max_tokens}|{kwargs}"
         return hashlib.md5(key.encode()).hexdigest()[:16]
     
     def _check_cache(self, query_hash: str) -> Optional[ToolSelectionResult]:

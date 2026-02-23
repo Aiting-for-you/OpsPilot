@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from opspilot.pricing.agents.cost_agent import CostAgent
 from opspilot.pricing.agents.market_agent import MarketAgent
 from opspilot.pricing.agents.profit_agent import ProfitAgent
-from opspilot.pricing.agents.orchestrator import PricingOrchestrator
+from opspilot.pricing.agents.pricing_orchestrator import PricingOrchestrator
 
 
 class TestCostAgent:

@@ -51,7 +51,7 @@ def create_test_tools() -> list:
         ToolSchema(
             name="query_supplier",
             description="查询供应商信息，支持按名称、ID、地区等多维度查询",
-            parameters={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "name": {"type": "string", "description": "供应商名称"},
@@ -59,12 +59,12 @@ def create_test_tools() -> list:
                     "region": {"type": "string", "description": "地区"},
                 },
             },
-            timeout=30,
+            timeout_seconds=30,
         ),
         ToolSchema(
             name="create_order",
             description="创建采购订单，需要提供供应商ID、商品列表和数量",
-            parameters={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "supplier_id": {"type": "string", "description": "供应商ID"},
@@ -73,24 +73,24 @@ def create_test_tools() -> list:
                 },
                 "required": ["supplier_id", "items"],
             },
-            timeout=60,
+            timeout_seconds=60,
         ),
         ToolSchema(
             name="query_inventory",
             description="查询库存信息，支持按商品ID、仓库等查询",
-            parameters={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "product_id": {"type": "string", "description": "商品ID"},
                     "warehouse": {"type": "string", "description": "仓库名称"},
                 },
             },
-            timeout=30,
+            timeout_seconds=30,
         ),
         ToolSchema(
             name="check_compliance",
             description="合规检查，验证订单是否符合公司政策和法规要求",
-            parameters={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "order_id": {"type": "string", "description": "订单ID"},
@@ -98,12 +98,12 @@ def create_test_tools() -> list:
                 },
                 "required": ["order_id"],
             },
-            timeout=45,
+            timeout_seconds=45,
         ),
         ToolSchema(
             name="calculate_total",
             description="计算订单总价，支持折扣计算",
-            parameters={
+            input_schema={
                 "type": "object",
                 "properties": {
                     "items": {"type": "array", "description": "商品列表"},
@@ -111,7 +111,7 @@ def create_test_tools() -> list:
                 },
                 "required": ["items"],
             },
-            timeout=10,
+            timeout_seconds=10,
         ),
     ]
 
@@ -523,7 +523,7 @@ class TestErrorDiagnoser:
     def test_diagnose_timeout(self):
         """测试超时诊断"""
         from opspilot.utils.exceptions import ToolTimeoutError
-        error = ToolTimeoutError("Tool execution timed out")
+        error = ToolTimeoutError("test_tool", 30.0)
         
         diagnosis = ErrorDiagnoser.diagnose(error)
         

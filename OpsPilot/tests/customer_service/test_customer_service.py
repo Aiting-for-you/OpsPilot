@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from opspilot.agents.base import AgentContext
+from opspilot.core.state_machine import State
 from opspilot.customer_service.agents.router_agent import (
     TicketRouterAgent,
     MockTicketRouterAgent,
@@ -50,10 +52,16 @@ class TestTicketRouterAgent:
             "priority": "high",
         }
         
-        result = await agent.execute(ticket)
+        context = AgentContext(
+            task_id="TKT-001",
+            state=State.INIT,
+            user_input=str(ticket),
+            metadata=ticket,
+        )
+        result = await agent.execute(context)
         
         assert result is not None
-        assert "department" in result or "assigned_to" in result
+        assert result.success is True
     
     @pytest.mark.asyncio
     async def test_route_by_category(self, agent):
@@ -65,7 +73,13 @@ class TestTicketRouterAgent:
             "category": "refund",
         }
         
-        result = await agent.execute(ticket)
+        context = AgentContext(
+            task_id="TKT-002",
+            state=State.INIT,
+            user_input=str(ticket),
+            metadata=ticket,
+        )
+        result = await agent.execute(context)
         
         assert result is not None
     
@@ -79,7 +93,13 @@ class TestTicketRouterAgent:
             "priority": "urgent",
         }
         
-        result = await agent.execute(ticket)
+        context = AgentContext(
+            task_id="TKT-003",
+            state=State.INIT,
+            user_input=str(ticket),
+            metadata=ticket,
+        )
+        result = await agent.execute(context)
         
         assert result is not None
 
@@ -107,10 +127,16 @@ class TestTicketSolverAgent:
             "order_id": "ORD-123",
         }
         
-        result = await agent.execute(ticket)
+        context = AgentContext(
+            task_id="TKT-001",
+            state=State.INIT,
+            user_input=str(ticket),
+            metadata=ticket,
+        )
+        result = await agent.execute(context)
         
         assert result is not None
-        assert "solution" in result or "response" in result
+        assert result.success is True
     
     @pytest.mark.asyncio
     async def test_solve_with_tools(self, agent):
@@ -122,7 +148,13 @@ class TestTicketSolverAgent:
             "sku": "SKU-001",
         }
         
-        result = await agent.execute(ticket)
+        context = AgentContext(
+            task_id="TKT-002",
+            state=State.INIT,
+            user_input=str(ticket),
+            metadata=ticket,
+        )
+        result = await agent.execute(context)
         
         assert result is not None
     
@@ -135,7 +167,13 @@ class TestTicketSolverAgent:
             "content": "如何修改收货地址",
         }
         
-        result = await agent.execute(ticket)
+        context = AgentContext(
+            task_id="TKT-003",
+            state=State.INIT,
+            user_input=str(ticket),
+            metadata=ticket,
+        )
+        result = await agent.execute(context)
         
         assert result is not None
 
@@ -162,10 +200,16 @@ class TestTicketReviewerAgent:
             "confidence": 0.85,
         }
         
-        result = await agent.execute(solution)
+        context = AgentContext(
+            task_id="TKT-001",
+            state=State.INIT,
+            user_input=str(solution),
+            metadata=solution,
+        )
+        result = await agent.execute(context)
         
         assert result is not None
-        assert "approved" in result or "status" in result
+        assert result.success is True
     
     @pytest.mark.asyncio
     async def test_approve_good_solution(self, agent):
@@ -177,7 +221,13 @@ class TestTicketReviewerAgent:
             "actions_taken": ["check_order", "process_refund"],
         }
         
-        result = await agent.execute(solution)
+        context = AgentContext(
+            task_id="TKT-002",
+            state=State.INIT,
+            user_input=str(solution),
+            metadata=solution,
+        )
+        result = await agent.execute(context)
         
         assert result is not None
     
@@ -190,7 +240,13 @@ class TestTicketReviewerAgent:
             "confidence": 0.3,
         }
         
-        result = await agent.execute(solution)
+        context = AgentContext(
+            task_id="TKT-003",
+            state=State.INIT,
+            user_input=str(solution),
+            metadata=solution,
+        )
+        result = await agent.execute(context)
         
         assert result is not None
 

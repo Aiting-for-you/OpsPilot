@@ -27,8 +27,18 @@ import {
   TicketProcessRequest,
   TicketProcessResponse,
   TicketListResponse,
-  Ticket,
+  Ticket, 
   CSAgentStatusResponse,
+  TicketQueueStatus,
+  TicketLifecycle,
+  KnowledgeBaseResponse,
+  KnowledgeBaseQueryRequest,
+  TicketAnalyticsData,
+  AgentInfo,
+  AssignmentResult,
+  EscalationRequest,
+  EscalationRecord,
+  FollowUpRecord,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -405,6 +415,66 @@ class ApiService {
 
   async getCSAgentStatus(): Promise<CSAgentStatusResponse> {
     const response = await this.client.get('/customer-service/agents/status');
+    return response.data;
+  }
+
+  // ==================== 工单队列 API ====================
+  async getTicketQueueStatus(): Promise<TicketQueueStatus> {
+    const response = await this.client.get('/customer-service/queue/status');
+    return response.data;
+  }
+
+  // ==================== 生命周期管理 API ====================
+  async getTicketLifecycle(ticketId: string): Promise<TicketLifecycle> {
+    const response = await this.client.get(`/customer-service/tickets/${ticketId}/lifecycle`);
+    return response.data;
+  }
+
+  async updateTicketStatus(ticketId: string, status: string, note?: string): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.patch(`/customer-service/tickets/${ticketId}/status`, { status, note });
+    return response.data;
+  }
+
+  // ==================== 知识库 API ====================
+  async queryKnowledgeBase(request: KnowledgeBaseQueryRequest): Promise<KnowledgeBaseResponse> {
+    const response = await this.client.post('/customer-service/knowledge/query', request);
+    return response.data;
+  }
+
+  // ==================== 统计分析 API ====================
+  async getTicketAnalytics(startDate?: string, endDate?: string): Promise<TicketAnalyticsData> {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    const response = await this.client.get(`/customer-service/analytics?${params.toString()}`);
+    return response.data;
+  }
+
+  // ==================== 智能分配 API ====================
+  async getAgentList(): Promise<{ success: boolean; agents: AgentInfo[] }> {
+    const response = await this.client.get('/customer-service/agents');
+    return response.data;
+  }
+
+  async assignTicket(ticketId: string, agentId?: string): Promise<AssignmentResult> {
+    const response = await this.client.post('/customer-service/tickets/assign', { ticket_id: ticketId, agent_id: agentId });
+    return response.data;
+  }
+
+  // ==================== 升级 API ====================
+  async escalateTicket(request: EscalationRequest): Promise<{ success: boolean; escalation: EscalationRecord; message: string }> {
+    const response = await this.client.post('/customer-service/tickets/escalate', request);
+    return response.data;
+  }
+
+  // ==================== 跟进 API ====================
+  async createFollowUp(ticketId: string, followUpType: string): Promise<{ success: boolean; follow_up: FollowUpRecord; message: string }> {
+    const response = await this.client.post('/customer-service/tickets/followup', { ticket_id: ticketId, follow_up_type: followUpType });
+    return response.data;
+  }
+
+  async submitSatisfactionSurvey(ticketId: string, score: number, feedback?: string): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.post('/customer-service/tickets/feedback', { ticket_id: ticketId, score, feedback });
     return response.data;
   }
 

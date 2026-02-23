@@ -1,7 +1,6 @@
 ﻿"""
 配置加载器单元测试
 """
-import os
 import pytest
 import tempfile
 from pathlib import Path
@@ -82,50 +81,91 @@ class TestConfigLoader:
         with pytest.raises(ConfigFileNotFoundError):
             loader.load_yaml(Path("/nonexistent/config.yaml"))
 
-    def test_load_yaml_valid(self):
-        """测试加载有效的 YAML 文件"""
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            suffix=".yaml",
-            delete=False
-        ) as f:
-            f.write("""
-app:
-  name: TestApp
-  debug: true
-state_machine:
-  max_retry: 5
-""")
-            f.flush()
+        def test_load_yaml_valid(self):
 
-            loader = ConfigLoader(config_path=f.name)
-            config = loader.load()
+            """测试加载有效的 YAML 文件"""
 
-            assert config.app.name == "TestApp"
-            assert config.app.debug is True
-            assert config.state_machine.max_retry == 5
+            with tempfile.NamedTemporaryFile(
 
-            os.unlink(f.name)
+                mode="w",
 
-    def test_load_yaml_invalid_syntax(self):
-        """测试加载语法错误的 YAML 文件"""
-        with tempfile.NamedTemporaryFile(
-            mode="w",
-            suffix=".yaml",
-            delete=False
-        ) as f:
-            f.write("""
-app:
-  name: TestApp
-  invalid yaml: [
-""")
-            f.flush()
+                suffix=".yaml",
 
-            loader = ConfigLoader(config_path=f.name)
-            with pytest.raises(ConfigValidationError):
-                loader.load()
+                delete=True
 
-            os.unlink(f.name)
+            ) as f:
+
+                f.write("""
+
+    app:
+
+      name: TestApp
+
+      debug: true
+
+    
+
+    state_machine:
+
+      max_retry: 5
+
+    """)
+
+                f.flush()
+
+                f.close()  # 关闭文件确保内容写入
+
+    
+
+                loader = ConfigLoader(config_path=f.name)
+
+                config = loader.load()
+
+    
+
+                assert config.app.name == "TestApp"
+
+                assert config.app.debug is True
+
+                assert config.state_machine.max_retry == 5
+
+    
+
+        def test_load_yaml_invalid_syntax(self):
+
+            """测试加载语法错误的 YAML 文件"""
+
+            with tempfile.NamedTemporaryFile(
+
+                mode="w",
+
+                suffix=".yaml",
+
+                delete=True
+
+            ) as f:
+
+                f.write("""
+
+    app:
+
+      name: TestApp
+
+      invalid yaml: [
+
+    """)
+
+                f.flush()
+
+                f.close()  # 关闭文件确保内容写入
+
+    
+
+                loader = ConfigLoader(config_path=f.name)
+
+                with pytest.raises(ConfigValidationError):
+
+                    loader.load()
 
 
 class TestGlobalConfig:

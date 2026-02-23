@@ -66,6 +66,7 @@ class AgentOutput:
     tools_to_call: List[Dict[str, Any]] = field(default_factory=list)
     reasoning: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
+    agent_name: str = ""  # 执行此输出的Agent名称
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -76,6 +77,7 @@ class AgentOutput:
             "tools_to_call": self.tools_to_call,
             "reasoning": self.reasoning,
             "metadata": self.metadata,
+            "agent_name": self.agent_name,
         }
 
 

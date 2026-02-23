@@ -94,7 +94,7 @@ class BaseActor(ABC):
         """
         self.name = name
         self.role = role
-        self.config = config or AgentConfig()
+        self.config = config or AgentConfig(name=name, role=role)
         self.subscribed_types = subscribed_types or {
             MessageType.TASK_REQUEST,
             MessageType.AGENT_MESSAGE,

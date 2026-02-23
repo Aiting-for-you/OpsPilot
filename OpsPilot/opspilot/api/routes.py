@@ -117,6 +117,18 @@ from opspilot.customer_service.api import (
     TicketListResponse,
     AgentStatusResponse,
     customer_service_api,
+    QueueStatusResponse,
+    KnowledgeQueryRequest,
+    KnowledgeQueryResponse,
+    TicketAnalyticsResponse,
+    AgentListResponse,
+    AssignmentRequest,
+    AssignmentResponse,
+    EscalationRequest,
+    EscalationResponse,
+    FollowUpRequest,
+    FollowUpResponse,
+    TicketLifecycleResponse,
 )
 from opspilot.core.orchestrator import Orchestrator
 from opspilot.core.sop_executor import SOPExecutor, SOPDefinition, create_order_sop, query_supplier_sop
@@ -2716,10 +2728,328 @@ async def get_customer_service_agent_status():
 
 
 
+# ==================== 队列管理 API ====================
+
+
+
+
+
+@router.get(
+
+
+    "/customer-service/queue/status",
+
+
+    response_model=QueueStatusResponse,
+
+
+    summary="获取队列状态",
+
+
+    description="获取各队列的状态信息"
+
+
+)
+
+
+async def get_queue_status():
+
+
+    """获取队列状态"""
+
+
+    return await customer_service_api.get_queue_status()
+
+
+
+
+
+
+
+
+# ==================== 生命周期管理 API ====================
+
+
+
+
+
+@router.get(
+
+
+    "/customer-service/tickets/{ticket_id}/lifecycle",
+
+
+    response_model=TicketLifecycleResponse,
+
+
+    summary="获取工单生命周期",
+
+
+    description="获取工单的生命周期信息"
+
+
+)
+
+
+async def get_ticket_lifecycle(ticket_id: str):
+
+
+    """获取工单生命周期"""
+
+
+    return await customer_service_api.get_ticket_lifecycle(ticket_id)
+
+
+
+
+
+
+
+
+# ==================== 知识库 API ====================
+
+
+
+
+
+@router.post(
+
+
+    "/customer-service/knowledge/query",
+
+
+    response_model=KnowledgeQueryResponse,
+
+
+    summary="查询知识库",
+
+
+    description="从知识库中搜索相关解决方案"
+
+
+)
+
+
+async def query_knowledge(request: KnowledgeQueryRequest):
+
+
+    """查询知识库"""
+
+
+    return await customer_service_api.query_knowledge(request)
+
+
+
+
+
+
+
+
+# ==================== 统计分析 API ====================
+
+
+
+
+
+@router.get(
+
+
+    "/customer-service/analytics",
+
+
+    response_model=TicketAnalyticsResponse,
+
+
+    summary="获取工单统计分析",
+
+
+    description="获取工单的统计分析和报表数据"
+
+
+)
+
+
+async def get_ticket_analytics(
+
+
+    start_date: Optional[str] = None,
+
+
+    end_date: Optional[str] = None
+
+
+):
+
+
+    """获取工单统计分析"""
+
+
+    return await customer_service_api.get_analytics(start_date, end_date)
+
+
+
+
+
+
+
+
+# ==================== 智能分配 API ====================
+
+
+
+
+
+@router.get(
+
+
+    "/customer-service/agents",
+
+
+    response_model=AgentListResponse,
+
+
+    summary="获取Agent列表",
+
+
+    description="获取所有可用的客服Agent"
+
+
+)
+
+
+async def get_agent_list():
+
+
+    """获取Agent列表"""
+
+
+    return await customer_service_api.get_agents()
+
+
+
+
+
+
+
+
+@router.post(
+
+
+    "/customer-service/tickets/assign",
+
+
+    response_model=AssignmentResponse,
+
+
+    summary="分配工单",
+
+
+    description="将工单分配给合适的Agent"
+
+
+)
+
+
+async def assign_ticket(request: AssignmentRequest):
+
+
+    """分配工单"""
+
+
+    return await customer_service_api.assign_ticket(request)
+
+
+
+
+
+
+
+
+# ==================== 升级 API ====================
+
+
+
+
+
+@router.post(
+
+
+    "/customer-service/tickets/escalate",
+
+
+    response_model=EscalationResponse,
+
+
+    summary="升级工单",
+
+
+    description="将工单升级给专家处理"
+
+
+)
+
+
+async def escalate_ticket(request: EscalationRequest):
+
+
+    """升级工单"""
+
+
+    return await customer_service_api.escalate_ticket(request)
+
+
+
+
+
+
+
+
+# ==================== 跟进 API ====================
+
+
+
+
+
+@router.post(
+
+
+    "/customer-service/tickets/followup",
+
+
+    response_model=FollowUpResponse,
+
+
+    summary="创建跟进",
+
+
+    description="创建工单跟进记录"
+
+
+)
+
+
+async def create_followup(request: FollowUpRequest):
+
+
+    """创建跟进"""
+
+
+    return await customer_service_api.create_followup(request)
+
+
+
+
+
+
+
+
 # ==================== 通知配置 API ====================
 
 
-
+class BaseRequestModel(BaseResponse):
+        """基础请求模型"""
+    
+        pass
 
 
 class NotificationConfigRequest(BaseRequestModel):

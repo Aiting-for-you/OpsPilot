@@ -426,3 +426,154 @@ export interface CSAgentStatusResponse {
   agents: Record<string, CustomerServiceAgentStatus>;
 }
 
+// ==================== 工单队列相关类型 ====================
+export type QueueType = 'urgent' | 'normal' | 'low' | 'escalated';
+
+export interface QueueStatus {
+  queue_type: QueueType;
+  ticket_count: number;
+  avg_wait_time: number;
+  oldest_ticket_age: number;
+}
+
+export interface TicketQueueStatus {
+  queues: QueueStatus[];
+  total_tickets: number;
+  sla_violations: number;
+}
+
+// ==================== 生命周期管理类型 ====================
+export type LifecycleStatus = 
+  | 'created' 
+  | 'classified' 
+  | 'routed' 
+  | 'assigned' 
+  | 'processing' 
+  | 'pending_review' 
+  | 'resolved' 
+  | 'closed'
+  | 'escalated'
+  | 'reopened';
+
+export interface TicketLifecycle {
+  ticket_id: string;
+  current_status: LifecycleStatus;
+  status_history: {
+    status: LifecycleStatus;
+    timestamp: string;
+    note?: string;
+  }[];
+  response_deadline?: string;
+  resolution_deadline?: string;
+  is_sla_breached: boolean;
+  time_in_current_status: number;
+}
+
+// ==================== 知识库相关类型 ====================
+export interface KnowledgeEntry {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  relevance_score: number;
+}
+
+export interface KnowledgeBaseQueryRequest {
+  query: string;
+  category?: string;
+  limit?: number;
+}
+
+export interface KnowledgeBaseResponse {
+  success: boolean;
+  query: string;
+  results: KnowledgeEntry[];
+  total_found: number;
+}
+
+// ==================== 统计分析类型 ====================
+export interface TicketStatistics {
+  total_tickets: number;
+  resolved_tickets: number;
+  pending_tickets: number;
+  escalation_rate: number;
+  avg_resolution_time: number;
+  sla_compliance_rate: number;
+}
+
+export interface TicketTrend {
+  date: string;
+  created: number;
+  resolved: number;
+  escalated: number;
+}
+
+export interface AgentPerformance {
+  agent_name: string;
+  tickets_handled: number;
+  avg_resolution_time: number;
+  satisfaction_score: number;
+  escalation_rate: number;
+}
+
+export interface TicketAnalyticsData {
+  statistics: TicketStatistics;
+  trends: TicketTrend[];
+  agent_performance: AgentPerformance[];
+  top_categories: { category: string; count: number }[];
+  sla_report: {
+    total_sla: number;
+    met_sla: number;
+    breached_sla: number;
+    compliance_rate: number;
+  };
+}
+
+// ==================== 智能分配相关类型 ====================
+export interface AgentSkill {
+  skill_name: string;
+  level: number;
+}
+
+export interface AgentInfo {
+  agent_id: string;
+  agent_name: string;
+  skills: AgentSkill[];
+  current_load: number;
+  max_load: number;
+  status: 'available' | 'busy' | 'offline';
+}
+
+export interface AssignmentResult {
+  ticket_id: string;
+  assigned_agent: string;
+  assignment_reason: string;
+  estimated_time: number;
+}
+
+// ==================== 升级相关类型 ====================
+export interface EscalationRecord {
+  ticket_id: string;
+  escalated_at: string;
+  escalation_reason: string;
+  original_agent?: string;
+  expert_agent: string;
+  priority_boost: number;
+}
+
+export interface EscalationRequest {
+  ticket_id: string;
+  reason: string;
+  escalate_to_expert?: boolean;
+}
+
+export interface FollowUpRecord {
+  ticket_id: string;
+  customer_id: string;
+  follow_up_type: 'status_check' | 'satisfaction_survey' | 'closure_notice';
+  sent_at?: string;
+  response?: string;
+  satisfaction_score?: number;
+}
+

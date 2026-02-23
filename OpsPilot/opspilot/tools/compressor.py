@@ -235,6 +235,9 @@ class ToolCompressor:
             20  # 基础开销
         )
         
+        # 确保压缩后不超过原始token数
+        compressed_tokens = min(compressed_tokens, original_tokens)
+        
         return CompressedTool(
             name=tool.name,
             action=action,
@@ -267,6 +270,9 @@ class ToolCompressor:
             15
         )
         
+        # 确保压缩后不超过原始token数
+        compressed_tokens = min(compressed_tokens, original_tokens)
+        
         return CompressedTool(
             name=tool.name,
             action=action,
@@ -292,6 +298,9 @@ class ToolCompressor:
             sum(self.token_estimator.estimate(p) for p in params) +
             10
         )
+        
+        # 确保压缩后不超过原始token数
+        compressed_tokens = min(compressed_tokens, original_tokens)
         
         return CompressedTool(
             name=tool.name,

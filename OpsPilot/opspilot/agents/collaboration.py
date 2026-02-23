@@ -341,8 +341,8 @@ class ParallelCollaboration(BaseCollaboration):
                 actor_name, response = result
                 if response:
                     agent_outputs[actor_name] = AgentOutput(
+                        success=True,
                         agent_name=actor_name,
-                        status="success",
                         result=response.content,
                     )
                     final_results[actor_name] = response.content
@@ -428,8 +428,8 @@ class ConditionalCollaboration(BaseCollaboration):
             if response:
                 current_data = response.content if isinstance(response.content, dict) else {"result": response.content}
                 agent_outputs[actor.name] = AgentOutput(
+                    success=True,
                     agent_name=actor.name,
-                    status="success",
                     result=current_data,
                 )
         

@@ -57,6 +57,26 @@ class ToolSchema:
     timeout_seconds: int = 30
     retryable: bool = True  # 是否可重试
 
+    @property
+    def parameters(self) -> Dict[str, Any]:
+        """parameters属性，兼容input_schema"""
+        return self.input_schema
+
+    @parameters.setter
+    def parameters(self, value: Dict[str, Any]):
+        """设置parameters"""
+        self.input_schema = value
+
+    @property
+    def timeout(self) -> int:
+        """timeout属性，兼容timeout_seconds"""
+        return self.timeout_seconds
+
+    @timeout.setter
+    def timeout(self, value: int):
+        """设置timeout"""
+        self.timeout_seconds = value
+
     def to_mcp_format(self) -> Dict[str, Any]:
         """转换为 MCP 协议格式"""
         return {

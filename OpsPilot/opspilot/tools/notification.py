@@ -10,6 +10,7 @@
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from dataclasses import dataclass, field
+from enum import Enum
 import asyncio
 
 from opspilot.tools.base import (
@@ -18,6 +19,32 @@ from opspilot.tools.base import (
     ToolResult,
     ToolContext,
 )
+
+
+# ==================== 通知渠道枚举 ====================
+
+class NotificationChannel(str, Enum):
+    """通知渠道"""
+    EMAIL = "email"
+    SMS = "sms"
+    WECHAT = "wechat"
+    DINGTALK = "dingtalk"
+    SLACK = "slack"
+    WEBHOOK = "webhook"
+    SYSTEM = "system"
+
+
+# ==================== 通知配置 ====================
+
+@dataclass
+class NotificationConfig:
+    """通知配置"""
+    channel: str = "email"
+    recipient: str = ""
+    webhook_url: Optional[str] = None
+    slack_token: Optional[str] = None
+    slack_channel: Optional[str] = None
+    enabled: bool = True
 
 
 # ==================== 通知记录存储 ====================

@@ -349,8 +349,9 @@ class ToolHealer:
                 # 检查重试次数
                 if recovery_ctx.retry_count >= self.max_retries:
                     # 尝试降级
-                    if self.degradation_handler:
-                        result = await self.degradation_handler(tool_call, diagnosis)
+                    handler = self.degradation_handler or self.fallback_handler
+                    if handler:
+                        result = await handler(tool_call, diagnosis)
                         return result
                     raise ToolMaxRetriesExceededError(
                         recovery_ctx.retry_count, diagnosis

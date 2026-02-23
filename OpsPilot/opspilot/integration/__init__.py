@@ -10,6 +10,7 @@
 from opspilot.integration.agentscope_integration import (
     # 消息系统
     ASMessage,
+    ASMessageType,
     MessageAdapter,
     # Agent基类
     ASAgentBase,
@@ -49,6 +50,7 @@ from opspilot.integration.langchain_integration import (
 
 from opspilot.integration.hybrid_orchestrator import (
     # 混合编排
+    OrchestrationMode,
     HybridOrchestratorConfig,
     HybridOrchestrator,
     # 协作模式
@@ -62,6 +64,7 @@ from opspilot.integration.hybrid_orchestrator import (
 __all__ = [
     # AgentScope集成
     "ASMessage",
+    "ASMessageType",
     "MessageAdapter",
     "ASAgentBase",
     "ASIntentAgent",
@@ -88,6 +91,7 @@ __all__ = [
     "create_lc_tool_adapter",
     "create_lc_retriever",
     # 混合编排
+    "OrchestrationMode",
     "HybridOrchestratorConfig",
     "HybridOrchestrator",
     "SequentialWorkflow",
