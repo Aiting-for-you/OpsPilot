@@ -1,4 +1,4 @@
-﻿"""
+"""
 API Schema 定义
 
 职责：
@@ -8,7 +8,7 @@ API Schema 定义
 """
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
 
 
@@ -28,13 +28,12 @@ class TaskCreateRequest(BaseModel):
     user_input: str = Field(..., description="用户输入", min_length=1, max_length=2000)
     context: Optional[Dict[str, Any]] = Field(default=None, description="额外上下文")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "user_input": "帮我查询华南地区的供应商",
-                "context": {"user_id": "user-001"}
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "user_input": "帮我查询华南地区的供应商",
+            "context": {"user_id": "user-001"}
         }
+    })
 
 
 class TaskStatus(str, Enum):
@@ -77,14 +76,13 @@ class ToolCallRequest(BaseModel):
     params: Dict[str, Any] = Field(default_factory=dict, description="工具参数")
     task_id: Optional[str] = Field(default=None, description="关联任务ID")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "tool_name": "query_supplier",
-                "params": {"region": "华南"},
-                "task_id": "task-001"
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "tool_name": "query_supplier",
+            "params": {"region": "华南"},
+            "task_id": "task-001"
         }
+    })
 
 
 class ToolCallResponse(BaseResponse):
@@ -130,17 +128,16 @@ class SOPExecuteRequest(BaseModel):
     sop_name: str = Field(..., description="SOP 名称")
     variables: Dict[str, Any] = Field(default_factory=dict, description="变量")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "sop_name": "create_order",
-                "variables": {
-                    "region": "华南",
-                    "sku": "SKU001",
-                    "amount": 5000
-                }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "sop_name": "create_order",
+            "variables": {
+                "region": "华南",
+                "sku": "SKU001",
+                "amount": 5000
             }
         }
+    })
 
 
 class SOPExecuteResponse(BaseResponse):
@@ -161,7 +158,9 @@ class KnowledgeQueryRequest(BaseModel):
 
 class KnowledgeQueryResponse(BaseResponse):
     """查询知识库响应"""
+    query: str = Field(default="", description="查询内容")
     results: List[Dict[str, Any]] = Field(default_factory=list, description="查询结果")
+    total_found: int = Field(default=0, description="结果总数")
 
 
 # ==================== 健康检查 ====================
@@ -207,18 +206,17 @@ class LLMProviderConfigRequest(BaseModel):
     is_default: Optional[bool] = Field(default=False, description="是否设为默认")
     available_models: Optional[List[str]] = Field(default=None, description="可用模型列表（自定义提供商）")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "provider": "openai",
-                "api_key": "sk-xxxxx",
-                "model_name": "gpt-4o",
-                "temperature": 0.7,
-                "max_tokens": 4096,
-                "is_enabled": True,
-                "is_default": True
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "provider": "openai",
+            "api_key": "sk-xxxxx",
+            "model_name": "gpt-4o",
+            "temperature": 0.7,
+            "max_tokens": 4096,
+            "is_enabled": True,
+            "is_default": True
         }
+    })
 
 
 class LLMProviderConfigResponse(BaseModel):
@@ -258,14 +256,13 @@ class FetchModelsRequest(BaseModel):
     api_key: str = Field(..., description="API Key")
     provider_type: str = Field(default="openai", description="提供商类型")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "api_base": "https://api.openai.com/v1",
-                "api_key": "sk-xxxxx",
-                "provider_type": "openai"
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "api_base": "https://api.openai.com/v1",
+            "api_key": "sk-xxxxx",
+            "provider_type": "openai"
         }
+    })
 
 
 class ModelInfo(BaseModel):
@@ -293,16 +290,15 @@ class BatchAddModelsRequest(BaseModel):
     max_tokens: Optional[int] = Field(default=4096, ge=1, description="最大 Token 数")
     set_default: Optional[str] = Field(default=None, description="设置为默认的模型名称")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "provider": "custom",
-                "api_key": "sk-xxxxx",
-                "api_base": "https://api.example.com/v1",
-                "models": ["gpt-4", "gpt-3.5-turbo", "claude-3"],
-                "set_default": "gpt-4"
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "provider": "custom",
+            "api_key": "sk-xxxxx",
+            "api_base": "https://api.example.com/v1",
+            "models": ["gpt-4", "gpt-3.5-turbo", "claude-3"],
+            "set_default": "gpt-4"
         }
+    })
 
 
 class BatchAddModelsResponse(BaseModel):
@@ -322,15 +318,14 @@ class ErrorResponse(BaseModel):
     error_message: str
     details: Optional[Dict[str, Any]] = None
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "success": False,
-                "error_code": "TASK_NOT_FOUND",
-                "error_message": "任务不存在",
-                "details": {"task_id": "nonexistent"}
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "success": False,
+            "error_code": "TASK_NOT_FOUND",
+            "error_message": "任务不存在",
+            "details": {"task_id": "nonexistent"}
         }
+    })
 
 
 # ==================== MCP Server 配置相关 ====================
@@ -353,18 +348,17 @@ class MCPServerConfigRequest(BaseModel):
     auto_connect: bool = Field(default=False, description="是否自动连接")
     description: str = Field(default="", description="Server 描述")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "name": "filesystem",
-                "command": "npx",
-                "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed"],
-                "env": {},
-                "enabled": True,
-                "auto_connect": True,
-                "description": "文件系统操作工具"
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "name": "filesystem",
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed"],
+            "env": {},
+            "enabled": True,
+            "auto_connect": True,
+            "description": "文件系统操作工具"
         }
+    })
 
 
 class MCPServerConfigResponse(BaseModel):
@@ -400,14 +394,13 @@ class MCPToolCallRequest(BaseModel):
     arguments: Dict[str, Any] = Field(default_factory=dict, description="工具参数")
     server_name: Optional[str] = Field(default=None, description="指定 Server（可选）")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "tool_name": "read_file",
-                "arguments": {"path": "/tmp/test.txt"},
-                "server_name": "filesystem"
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "tool_name": "read_file",
+            "arguments": {"path": "/tmp/test.txt"},
+            "server_name": "filesystem"
         }
+    })
 
 
 class MCPToolCallResponse(BaseModel):
@@ -442,14 +435,13 @@ class AssignRoleRequest(BaseModel):
     role: RoleType = Field(..., description="角色类型")
     department: Optional[str] = Field(default=None, description="部门")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "user_id": "user-001",
-                "role": "senior_buyer",
-                "department": "采购部"
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "user_id": "user-001",
+            "role": "senior_buyer",
+            "department": "采购部"
         }
+    })
 
 
 class UserRoleResponse(BaseResponse):
@@ -516,21 +508,20 @@ class CreateApprovalRequest(BaseModel):
     data: Dict[str, Any] = Field(default_factory=dict, description="审批数据")
     expires_in_hours: Optional[int] = Field(default=None, description="过期时间（小时）")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "user_id": "user-001",
-                "approval_type": "amount_exceeded",
-                "title": "超额采购订单审批",
-                "description": "采购金额 150,000 元，超过角色上限 100,000 元",
-                "data": {
-                    "order_id": "order-123",
-                    "amount": 150000,
-                    "supplier": "供应商A"
-                },
-                "expires_in_hours": 24
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "user_id": "user-001",
+            "approval_type": "amount_exceeded",
+            "title": "超额采购订单审批",
+            "description": "采购金额 150,000 元，超过角色上限 100,000 元",
+            "data": {
+                "order_id": "order-123",
+                "amount": 150000,
+                "supplier": "供应商A"
+            },
+            "expires_in_hours": 24
         }
+    })
 
 
 class ApprovalRequestResponse(BaseResponse):
@@ -615,20 +606,19 @@ class CreateScheduledTaskRequest(BaseModel):
     retry_interval: int = Field(default=60, description="重试间隔（秒）")
     tags: List[str] = Field(default_factory=list, description="标签")
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "name": "库存检查任务",
-                "target": "check_inventory",
-                "args": [],
-                "kwargs": {"threshold": 100},
-                "priority": "high",
-                "task_type": "recurring",
-                "interval": 3600,
-                "max_retries": 3,
-                "tags": ["inventory", "monitoring"]
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "name": "库存检查任务",
+            "target": "check_inventory",
+            "args": [],
+            "kwargs": {"threshold": 100},
+            "priority": "high",
+            "task_type": "recurring",
+            "interval": 3600,
+            "max_retries": 3,
+            "tags": ["inventory", "monitoring"]
         }
+    })
 
 
 class ScheduledTaskResponse(BaseResponse):

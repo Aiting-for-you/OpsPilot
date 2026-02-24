@@ -1,6 +1,7 @@
 ﻿"""
 配置加载器单元测试
 """
+import os
 import pytest
 import tempfile
 from pathlib import Path
@@ -71,9 +72,16 @@ class TestConfigLoader:
 
     def test_find_config_file_not_found(self):
         """测试配置文件不存在"""
-        loader = ConfigLoader(config_path="/nonexistent/config.yaml")
-        result = loader.find_config_file()
-        assert result is None
+        # 使用临时目录确保没有配置文件存在
+        with tempfile.TemporaryDirectory() as tmpdir:
+            original_cwd = Path.cwd()
+            try:
+                os.chdir(tmpdir)
+                loader = ConfigLoader(config_path="/nonexistent/config.yaml")
+                result = loader.find_config_file()
+                assert result is None
+            finally:
+                os.chdir(original_cwd)
 
     def test_load_yaml_file_not_found(self):
         """测试加载不存在的 YAML 文件"""

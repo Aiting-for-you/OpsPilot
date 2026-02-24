@@ -19,7 +19,7 @@ from typing import Optional, Any, Dict
 from functools import lru_cache
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from pydantic_settings import BaseSettings
 
 from opspilot.utils.exceptions import (
@@ -86,18 +86,17 @@ class MCPServerConfig(BaseModel):
     auto_connect: bool = Field(default=False, description="是否自动连接")
     description: str = Field(default="", description="Server 描述")
     
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "name": "filesystem",
-                "command": "npx",
-                "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed"],
-                "env": {},
-                "enabled": True,
-                "auto_connect": True,
-                "description": "文件系统操作工具"
-            }
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "name": "filesystem",
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed"],
+            "env": {},
+            "enabled": True,
+            "auto_connect": True,
+            "description": "文件系统操作工具"
         }
+    })
 
 
 class MCPConfig(BaseModel):

@@ -4344,3 +4344,56 @@ b610ec3 fix: 完善i18n中英文适配
 - 添加更多集成测试场景
 - 优化API稳定性
 
+
+
+---
+
+## [2026-02-25] - Pydantic v2 兼容性修复与 CI/CD 完善
+
+### 开发目标
+- 修复 Pydantic v2 废弃警告
+- 完善 API 稳定性测试
+- 完善 CI/CD 流程
+
+### 完成内容
+- [x] 修复 Pydantic v2 兼容性警告
+  - 将 `class Config:` 全部替换为 `model_config = ConfigDict(...)`
+  - 修复 opspilot/db/models.py
+  - 修复 opspilot/api/schemas.py (10处)
+  - 修复 opspilot/utils/config.py
+  - 移除 BOM 字符问题 (56个文件)
+
+- [x] 修复测试 bug
+  - tests/utils/test_config.py::test_find_config_file_not_found
+  - 使用临时目录避免配置文件意外找到
+  - 添加缺失的 import os
+
+- [x] 完善 CI/CD 流程
+  - 更新 .github/workflows/docker-image.yml
+  - 添加 Python 环境设置
+  - 添加 pytest 测试运行
+  - 添加 ruff 代码检查
+  - Docker 构建仅在测试通过后运行
+
+### 测试结果
+- 总测试数: 1040 passed
+- 警告: 10 (非 Pydantic 相关)
+- Pydantic 废弃警告: 0
+
+### 技术决策
+- **Pydantic 迁移**: 使用 ConfigDict 替代 class-based config，是 Pydantic v2 推荐方式
+- **测试隔离**: 使用临时目录确保测试不依赖外部状态
+- **CI 策略**: 测试通过后才进行构建，确保主分支质量
+
+### 遇到的问题
+| 问题 | 解决方案 | 状态 |
+|------|---------|------|
+| BOM 字符导致语法错误 | 批量移除 UTF-8 BOM | 已解决 |
+| test_find_config_file_not_found 失败 | 使用临时目录隔离 | 已解决 |
+| class Config 废弃警告 | 替换为 model_config | 已解决 |
+
+### 下一步计划
+- 添加更多 API 稳定性测试
+- 完善前端集成测试
+- 添加性能基准测试
+
