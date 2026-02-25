@@ -266,8 +266,8 @@ class TestTicketManager:
     @pytest.fixture
     def manager(self):
         """创建工单管理器"""
-        from opspilot.customer_service.tools.ticket_manager import TicketManager
-        return TicketManager()
+        from opspilot.customer_service.tools.ticket_manager import TicketManagerTool
+        return TicketManagerTool()
     
     def test_manager_creation(self, manager):
         """测试管理器创建"""

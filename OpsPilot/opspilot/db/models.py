@@ -205,6 +205,7 @@ class OrderCreate(BaseModel):
     items: List[Dict[str, Any]]
     priority: str = "normal"
     created_by: Optional[str] = None
+    status: str = "pending"
 
 
 # ============================================

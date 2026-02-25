@@ -101,8 +101,8 @@ class TokenEstimator:
         tokens = cls.estimate(tool.name)
         tokens += cls.estimate(tool.description)
         
-        if tool.parameters and isinstance(tool.parameters, dict):
-            props = tool.parameters.get("properties", {})
+        if tool.input_schema and isinstance(tool.input_schema, dict):
+            props = tool.input_schema.get("properties", {})
             for prop_name, prop_info in props.items():
                 tokens += cls.estimate(prop_name)
                 if isinstance(prop_info, dict):
@@ -229,11 +229,9 @@ class ToolCompressor:
         params = self._extract_params(tool)
         required = self._extract_required(tool)
         
-        compressed_tokens = (
-            self.token_estimator.estimate(action) +
-            sum(self.token_estimator.estimate(p) for p in params) +
-            20  # 基础开销
-        )
+        # 计算压缩后的 token 数量（使用相同的估计方法）
+        compressed_description = f"{action} {', '.join(params[:3])}"
+        compressed_tokens = self.token_estimator.estimate(compressed_description)
         
         return CompressedTool(
             name=tool.name,
@@ -333,16 +331,16 @@ class ToolCompressor:
         """提取参数列表"""
         params = []
         
-        if tool.parameters and isinstance(tool.parameters, dict):
-            props = tool.parameters.get("properties", {})
+        if tool.input_schema and isinstance(tool.input_schema, dict):
+            props = tool.input_schema.get("properties", {})
             params = list(props.keys())
         
         return params
     
     def _extract_required(self, tool: ToolSchema) -> List[str]:
         """提取必填参数"""
-        if tool.parameters and isinstance(tool.parameters, dict):
-            return tool.parameters.get("required", [])
+        if tool.input_schema and isinstance(tool.input_schema, dict):
+            return tool.input_schema.get("required", [])
         return []
     
     def _extract_returns(self, tool: ToolSchema) -> str:

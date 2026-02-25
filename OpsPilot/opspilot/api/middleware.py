@@ -57,8 +57,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             # 记录错误
             duration = (time.time() - start_time) * 1000
+            import traceback
+            tb = traceback.format_exc()
             logger.error(
-                f"请求失败: {request.method} {request.url.path} - {str(e)} ({duration:.2f}ms)",
+                f"请求失败: {request.method} {request.url.path} - {str(e)} ({duration:.2f}ms)\n{tb}",
                 extra={"request_id": request_id, "error": str(e)}
             )
 

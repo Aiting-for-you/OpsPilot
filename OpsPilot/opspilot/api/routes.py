@@ -85,9 +85,15 @@ from opspilot.memory.knowledge import KnowledgeBase
 
 # ==================== 依赖注入 ====================
 
+_orchestrator_instance = None
+
+
 def get_orchestrator() -> Orchestrator:
     """获取编排器实例"""
-    return Orchestrator()
+    global _orchestrator_instance
+    if _orchestrator_instance is None:
+        _orchestrator_instance = Orchestrator()
+    return _orchestrator_instance
 
 
 def get_tool_router() -> ToolRouter:

@@ -7,7 +7,7 @@
 - 提取关键实体
 - 输出结构化意图
 """
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, TYPE_CHECKING
 from enum import Enum
 
 from opspilot.agents.base import (
@@ -18,7 +18,9 @@ from opspilot.agents.base import (
     AgentOutput,
     BaseLLMClient,
 )
-from opspilot.core.state_machine import State
+
+if TYPE_CHECKING:
+    from opspilot.core.state_machine import State
 
 
 class IntentType(str, Enum):
@@ -173,6 +175,7 @@ class MockIntentAgent(IntentAgent):
             "summary": f"识别为{intent_type.value}意图"
         }
 
+        from opspilot.core.state_machine import State
         return AgentOutput(
             success=True,
             result=result,

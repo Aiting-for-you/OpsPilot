@@ -489,8 +489,8 @@ class ToolContextBudget:
         desc_tokens = len(tool.description) // 4
         
         param_count = 0
-        if tool.parameters and isinstance(tool.parameters, dict):
-            props = tool.parameters.get("properties", {})
+        if tool.input_schema and isinstance(tool.input_schema, dict):
+            props = tool.input_schema.get("properties", {})
             param_count = len(props)
         
         return desc_tokens + param_count * 20 + self.DEFAULT_TOOL_TOKENS

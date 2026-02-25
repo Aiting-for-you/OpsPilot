@@ -225,8 +225,7 @@ class SequentialCollaboration(BaseCollaboration):
                     
                     # 记录输出
                     agent_outputs[actor.name] = AgentOutput(
-                        agent_name=actor.name,
-                        status="success",
+                        success=True,
                         result=current_data,
                     )
             
@@ -341,8 +340,7 @@ class ParallelCollaboration(BaseCollaboration):
                 actor_name, response = result
                 if response:
                     agent_outputs[actor_name] = AgentOutput(
-                        agent_name=actor_name,
-                        status="success",
+                        success=True,
                         result=response.content,
                     )
                     final_results[actor_name] = response.content
@@ -428,8 +426,7 @@ class ConditionalCollaboration(BaseCollaboration):
             if response:
                 current_data = response.content if isinstance(response.content, dict) else {"result": response.content}
                 agent_outputs[actor.name] = AgentOutput(
-                    agent_name=actor.name,
-                    status="success",
+                    success=True,
                     result=current_data,
                 )
         
@@ -540,8 +537,7 @@ class PipelineCollaboration(BaseCollaboration):
             data_stream = stage_outputs
             
             agent_outputs[stage] = AgentOutput(
-                agent_name=stage,
-                status="success",
+                success=True,
                 result=stage_outputs,
             )
         

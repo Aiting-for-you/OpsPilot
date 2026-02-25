@@ -590,8 +590,8 @@ class TaskType(str, Enum):
     RECURRING = "recurring"
 
 
-class TaskStatus(str, Enum):
-    """任务状态"""
+class ScheduledTaskStatus(str, Enum):
+    """调度任务状态"""
     PENDING = "pending"
     QUEUED = "queued"
     RUNNING = "running"

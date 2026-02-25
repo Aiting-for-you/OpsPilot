@@ -200,7 +200,7 @@ class ERPServer(BaseToolServer):
             order_id = f"ORD{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
             # 判断是否需要审批（金额超过 10000）
-            need_approval = total_amount > 10000
+            need_approval = total_amount >= 10000
             status = "pending_approval" if need_approval else "created"
 
             # 创建订单

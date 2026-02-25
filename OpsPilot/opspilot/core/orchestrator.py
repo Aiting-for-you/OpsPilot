@@ -13,7 +13,7 @@ import asyncio
 from opspilot.core.state_machine import StateMachine, State
 from opspilot.core.context import TaskContext, ContextManager
 from opspilot.core.events import EventBus, StateChangedEvent, TaskCreatedEvent, TaskCompletedEvent
-from opspilot.agents.base import AgentRegistry, BaseAgent, AgentContext
+from opspilot.agents.base import BaseAgent, AgentContext
 from opspilot.agents.intent_agent import IntentType
 from opspilot.memory.base import MemoryManager
 from opspilot.memory.short_term import ShortTermMemory
@@ -30,7 +30,7 @@ class Orchestrator:
 
     def __init__(
         self,
-        agent_registry: Optional[AgentRegistry] = None,
+        agent_registry: Optional["AgentRegistry"] = None,
         context_manager: Optional[ContextManager] = None,
         memory_manager: Optional[MemoryManager] = None,
         tool_router: Optional[ToolRouter] = None
@@ -44,6 +44,7 @@ class Orchestrator:
             memory_manager: 记忆管理器
             tool_router: 工具路由器
         """
+        from opspilot.agents.base import AgentRegistry
         self._agent_registry = agent_registry or AgentRegistry()
         self._context_manager = context_manager or ContextManager()
         self._memory_manager = memory_manager or MemoryManager()

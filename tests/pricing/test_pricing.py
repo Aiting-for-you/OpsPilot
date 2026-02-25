@@ -16,7 +16,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from opspilot.agents.base import AgentContext, AgentOutput, State
+from opspilot.agents.base import AgentContext, AgentOutput
+from opspilot.core.state_machine import State
 from opspilot.pricing.agents.cost_agent import CostAgent
 from opspilot.pricing.agents.market_agent import MarketAgent
 from opspilot.pricing.agents.profit_agent import ProfitAgent

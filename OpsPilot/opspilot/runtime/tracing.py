@@ -353,7 +353,8 @@ class LLMTracer(Tracer):
         self.add_event(span_id, "llm.prompt", {"content": prompt[:500]})
         self.add_event(span_id, "llm.completion", {"content": completion[:500]})
         
-        return self.end_span(span_id, "OK")
+        self.end_span(span_id, "OK")
+        return span_id
 
 
 class AgentTracer(Tracer):
@@ -400,7 +401,8 @@ class AgentTracer(Tracer):
         self.add_event(span_id, "agent.input", {"data": str(input_data)[:500]})
         self.add_event(span_id, "agent.output", {"data": str(output_data)[:500]})
         
-        return self.end_span(span_id, "OK")
+        self.end_span(span_id, "OK")
+        return span_id
 
 
 class ToolTracer(Tracer):
@@ -447,7 +449,9 @@ class ToolTracer(Tracer):
         self.add_event(span_id, "tool.params", {"params": params})
         self.add_event(span_id, "tool.result", {"result": str(result)[:500]})
         
-        return self.end_span(span_id, "OK" if success else "ERROR")
+        status = "OK" if success else "ERROR"
+        self.end_span(span_id, status)
+        return span_id
 
 
 # 全局追踪器

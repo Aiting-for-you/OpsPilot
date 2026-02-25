@@ -226,8 +226,8 @@ class ToolIndexer:
         parts = [tool.name, tool.description]
         
         # 添加参数信息
-        if tool.parameters:
-            params = tool.parameters
+        if tool.input_schema:
+            params = tool.input_schema
             if isinstance(params, dict):
                 props = params.get("properties", {})
                 for prop_name, prop_info in props.items():
@@ -331,7 +331,7 @@ class ToolIndexer:
                 description_text=text,
                 metadata={
                     "description": tool.description[:200],
-                    "timeout": tool.timeout,
+                    "timeout": tool.timeout_seconds,
                 }
             )
             self.tool_embeddings.append(tool_embedding)

@@ -128,10 +128,19 @@ class ToolContextManager:
         # 缓存
         self._cache: Dict[str, CacheEntry] = {}
     
-    def _compute_query_hash(self, query: str, **kwargs) -> str:
-        """计算查询哈希"""
-        key = f"{query}|{kwargs}"
-        return hashlib.md5(key.encode()).hexdigest()[:16]
+    def _compute_query_hash(self, query: str, top_k=None, strategy=None, compression=None, max_tokens=None, **kwargs) -> str:
+        """计算查询哈希值"""
+        # 构建查询特征字符串
+        features = [
+            query,
+            str(top_k) if top_k else "",
+            str(strategy) if strategy else "",
+            str(compression) if compression else "",
+            str(max_tokens) if max_tokens else "",
+        ]
+        query_features = "|".join(filter(None, features))
+        
+        return hashlib.md5(query_features.encode()).hexdigest()
     
     def _check_cache(self, query_hash: str) -> Optional[ToolSelectionResult]:
         """检查缓存"""

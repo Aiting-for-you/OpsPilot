@@ -29,6 +29,11 @@ class TaskStatistics:
     # 趋势数据
     daily_completion_trend: List[Dict[str, Any]] = field(default_factory=list)
     daily_failure_trend: List[Dict[str, Any]] = field(default_factory=list)
+    
+    def __post_init__(self):
+        """自动计算 success_rate"""
+        if self.total_tasks > 0 and self.success_rate == 0.0:
+            self.success_rate = self.completed_tasks / self.total_tasks
 
 
 @dataclass
@@ -50,6 +55,11 @@ class AgentPerformance:
     
     # 性能趋势
     performance_trend: List[Dict[str, Any]] = field(default_factory=list)
+    
+    def __post_init__(self):
+        """自动计算 success_rate"""
+        if self.total_tasks > 0 and self.success_rate == 0.0:
+            self.success_rate = self.successful_tasks / self.total_tasks
 
 
 @dataclass
@@ -476,6 +486,14 @@ class AnalyticsEngine:
         for key in keys_to_delete:
             del self._cache[key]
             del self._cache_time[key]
+    
+    def clear_records(self):
+        """清除所有分析记录"""
+        self.task_history.clear()
+        self.agent_history.clear()
+        self.tool_call_history.clear()
+        self._cache.clear()
+        self._cache_time.clear()
 
 
 # 全局分析引擎实例

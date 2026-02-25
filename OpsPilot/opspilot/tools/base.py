@@ -106,7 +106,7 @@ class ToolResult:
         )
 
     @classmethod
-    def error(
+    def error_result(
         cls,
         error: str,
         error_code: str,
@@ -225,6 +225,18 @@ class BaseToolServer(ABC):
         """获取工具 Schema"""
         return self._tools.get(tool_name)
 
+    def get_tool(self, tool_name: str) -> Optional[Any]:
+        """获取工具（包含 handler）"""
+        if tool_name not in self._tools:
+            return None
+        
+        class ToolWrapper:
+            def __init__(self, schema, handler):
+                self.schema = schema
+                self.handler = handler
+        
+        return ToolWrapper(self._tools[tool_name], self._handlers[tool_name])
+
     def get_all_schemas(self) -> List[ToolSchema]:
         """获取所有工具 Schema"""
         return list(self._tools.values())
@@ -310,8 +322,7 @@ class BaseToolServer(ABC):
             return ToolResult.error(
                 error=str(e),
                 error_code="EXECUTION_ERROR",
-                retry_suggested=schema.retryable,
-                latency_ms=latency_ms
+                retry_suggested=schema.retryable
             )
 
     @abstractmethod
@@ -478,6 +489,24 @@ class ToolRouter:
                 if result.is_success():
                     return result
 
+                # 检查超时错误
+                if result.status == ToolStatus.TIMEOUT:
+                    # 尝试获取工具的 timeout_seconds
+                    timeout_seconds = 0
+                    for server in self._servers.values():
+                        schema = server.get_tool_schema(tool_name)
+                        if schema:
+                            timeout_seconds = schema.timeout_seconds
+                            break
+                    last_error = ToolTimeoutError(tool_name, timeout_seconds)
+                    # 如果还有重试次数，继续重试
+                    if attempt < retries:
+                        continue
+                    # 最后一次或没有重试次数
+                    if raise_on_error:
+                        raise last_error
+                    return result
+
                 # 不可重试的错误直接返回
                 if not result.retry_suggested:
                     return result
@@ -491,7 +520,11 @@ class ToolRouter:
                     error_code=e.code,
                     retry_suggested=False
                 )
-            except (ToolTimeoutError, ToolExecutionError) as e:
+            except ToolTimeoutError as e:
+                last_error = e
+                last_result = ToolResult.timeout(latency_ms=0)
+                last_result.retry_suggested = True
+            except ToolExecutionError as e:
                 last_error = e
                 last_result = ToolResult.error(
                     error=str(e),
@@ -528,4 +561,24 @@ class ToolRouter:
         """关闭所有服务器"""
         for server in self._servers.values():
             await server.shutdown()
+
+
+# 向后兼容别名
+def create_tool_error(
+    error: str,
+    error_code: str,
+    retry_suggested: bool = False,
+    fallback_mode: FallbackMode = FallbackMode.NONE
+) -> ToolResult:
+    """创建错误结果的向后兼容别名"""
+    return ToolResult.error_result(
+        error=error,
+        error_code=error_code,
+        retry_suggested=retry_suggested,
+        fallback_mode=fallback_mode
+    )
+
+
+# 向后兼容: 将 error 指向 error_result
+ToolResult.error = ToolResult.error_result
 

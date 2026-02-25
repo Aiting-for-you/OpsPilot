@@ -101,7 +101,7 @@ class TestToolResult:
         )
 
         assert result.status == ToolStatus.ERROR
-        assert result.error == "执行失败"
+        assert result.error_msg == "执行失败"
         assert result.retry_suggested is True
         assert result.fallback_mode == FallbackMode.GUI_MODE
 
@@ -262,7 +262,7 @@ class TestBaseToolServer:
         result = await server.execute_tool("error_tool", {}, context)
 
         assert result.status == ToolStatus.ERROR
-        assert "出错" in result.error
+        assert "出错" in result.error_msg
 
 
 class TestToolRouter:

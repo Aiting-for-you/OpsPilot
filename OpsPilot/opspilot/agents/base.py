@@ -1,4 +1,4 @@
-﻿"""
+"""
 Agent 基础模块
 
 职责：
@@ -8,14 +8,16 @@ Agent 基础模块
 """
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, TYPE_CHECKING
 from dataclasses import dataclass, field
 from enum import Enum
 import uuid
 import asyncio
 
-from opspilot.core.state_machine import State
-from opspilot.core.events import EventBus, AgentStartedEvent, AgentCompletedEvent, AgentFailedEvent
+if TYPE_CHECKING:
+    from opspilot.core.state_machine import State
+    from opspilot.core.events import EventBus, AgentStartedEvent, AgentCompletedEvent, AgentFailedEvent
+
 from opspilot.utils.exceptions import (
     AgentTimeoutError,
     AgentExecutionError,
@@ -34,8 +36,8 @@ class AgentRole(str, Enum):
 @dataclass
 class AgentConfig:
     """Agent 配置"""
-    name: str
-    role: AgentRole
+    name: str = "default"
+    role: AgentRole = AgentRole.EXECUTION
     description: str = ""
     model: str = "default"
     temperature: float = 0.7
@@ -47,7 +49,7 @@ class AgentConfig:
 class AgentContext:
     """Agent 执行上下文"""
     task_id: str
-    state: State
+    state: "State"
     user_input: str = ""
     history: List[Dict[str, Any]] = field(default_factory=list)
     memory_context: str = ""
@@ -62,7 +64,7 @@ class AgentOutput:
     success: bool
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
-    next_state: Optional[State] = None
+    next_state: Optional["State"] = None
     tools_to_call: List[Dict[str, Any]] = field(default_factory=list)
     reasoning: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -201,6 +203,7 @@ class BaseAgent(ABC):
         """
         self.config = config
         self._llm = llm_client or MockLLMClient()
+        from opspilot.core.events import EventBus
         self._event_bus = EventBus.get_instance()
 
     @property
@@ -241,6 +244,7 @@ class BaseAgent(ABC):
         start_time = datetime.now()
 
         # 发布开始事件
+        from opspilot.core.events import AgentStartedEvent, AgentCompletedEvent
         self._event_bus.publish(AgentStartedEvent(
             task_id=context.task_id,
             agent_name=self.name,
@@ -264,8 +268,9 @@ class BaseAgent(ABC):
             return output
 
         except asyncio.TimeoutError:
-            # 发布失败事件
-            self._event_bus.publish(AgentFailedEvent(
+            # 发布失败事件 - 延迟导入避免循环依赖
+            from opspilot.core.events import AgentFailedEvent as AgentFailedEventCls
+            self._event_bus.publish(AgentFailedEventCls(
                 task_id=context.task_id,
                 agent_name=self.name,
                 error=f"Agent 执行超时: {self.config.timeout}s"
@@ -280,8 +285,9 @@ class BaseAgent(ABC):
             )
 
         except Exception as e:
-            # 发布失败事件
-            self._event_bus.publish(AgentFailedEvent(
+            # 发布失败事件 - 延迟导入避免循环依赖
+            from opspilot.core.events import AgentFailedEvent as AgentFailedEventCls
+            self._event_bus.publish(AgentFailedEventCls(
                 task_id=context.task_id,
                 agent_name=self.name,
                 error=str(e)

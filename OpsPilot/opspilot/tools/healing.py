@@ -352,6 +352,10 @@ class ToolHealer:
                     if self.degradation_handler:
                         result = await self.degradation_handler(tool_call, diagnosis)
                         return result
+                    # 尝试 fallback
+                    if self.fallback_handler:
+                        result = await self.fallback_handler(tool_call, diagnosis)
+                        return result
                     raise ToolMaxRetriesExceededError(
                         recovery_ctx.retry_count, diagnosis
                     ) from e

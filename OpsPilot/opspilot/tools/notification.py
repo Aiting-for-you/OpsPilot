@@ -714,3 +714,38 @@ class NotificationServer(BaseToolServer):
 def create_notification_server(default_sender: str = "OpsPilot") -> NotificationServer:
     """创建通知 Server"""
     return NotificationServer(default_sender)
+
+
+# ==================== 通知配置和渠道 ====================
+
+from enum import Enum
+
+
+class NotificationChannel(str, Enum):
+    """通知渠道"""
+    EMAIL = "email"
+    SMS = "sms"
+    WECHAT = "wechat"
+    WEBHOOK = "webhook"
+    INBOX = "inbox"
+
+
+@dataclass
+class NotificationConfig:
+    """通知配置"""
+    channel: NotificationChannel
+    enabled: bool = True
+    sender: str = ""
+    recipients: List[str] = field(default_factory=list)
+    webhook_url: str = ""
+    template: str = ""
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "channel": self.channel.value if isinstance(self.channel, Enum) else self.channel,
+            "enabled": self.enabled,
+            "sender": self.sender,
+            "recipients": self.recipients,
+            "webhook_url": self.webhook_url,
+            "template": self.template,
+        }

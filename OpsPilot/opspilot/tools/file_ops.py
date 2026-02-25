@@ -673,7 +673,7 @@ class FileServer(BaseToolServer):
                     "recursive": {
                         "type": "boolean",
                         "description": "是否递归",
-                        "default": false
+                        "default": False
                     }
                 }
             }

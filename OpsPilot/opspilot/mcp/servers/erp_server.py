@@ -447,12 +447,21 @@ class ERPMCPServer(MCPServerBase):
                     "amount": float(product.base_price * item["quantity"]),
                 })
 
+            # 计算订单总金额
+            total_amount = sum(item["amount"] for item in items)
+            
+            # 大额订单需要审批 (阈值: 10000)
+            APPROVAL_THRESHOLD = 10000
+            need_approval = total_amount >= APPROVAL_THRESHOLD
+            order_status = "pending_approval" if need_approval else "pending"
+
             # 创建订单
             order_create = OrderCreate(
                 supplier_id=supplier_id,
                 items=items,
                 priority=params.get("priority", "normal"),
                 created_by=params.get("created_by", "mcp-server"),
+                status=order_status,
             )
 
             order = await OrderCRUD.create(order_create)
@@ -462,6 +471,7 @@ class ERPMCPServer(MCPServerBase):
                 "supplier_id": order.supplier_id,
                 "status": order.status,
                 "total_amount": float(order.total_amount) if order.total_amount else 0,
+                "need_approval": need_approval,
                 "created_at": order.created_at.isoformat() if order.created_at else None,
             }
 
