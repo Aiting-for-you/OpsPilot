@@ -1,6 +1,3 @@
-# Codebuddy
-.codebuddy/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -22,22 +19,20 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-.venv/
-venv/
-ENV/
-env/
 
 # Node.js
 node_modules/
+package-lock.json
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
 
-# Build outputs
-dist/
-build/
-*.local
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
 
 # IDE
 .idea/
@@ -47,35 +42,89 @@ build/
 *~
 
 # Testing
+.pytest_cache/
 .coverage
 htmlcov/
 .tox/
-.nox/
-coverage.xml
-*.cover
-*.py,cover
-.pytest_cache/
-pytestdebug.log
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
 # Logs
 logs/
 *.log
 
-# OS
-.DS_Store
-Thumbs.db
+# Data
+data/
+*.db
+*.sqlite3
 
 # Environment
 .env
 .env.local
-.env.*.local
+*.local
 
-# Temporary files
-*.tmp
-*.temp
-*.bak
+# OS
+.DS_Store
+Thumbs.db
 
-# OpsPilot specific
-OpsPilot/test_*.py
-OpsPilot/test_*.txt
-OpsPilot/mcp_test_output.txt
+# Project specific
+*.idx
+*.sample
+
+# ========================================
+# 文档目录 - 不上传到 GitHub
+# ========================================
+
+# 方法论文件夹
+methodology/
+
+# 设计文档
+docs/01_VISION.md
+docs/02_ARCHITECTURE.md
+docs/03_MODULES.md
+docs/04_DATAFLOW.md
+docs/05_API.md
+docs/06_DEPLOYMENT.md
+docs/07_TECH_DECISIONS.md
+docs/08_QUALITY.md
+docs/PRD.md
+docs/ROADMAP.md
+docs/SOP_TEMPLATE.md
+
+# 开发文档
+dev/
+!dev/.gitkeep
+
+# ========================================
+# 开发工具配置 - 不上传
+# ========================================
+
+# Codebuddy
+.codebuddy/
+
+# 开发环境配置
+.env.development
+.env.staging
+
+# ========================================
+# 前端 - 不上传
+# ========================================
+
+# 依赖目录
+frontend/node_modules/
+
+# 构建输出
+frontend/dist/
+frontend/build/
+
+# 环境变量
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# 缓存
+frontend/.vite/
+frontend/.cache/
