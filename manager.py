@@ -38,8 +38,8 @@ class ServiceManager:
             "backend": {
                 "name": "后端服务",
                 "port": 8000,
-                "command": ["python", "-m", "uvicorn", "opspilot.main:app", "--host", "0.0.0.0", "--port", "8000"],
-                "cwd": str(PROJECT_ROOT),
+                "command": ["python", "-m", "uvicorn", "OpsPilot.opspilot.main:app", "--host", "0.0.0.0", "--port", "8000"],
+                "cwd": str(PROJECT_ROOT / "OpsPilot"),
                 "running": False,
                 "pid": None,
             },
@@ -47,7 +47,7 @@ class ServiceManager:
                 "name": "前端服务",
                 "port": 5173,
                 "command": ["npm", "run", "dev"],
-                "cwd": str(PROJECT_ROOT / "frontend"),
+                "cwd": str(PROJECT_ROOT / "OpsPilot" / "frontend"),
                 "running": False,
                 "pid": None,
             }
