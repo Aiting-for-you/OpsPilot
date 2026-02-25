@@ -89,10 +89,12 @@ class InMemoryKnowledgeStore(BaseMemoryStore):
             )
             self._store[entry.id] = entry
 
-            # 建立索引
-            words = item["title"] + " " + item["content"]
-            for word in words:
-                if len(word) >= 2:
+            # 建立索引 - 使用2-gram分词处理中文
+            text = item["title"] + " " + item["content"]
+            # 提取所有2-gram词组
+            for i in range(len(text) - 1):
+                word = text[i:i+2]
+                if word.strip():  # 跳过空白
                     if word not in self._index:
                         self._index[word] = []
                     if entry.id not in self._index[word]:
@@ -119,10 +121,11 @@ class InMemoryKnowledgeStore(BaseMemoryStore):
         """存储知识条目"""
         self._store[entry.id] = entry
 
-        # 更新索引
-        words = entry.content
-        for word in words:
-            if len(word) >= 2:
+        # 更新索引 - 使用2-gram分词
+        text = entry.content
+        for i in range(len(text) - 1):
+            word = text[i:i+2]
+            if word.strip():
                 if word not in self._index:
                     self._index[word] = []
                 if entry.id not in self._index[word]:
@@ -138,9 +141,11 @@ class InMemoryKnowledgeStore(BaseMemoryStore):
         """删除知识条目"""
         if entry_id in self._store:
             entry = self._store[entry_id]
-            # 清理索引
-            for word in entry.content:
-                if word in self._index and entry_id in self._index[word]:
+            # 清理索引 - 使用2-gram分词
+            text = entry.content
+            for i in range(len(text) - 1):
+                word = text[i:i+2]
+                if word.strip() and word in self._index and entry_id in self._index[word]:
                     self._index[word].remove(entry_id)
             del self._store[entry_id]
             return True
@@ -161,8 +166,8 @@ class InMemoryKnowledgeStore(BaseMemoryStore):
         results = []
         seen_ids = set()
 
-        # 1. 关键词匹配
-        query_words = [w for w in query if len(w) >= 2]
+        # 1. 关键词匹配 - 使用2-gram分词
+        query_words = [query[i:i+2] for i in range(len(query) - 1) if query[i:i+2].strip()]
         keyword_scores: Dict[str, float] = {}
 
         for word in query_words:

@@ -278,7 +278,7 @@ class SOPExecutor:
             step_id=step.id,
             success=result.is_success(),
             output=result.data,
-            error=result.error_msg
+            error=result.error
         )
 
     async def _execute_sequential_step(self, step: SOPStep) -> SOPExecutionResult:

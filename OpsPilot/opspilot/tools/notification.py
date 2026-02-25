@@ -655,6 +655,82 @@ class NotificationServer(BaseToolServer):
                     error_code="NOTIFICATION_NOT_FOUND"
                 )
         
+        # ==================== 通用通知 ====================
+        
+        @self.register_tool(ToolSchema(
+            name="send_notification",
+            description="发送通用通知，支持多种渠道",
+            input_schema={
+                "type": "object",
+                "required": ["channel", "subject", "body"],
+                "properties": {
+                    "channel": {
+                        "type": "string",
+                        "description": "通知渠道：email/sms/dingtalk/wecom/inbox/webhook"
+                    },
+                    "subject": {
+                        "type": "string",
+                        "description": "通知主题/标题"
+                    },
+                    "body": {
+                        "type": "string",
+                        "description": "通知内容"
+                    },
+                    "to": {
+                        "type": "string",
+                        "description": "接收人（邮箱/手机/用户ID）"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "description": "优先级：high/normal/low",
+                        "default": "normal"
+                    }
+                }
+            }
+        ))
+        async def send_notification_tool(params: Dict[str, Any], context: ToolContext) -> ToolResult:
+            channel = params.get("channel", "")
+            subject = params.get("subject", "")
+            body = params.get("body", "")
+            to = params.get("to", "")
+            priority = params.get("priority", "normal")
+            
+            # 映射渠道
+            channel_map = {
+                "email": "email",
+                "sms": "sms",
+                "dingtalk": "webhook",
+                "wecom": "wecom",
+                "inbox": "inbox",
+                "webhook": "webhook",
+            }
+            actual_channel = channel_map.get(channel.lower(), channel)
+            
+            # 模拟发送延迟
+            await asyncio.sleep(0.05)
+            
+            # 生成通知记录
+            notification_id = generate_notification_id()
+            record = NotificationRecord(
+                notification_id=notification_id,
+                channel=actual_channel,
+                recipient=to or "broadcast",
+                subject=subject,
+                content=body,
+                status="sent",
+                sent_at=datetime.now().isoformat(),
+            )
+            MOCK_NOTIFICATIONS[notification_id] = record
+            
+            return ToolResult.success({
+                "notification_id": notification_id,
+                "channel": actual_channel,
+                "subject": subject,
+                "status": "sent",
+                "sent_at": record.sent_at,
+                "message": f"通知已通过 {channel} 渠道发送",
+            })
+        
         @self.register_tool(ToolSchema(
             name="list_notifications",
             description="查询通知记录列表",

@@ -145,22 +145,30 @@ class RedisSessionStore(BaseMemoryStore):
         query_lower = query.lower()
         
         for entry_id, entry in self._cache.items():
-            if query_lower in entry.content.lower():
-                # 应用过滤条件
-                if filters:
-                    match = True
-                    for key, value in filters.items():
-                        if entry.metadata.get(key) != value:
-                            match = False
-                            break
-                    if not match:
-                        continue
+            # 检查查询匹配
+            query_match = not query or query_lower in entry.content.lower()
+            if not query_match:
+                continue
                 
-                # 计算简单分数
+            # 应用过滤条件 - 检查属性和metadata
+            if filters:
+                match = True
+                for key, value in filters.items():
+                    entry_value = getattr(entry, key, None) or entry.metadata.get(key)
+                    if entry_value != value:
+                        match = False
+                        break
+                if not match:
+                    continue
+            
+            # 计算简单分数
+            if query:
                 pos = entry.content.lower().find(query_lower)
                 score = 1.0 - (pos / max(len(entry.content), 1))
-                
-                results.append(SearchResult(entry=entry, score=score))
+            else:
+                score = 1.0
+            
+            results.append(SearchResult(entry=entry, score=score))
         
         # 按分数排序
         results.sort(key=lambda x: x.score, reverse=True)
@@ -188,29 +196,36 @@ class RedisSessionStore(BaseMemoryStore):
         history = self._get_message_history(session_id)
         return history.messages
     
-    async def add_user_message(
-        self,
-        session_id: str,
-        message: str,
-    ) -> None:
-        """添加用户消息"""
-        history = self._get_message_history(session_id)
-        history.add_user_message(message)
+        async def add_user_message(
+            self,
+            session_id: str,
+            message: str,
+        ) -> None:
+            """添加用户消息"""
+            history = self._get_message_history(session_id)
+            history.add_user_message(message)
     
-    async def add_ai_message(
-        self,
-        session_id: str,
-        message: str,
-    ) -> None:
-        """添加 AI 消息"""
-        history = self._get_message_history(session_id)
-        history.add_ai_message(message)
+        async def add_ai_message(
+            self,
+            session_id: str,
+            message: str,
+        ) -> None:
+            """添加 AI 消息"""
+            history = self._get_message_history(session_id)
+            history.add_ai_message(message)
     
-    async def clear_session(self, session_id: str) -> None:
-        """清空指定会话"""
-        history = self._get_message_history(session_id)
-        history.clear()
-
+        async def clear_session(self, session_id: str) -> None:
+            """清空指定会话"""
+            history = self._get_message_history(session_id)
+            history.clear()
+    
+        async def get_by_task(self, task_id: str) -> List[MemoryEntry]:
+            """获取指定任务的所有记忆"""
+            results = []
+            for entry in self._cache.values():
+                if entry.task_id == task_id and not entry.is_expired():
+                    results.append(entry)
+            return results
 
 class RedisMemoryManager:
     """

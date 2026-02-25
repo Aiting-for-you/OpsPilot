@@ -85,7 +85,9 @@ class InMemoryShortTermStore(BaseMemoryStore):
                 if filters:
                     match = True
                     for key, value in filters.items():
-                        if entry.metadata.get(key) != value:
+                        # 检查属性和metadata
+                        entry_value = getattr(entry, key, None) or entry.metadata.get(key)
+                        if entry_value != value:
                             match = False
                             break
                     if not match:
