@@ -1,5 +1,5 @@
 {
-  "name": "showwork-root",
+  "name": "opspilot-root",
   "private": true,
-  "workspaces": ["OpsPilot/frontend"]
+  "workspaces": ["frontend"]
 }

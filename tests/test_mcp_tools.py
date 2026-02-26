@@ -163,15 +163,17 @@ class TestHttpTools:
     @pytest.mark.asyncio
     async def test_http_client_mock_get(self):
         """测试 HTTP 客户端 Mock GET"""
-        # 测试已被其他 HTTP 测试覆盖
-        pass
+        client = HttpClient(cache_enabled=False)
+        response = await client.request(
+            method=HttpMethod.GET,
+            url="https://api.example.com/users",
+        )
+        assert response.success is True
+        assert response.status_code == 200
     
     @pytest.mark.asyncio
-    @patch('opspilot.tools.http_client.HttpClient.request', new_callable=AsyncMock)
-    async def test_http_get_tool(self, mock_request, api_server, context):
+    async def test_http_get_tool(self, api_server, context):
         """测试 http_get 工具"""
-        mock_request.return_value = MagicMock(success=True, status_code=200, body={"users": []})
-        
         tool = api_server.get_tool("http_get")
         assert tool is not None
         
@@ -179,11 +181,8 @@ class TestHttpTools:
         assert result.is_success()
     
     @pytest.mark.asyncio
-    @patch('opspilot.tools.http_client.HttpClient.request', new_callable=AsyncMock)
-    async def test_http_post_tool(self, mock_request, api_server, context):
+    async def test_http_post_tool(self, api_server, context):
         """测试 http_post 工具"""
-        mock_request.return_value = MagicMock(success=True, status_code=201, body={"id": 1})
-        
         tool = api_server.get_tool("http_post")
         assert tool is not None
         
@@ -194,11 +193,8 @@ class TestHttpTools:
         assert result.is_success()
     
     @pytest.mark.asyncio
-    @patch('opspilot.tools.http_client.HttpClient.request', new_callable=AsyncMock)
-    async def test_graphql_query_tool(self, mock_request, api_server, context):
+    async def test_graphql_query_tool(self, api_server, context):
         """测试 graphql_query 工具"""
-        mock_request.return_value = MagicMock(success=True, status_code=200, body={"data": {"users": []}})
-        
         tool = api_server.get_tool("graphql_query")
         assert tool is not None
         
@@ -332,7 +328,7 @@ class TestFileTools:
         read_tool = file_server.get_tool("file_read")
         result = await read_tool.handler({"path": "test.txt"}, context)
         assert result.is_success()
-        assert "Hello, World!" in result.data["data"]["content"]
+        assert "Hello, World!" in result.data["content"]
     
     @pytest.mark.asyncio
     async def test_file_list(self, file_server, context, tmp_path):
@@ -344,7 +340,7 @@ class TestFileTools:
         tool = file_server.get_tool("file_list")
         result = await tool.handler({"path": "."}, context)
         assert result.is_success()
-        assert result.data["data"]["total"] >= 2
+        assert result.data["total"] >= 2
     
     @pytest.mark.asyncio
     async def test_file_search(self, file_server, context, tmp_path):
@@ -358,7 +354,7 @@ class TestFileTools:
             context
         )
         assert result.is_success()
-        assert result.data["data"]["total_matches"] == 2
+        assert result.data["total_matches"] == 2
     
     @pytest.mark.asyncio
     async def test_log_parse(self, file_server, context):
@@ -393,7 +389,10 @@ class TestNotificationTools:
     @pytest.fixture
     def notification_server(self):
         """创建通知 Server"""
-        return NotificationServer(default_sender="OpsPilot")
+        return NotificationServer(configs=[
+            NotificationConfig(channel=NotificationChannel.DINGTALK, dingtalk_webhook="https://oapi.dingtalk.com/robot/send?access_token=test"),
+            NotificationConfig(channel=NotificationChannel.WECOM, wecom_webhook="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=test"),
+        ])
     
     @pytest.fixture
     def context(self):
@@ -403,12 +402,12 @@ class TestNotificationTools:
     @pytest.mark.asyncio
     async def test_send_notification(self, notification_server, context):
         """测试发送通知"""
-        tool = notification_server.get_tool("send_email")
+        tool = notification_server.get_tool("send_notification")
         assert tool is not None
         
         result = await tool.handler(
             {
-                "to": "test@example.com",
+                "channel": "dingtalk",
                 "subject": "测试通知",
                 "body": "这是一条测试通知"
             },
@@ -419,29 +418,51 @@ class TestNotificationTools:
     @pytest.mark.asyncio
     async def test_send_template_notification(self, notification_server, context):
         """测试模板通知"""
-        tool = notification_server.get_tool("send_templated_notification")
+        tool = notification_server.get_tool("send_template_notification")
         assert tool is not None
         
-        # 不检查实际发送结果，只检查工具存在
-        assert tool.schema is not None
+        result = await tool.handler(
+            {
+                "template_id": "alert",
+                "channel": "dingtalk",
+                "variables": {
+                    "alert_name": "CPU 告警",
+                    "severity": "高",
+                    "timestamp": "2024-01-01 12:00:00",
+                    "details": "CPU 使用率超过 90%"
+                }
+            },
+            context
+        )
+        assert result.is_success()
     
     @pytest.mark.asyncio
     async def test_batch_send_notification(self, notification_server, context):
         """测试批量发送"""
-        tool = notification_server.get_tool("send_batch_notification")
+        tool = notification_server.get_tool("batch_send_notification")
         assert tool is not None
         
-        # 不检查实际发送结果，只检查工具存在
-        assert tool.schema is not None
+        result = await tool.handler(
+            {
+                "notifications": [
+                    {"channel": "dingtalk", "subject": "通知1", "body": "内容1"},
+                    {"channel": "wecom", "subject": "通知2", "body": "内容2"},
+                ]
+            },
+            context
+        )
+        assert result.is_success()
+        assert result.data["total"] == 2
     
     @pytest.mark.asyncio
     async def test_list_templates(self, notification_server, context):
         """测试模板列表"""
-        tool = notification_server.get_tool("get_notification_status")
+        tool = notification_server.get_tool("list_notification_templates")
         assert tool is not None
         
-        # 不检查实际结果，只检查工具存在
-        assert tool.schema is not None
+        result = await tool.handler({}, context)
+        assert result.is_success()
+        assert result.data["total"] >= 1
 
 
 # ==================== 运行测试 ====================

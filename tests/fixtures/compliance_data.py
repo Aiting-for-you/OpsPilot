@@ -366,8 +366,6 @@ def check_compliance(
 
         matched_rules.append(rule["id"])
 
-        # 找到第一个匹配的条件（passed=True）
-        matched_condition = None
         for condition in rule["conditions"]:
             field = condition["field"]
             operator = condition["operator"]
@@ -404,44 +402,26 @@ def check_compliance(
             elif operator == "==":
                 passed = actual == expected
 
-            if passed:
-                matched_condition = condition
-                break
-        
-        # 根据匹配的条件决定是否违规
-        if matched_condition:
-            action = matched_condition["action"]
-            # no_approval 和 pass 是完全合规的
-            if action in ["no_approval", "pass"]:
-                pass  # 合规，无违规无警告
-            # block 和 vp_approval 是严重违规
-            elif action in ["block", "vp_approval"]:
-                violations.append({
-                    "rule_id": rule["id"],
-                    "rule_name": rule["name"],
-                    "field": matched_condition["field"],
-                    "expected": matched_condition["value"],
-                    "actual": data.get(matched_condition["field"]),
-                    "message": f"{rule['name']}: 需要 {action} 审批",
-                    "severity": rule["severity"],
-                })
-            # manager_approval, director_approval 是中等风险，需要审批但不是严重违规
-            elif action in ["manager_approval", "director_approval", "require_approval"]:
-                warnings.append({
-                    "rule_id": rule["id"],
-                    "rule_name": rule["name"],
-                    "field": matched_condition["field"],
-                    "message": f"{rule['name']}: 需要 {action} 审批",
-                    "severity": rule["severity"],
-                })
-        else:
-            # 没有匹配的条件，默认违规
-            violations.append({
-                "rule_id": rule["id"],
-                "rule_name": rule["name"],
-                "message": f"{rule['name']}: 无匹配规则",
-                "severity": rule["severity"],
-            })
+            # 记录结果
+            if not passed:
+                if action == "block":
+                    violations.append({
+                        "rule_id": rule["id"],
+                        "rule_name": rule["name"],
+                        "field": field,
+                        "expected": expected,
+                        "actual": actual,
+                        "message": f"{rule['name']}: {field} 应满足 {operator} {expected}，实际为 {actual}",
+                        "severity": rule["severity"],
+                    })
+                elif action in ["require_approval", "warning"]:
+                    warnings.append({
+                        "rule_id": rule["id"],
+                        "rule_name": rule["name"],
+                        "field": field,
+                        "message": f"{rule['name']}: 需要额外审批或关注",
+                        "severity": rule["severity"],
+                    })
 
     return {
         "check_type": check_type,

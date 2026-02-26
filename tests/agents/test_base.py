@@ -250,13 +250,15 @@ class TestAgentExceptions:
                 await asyncio.sleep(2)  # 模拟慢响应
                 return "slow response"
 
-        # 创建一个具体类而不是直接实例化抽象类
-        class SlowTestAgent(BaseAgent):
-            async def _execute(self, context: AgentContext) -> AgentOutput:
-                await asyncio.sleep(2)  # 模拟慢执行
-                return AgentOutput(success=True, result={})
+        agent = BaseAgent.__new__(BaseAgent)
+        agent.config = config
+        agent._llm = SlowMockLLMClient()
+        agent._event_bus = None
 
-        agent = SlowTestAgent(config=config, llm_client=SlowMockLLMClient())
+        # 手动设置 _event_bus
+        from opspilot.core.events import EventBus
+        agent._event_bus = EventBus.get_instance()
+
         return agent
 
     @pytest.fixture
@@ -272,12 +274,13 @@ class TestAgentExceptions:
             async def generate(self, prompt, system_prompt=None, temperature=0.7, max_tokens=4096):
                 raise ValueError("LLM 调用失败")
 
-        # 创建一个具体类
-        class ErrorTestAgent(BaseAgent):
-            async def _execute(self, context: AgentContext) -> AgentOutput:
-                raise ValueError("执行失败")
+        agent = BaseAgent.__new__(BaseAgent)
+        agent.config = config
+        agent._llm = ErrorMockLLMClient()
 
-        agent = ErrorTestAgent(config=config, llm_client=ErrorMockLLMClient())
+        from opspilot.core.events import EventBus
+        agent._event_bus = EventBus.get_instance()
+
         return agent
 
     @pytest.mark.asyncio

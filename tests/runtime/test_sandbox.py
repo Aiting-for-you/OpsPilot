@@ -154,24 +154,15 @@ raise ValueError("测试错误")
     @pytest.mark.asyncio
     async def test_execute_python_timeout(self):
         """测试 Python 执行超时"""
-        # 添加 asyncio 支持到沙箱执行环境
         sandbox = LocalSandbox(SandboxConfig(timeout=1))
-        # 使用 get_event_loop 来在已有事件循环中运行
         code = """
-async def slow_task():
-    await asyncio.sleep(5)
-    return "done"
-
-loop = asyncio.get_event_loop()
-result = loop.run_until_complete(slow_task())
+import time
+time.sleep(5)
 """
         result = await sandbox.execute_python(code)
         
-        # 在 Windows 上，由于事件循环限制，超时可能不会按预期工作
-        # 但执行应该失败
         assert result.success is False
-        # Windows 上可能是 FAILED，其他平台应该是 TIMEOUT
-        assert result.status in [SandboxStatus.TIMEOUT, SandboxStatus.FAILED]
+        assert result.status == SandboxStatus.TIMEOUT
 
     @pytest.mark.asyncio
     async def test_execute_simple_shell(self, sandbox):

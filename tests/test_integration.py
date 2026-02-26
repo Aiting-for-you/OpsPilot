@@ -88,7 +88,7 @@ class TestToolRouterIntegration:
         """测试路由器调用 HTTP 工具"""
         result = await router.call_tool(
             "http_get",
-            {"url": "https://jsonplaceholder.typicode.com/users"},
+            {"url": "https://api.example.com/users"},
             context
         )
         assert result.is_success()
@@ -354,7 +354,7 @@ class TestEndToEndWorkflow:
         # 1. 从 API 获取数据
         api_result = await router.call_tool(
             "http_get",
-            {"url": "https://jsonplaceholder.typicode.com/users"},
+            {"url": "https://api.example.com/users"},
             context
         )
         assert api_result.is_success()

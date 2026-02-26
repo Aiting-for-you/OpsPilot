@@ -19,8 +19,6 @@ from tests.fixtures.compliance_data import (
 from tests.fixtures.llm_mock import (
     MockLLMClient,
     MockStreamingLLMClient,
-    IntentMockLLMClient,
-    AgentMockLLMClient,
     create_mock_response,
 )
 from tests.fixtures.ecommerce_data import (
@@ -51,8 +49,6 @@ __all__ = [
     # LLM Mock
     "MockLLMClient",
     "MockStreamingLLMClient",
-    "IntentMockLLMClient",
-    "AgentMockLLMClient",
     "create_mock_response",
     # 跨境电商数据
     "MOCK_EXCHANGE_RATES",

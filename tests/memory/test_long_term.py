@@ -174,7 +174,7 @@ class TestLongTermMemory:
 
         consolidated = await memory.consolidate(short_term_entries)
 
-        assert len(consolidated) >= 1  # 至少巩固1个记忆
+        assert len(consolidated) == 2
         for entry in consolidated:
             assert entry.memory_type == MemoryType.LONG_TERM
 

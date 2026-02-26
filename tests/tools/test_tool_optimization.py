@@ -523,7 +523,7 @@ class TestErrorDiagnoser:
     def test_diagnose_timeout(self):
         """测试超时诊断"""
         from opspilot.utils.exceptions import ToolTimeoutError
-        error = ToolTimeoutError("test_tool", 30.0)
+        error = ToolTimeoutError("Tool execution timed out")
         
         diagnosis = ErrorDiagnoser.diagnose(error)
         

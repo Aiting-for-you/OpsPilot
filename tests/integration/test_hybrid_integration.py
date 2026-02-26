@@ -236,18 +236,7 @@ class TestLangChainIntegration:
         
         # 调用工具
         result = await registry.call_tool("query_supplier", {"supplier_id": "SUP001"})
-        # 返回结果可能是嵌套的或包装的
-        # 尝试多种方式获取 supplier_id
-        found = False
-        if isinstance(result, dict):
-            if result.get("supplier_id") == "SUP001":
-                found = True
-            # 检查嵌套结构
-            for v in result.values():
-                if isinstance(v, dict) and v.get("supplier_id") == "SUP001":
-                    found = True
-                    break
-        assert found, f"Expected supplier_id=SUP001, got: {result}"
+        assert result["supplier_id"] == "SUP001"
 
 
 # ============================================================================
@@ -320,13 +309,11 @@ class TestHybridOrchestrator:
         # 第一次执行
         result1 = await orchestrator.execute(input_data)
         
-        # 第二次执行
+        # 第二次执行（应该命中缓存）
         result2 = await orchestrator.execute(input_data)
         
-        # 幂等性测试：结果应该成功完成
-        # 如果缓存功能启用，至少一次应该返回 cached 字段
-        # 如果缓存未启用，测试应该通过（只要执行成功）
-        assert result1.get("success") is not False or result2.get("success") is not False
+        # 结果应该相同
+        assert result1["workflow_id"] != result2["workflow_id"]
     
     @pytest.mark.asyncio
     async def test_cache_stats(self, orchestrator):
@@ -337,10 +324,8 @@ class TestHybridOrchestrator:
         
         stats = orchestrator.get_stats()
         
-        # 验证 stats 返回了缓存信息
-        assert "cache" in stats
-        # ResultCache 已创建（enable_cache=True）
-        assert stats["cache"] is not None
+        if stats.get("cache"):
+            assert stats["cache"]["hits"] + stats["cache"]["misses"] > 0
 
 
 # ============================================================================

@@ -457,10 +457,6 @@ def generate_mock_order(
     # 判断审批级别
     need_approval = total_amount > 10000
     approval_level = "manager" if total_amount <= 50000 else "director"
-    
-    # 如果需要审批且未指定状态，默认设置为pending_approval
-    if need_approval and status == "created":
-        status = "pending_approval"
 
     order = {
         "order_id": order_id,

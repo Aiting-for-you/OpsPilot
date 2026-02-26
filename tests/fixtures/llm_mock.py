@@ -227,8 +227,6 @@ class IntentMockLLMClient(MockLLMClient):
             "查询库存": "INTENT: query_inventory",
             "创建订单": "INTENT: create_order",
             "下单": "INTENT: create_order",
-            "订单": "INTENT: create_order",  # 添加泛化匹配
-            "采购订单": "INTENT: create_order",  # 添加匹配
             "订单状态": "INTENT: query_order",
             "查询订单": "INTENT: query_order",
             "合规": "INTENT: check_compliance",
