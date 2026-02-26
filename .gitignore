@@ -128,3 +128,7 @@ frontend/.env.*.local
 # 缓存
 frontend/.vite/
 frontend/.cache/
+
+# Playwright测试输出
+frontend/playwright-report/
+frontend/test-results/
