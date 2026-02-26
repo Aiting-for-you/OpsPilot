@@ -499,7 +499,7 @@ class TestMultiAgentIntegration:
         # 3. 验证结果
         assert isinstance(result, CollaborationResult)
         assert result.context.task_id is not None
-        assert len(result.agent_outputs) > 0
+        assert result.success is True
     
     @pytest.mark.asyncio
     async def test_message_flow(self):

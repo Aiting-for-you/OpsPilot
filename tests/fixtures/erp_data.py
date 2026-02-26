@@ -457,6 +457,12 @@ def generate_mock_order(
     # 判断审批级别
     need_approval = total_amount > 10000
     approval_level = "manager" if total_amount <= 50000 else "director"
+    
+    # 根据是否需要审批自动设置状态
+    if status == "created":  # 使用默认状态
+        order_status = "pending_approval" if need_approval else "created"
+    else:
+        order_status = status
 
     order = {
         "order_id": order_id,
@@ -465,7 +471,7 @@ def generate_mock_order(
         "products": order_products,
         "total_amount": round(total_amount, 2),
         "currency": "CNY",
-        "status": status,
+        "status": order_status,
         "need_approval": need_approval,
         "approval_level": approval_level if need_approval else None,
         "payment_terms": supplier["payment_terms"],

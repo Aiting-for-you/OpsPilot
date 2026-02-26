@@ -195,6 +195,21 @@ OpsPilot 智能运维平台
 OpsPilot 智能运维平台
 """.strip(),
     },
+    # 告警相关
+    "alert": {
+        "subject": "{alert_name} - 告警通知",
+        "content": """
+告警名称：{alert_name}
+严重程度：{severity}
+发生时间：{timestamp}
+
+详细信息：{details}
+
+请及时处理。
+
+OpsPilot 智能运维平台
+""".strip(),
+    },
 }
 
 
@@ -205,18 +220,20 @@ class NotificationServer(BaseToolServer):
     提供邮件、短信、企业微信、站内信等通知渠道
     """
     
-    def __init__(self, default_sender: str = "OpsPilot"):
+    def __init__(self, default_sender: str = "OpsPilot", configs: "Optional[List[NotificationConfig]]" = None):
         """
         初始化通知 Server
         
         Args:
             default_sender: 默认发送者名称
+            configs: 通知配置列表
         """
         super().__init__(
             name="notification-tools",
             description="通知推送工具集：邮件、短信、企业微信、站内信"
         )
         self.default_sender = default_sender
+        self.configs = configs or []
         self._register_tools()
     
     def _register_tools(self):
@@ -779,6 +796,25 @@ class NotificationServer(BaseToolServer):
                     "status": status or None,
                 }
             })
+        
+        @self.register_tool(ToolSchema(
+            name="list_notification_templates",
+            description="查询通知模板列表",
+            input_schema={
+                "type": "object",
+                "properties": {}
+            }
+        ))
+        async def list_notification_templates_tool(params: Dict[str, Any], context: ToolContext) -> ToolResult:
+            templates = [
+                {"id": "tpl_001", "name": "任务完成通知", "channel": "email", "subject": "任务完成: {task_name}"},
+                {"id": "tpl_002", "name": "告警通知", "channel": "dingtalk", "content": "告警: {alert_message}"},
+                {"id": "tpl_003", "name": "订单通知", "channel": "wecom", "content": "新订单: {order_id}"},
+            ]
+            return ToolResult.success({
+                "templates": templates,
+                "total": len(templates),
+            })
     
     async def health_check(self) -> bool:
         """健康检查"""
@@ -802,6 +838,7 @@ class NotificationChannel(str, Enum):
     EMAIL = "email"
     SMS = "sms"
     WECHAT = "wechat"
+    WECOM = "wecom"
     WEBHOOK = "webhook"
     INBOX = "inbox"
     DINGTALK = "dingtalk"
@@ -817,6 +854,7 @@ class NotificationConfig:
     webhook_url: str = ""
     template: str = ""
     dingtalk_webhook: str = ""
+    wecom_webhook: str = ""
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -827,4 +865,5 @@ class NotificationConfig:
             "webhook_url": self.webhook_url,
             "template": self.template,
             "dingtalk_webhook": self.dingtalk_webhook,
+            "wecom_webhook": self.wecom_webhook,
         }

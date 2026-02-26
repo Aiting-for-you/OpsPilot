@@ -14,12 +14,11 @@ class TestInMemoryKnowledgeStore:
     def store(self):
         return InMemoryKnowledgeStore()
 
-    def test_load_mock_data(self, store):
+    @pytest.mark.asyncio
+    async def test_load_mock_data(self, store):
         """测试加载 Mock 数据"""
         count = len(MOCK_KNOWLEDGE)
-        # 同步获取数量
-        import asyncio
-        result = asyncio.get_event_loop().run_until_complete(store.count())
+        result = await store.count()
         assert result == count
 
     @pytest.mark.asyncio

@@ -161,8 +161,18 @@ class TestHttpTools:
         return ToolContext(task_id="test-task")
     
     @pytest.mark.asyncio
-    async def test_http_client_mock_get(self):
+    @patch("httpx.AsyncClient")
+    async def test_http_client_mock_get(self, mock_httpx_client):
         """测试 HTTP 客户端 Mock GET"""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.headers = {"Content-Type": "application/json"}
+        mock_response.json.return_value = [{"id": 1, "name": "test"}]
+        
+        mock_client = AsyncMock()
+        mock_client.request = AsyncMock(return_value=mock_response)
+        mock_httpx_client.return_value.__aenter__.return_value = mock_client
+        
         client = HttpClient(cache_enabled=False)
         response = await client.request(
             method=HttpMethod.GET,
@@ -172,8 +182,18 @@ class TestHttpTools:
         assert response.status_code == 200
     
     @pytest.mark.asyncio
-    async def test_http_get_tool(self, api_server, context):
+    @patch("httpx.AsyncClient")
+    async def test_http_get_tool(self, mock_httpx_client, api_server, context):
         """测试 http_get 工具"""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.headers = {"Content-Type": "application/json"}
+        mock_response.json.return_value = [{"id": 1, "name": "test"}]
+        
+        mock_client = AsyncMock()
+        mock_client.request = AsyncMock(return_value=mock_response)
+        mock_httpx_client.return_value.__aenter__.return_value = mock_client
+        
         tool = api_server.get_tool("http_get")
         assert tool is not None
         
@@ -181,8 +201,18 @@ class TestHttpTools:
         assert result.is_success()
     
     @pytest.mark.asyncio
-    async def test_http_post_tool(self, api_server, context):
+    @patch("httpx.AsyncClient")
+    async def test_http_post_tool(self, mock_httpx_client, api_server, context):
         """测试 http_post 工具"""
+        mock_response = MagicMock()
+        mock_response.status_code = 201
+        mock_response.headers = {"Content-Type": "application/json"}
+        mock_response.json.return_value = {"id": 1, "name": "测试"}
+        
+        mock_client = AsyncMock()
+        mock_client.request = AsyncMock(return_value=mock_response)
+        mock_httpx_client.return_value.__aenter__.return_value = mock_client
+        
         tool = api_server.get_tool("http_post")
         assert tool is not None
         
@@ -193,8 +223,18 @@ class TestHttpTools:
         assert result.is_success()
     
     @pytest.mark.asyncio
-    async def test_graphql_query_tool(self, api_server, context):
+    @patch("httpx.AsyncClient")
+    async def test_graphql_query_tool(self, mock_httpx_client, api_server, context):
         """测试 graphql_query 工具"""
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.headers = {"Content-Type": "application/json"}
+        mock_response.json.return_value = {"data": {"users": [{"id": 1, "name": "test"}]}}
+        
+        mock_client = AsyncMock()
+        mock_client.request = AsyncMock(return_value=mock_response)
+        mock_httpx_client.return_value.__aenter__.return_value = mock_client
+        
         tool = api_server.get_tool("graphql_query")
         assert tool is not None
         
@@ -328,7 +368,7 @@ class TestFileTools:
         read_tool = file_server.get_tool("file_read")
         result = await read_tool.handler({"path": "test.txt"}, context)
         assert result.is_success()
-        assert "Hello, World!" in result.data["content"]
+        assert "Hello, World!" in result.data["data"]["content"]
     
     @pytest.mark.asyncio
     async def test_file_list(self, file_server, context, tmp_path):
@@ -354,7 +394,7 @@ class TestFileTools:
             context
         )
         assert result.is_success()
-        assert result.data["total_matches"] == 2
+        assert result.data["data"]["total_matches"] == 2
     
     @pytest.mark.asyncio
     async def test_log_parse(self, file_server, context):
@@ -418,19 +458,20 @@ class TestNotificationTools:
     @pytest.mark.asyncio
     async def test_send_template_notification(self, notification_server, context):
         """测试模板通知"""
-        tool = notification_server.get_tool("send_template_notification")
+        tool = notification_server.get_tool("send_templated_notification")
         assert tool is not None
         
         result = await tool.handler(
             {
-                "template_id": "alert",
-                "channel": "dingtalk",
-                "variables": {
+                "template_name": "alert",
+                "recipient": "admin@example.com",
+                "template_params": {
                     "alert_name": "CPU 告警",
                     "severity": "高",
                     "timestamp": "2024-01-01 12:00:00",
                     "details": "CPU 使用率超过 90%"
-                }
+                },
+                "channels": ["dingtalk"]
             },
             context
         )
@@ -439,15 +480,14 @@ class TestNotificationTools:
     @pytest.mark.asyncio
     async def test_batch_send_notification(self, notification_server, context):
         """测试批量发送"""
-        tool = notification_server.get_tool("batch_send_notification")
+        tool = notification_server.get_tool("send_batch_notification")
         assert tool is not None
         
         result = await tool.handler(
             {
-                "notifications": [
-                    {"channel": "dingtalk", "subject": "通知1", "body": "内容1"},
-                    {"channel": "wecom", "subject": "通知2", "body": "内容2"},
-                ]
+                "recipients": ["user1@example.com", "user2@example.com"],
+                "subject": "批量通知",
+                "content": "这是批量发送的内容"
             },
             context
         )

@@ -402,8 +402,35 @@ def check_compliance(
             elif operator == "==":
                 passed = actual == expected
 
-            # 记录结果
-            if not passed:
+            # 找到匹配条件后处理并跳出循环
+            if passed:
+                if action == "pass" or action == "no_approval":
+                    # 通过，不添加违规
+                    break
+                elif action == "vp_approval":
+                    # 需要 VP 审批，视为违规
+                    violations.append({
+                        "rule_id": rule["id"],
+                        "rule_name": rule["name"],
+                        "field": field,
+                        "expected": expected,
+                        "actual": actual,
+                        "message": f"{rule['name']}: {field} 超过限额，需要 VP 审批",
+                        "severity": rule["severity"],
+                    })
+                    break
+                elif action in ["director_approval", "manager_approval"]:
+                    # 需要高层审批，视为警告
+                    warnings.append({
+                        "rule_id": rule["id"],
+                        "rule_name": rule["name"],
+                        "field": field,
+                        "message": f"{rule['name']}: {field} 需要 {action.replace('_', ' ')} 审批",
+                        "severity": rule["severity"],
+                    })
+                    break
+            else:
+                # 条件不通过
                 if action == "block":
                     violations.append({
                         "rule_id": rule["id"],
@@ -414,6 +441,19 @@ def check_compliance(
                         "message": f"{rule['name']}: {field} 应满足 {operator} {expected}，实际为 {actual}",
                         "severity": rule["severity"],
                     })
+                    break
+                elif action == "pass":
+                    # action 是 pass 但条件不通过，视为违规
+                    violations.append({
+                        "rule_id": rule["id"],
+                        "rule_name": rule["name"],
+                        "field": field,
+                        "expected": expected,
+                        "actual": actual,
+                        "message": f"{rule['name']}: {field} 应满足 {operator} {expected}，实际为 {actual}",
+                        "severity": rule["severity"],
+                    })
+                    break
                 elif action in ["require_approval", "warning"]:
                     warnings.append({
                         "rule_id": rule["id"],
@@ -422,6 +462,7 @@ def check_compliance(
                         "message": f"{rule['name']}: 需要额外审批或关注",
                         "severity": rule["severity"],
                     })
+                    break
 
     return {
         "check_type": check_type,

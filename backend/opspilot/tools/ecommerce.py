@@ -51,10 +51,18 @@ except ImportError:
     # 内置 Mock 数据
     MOCK_EXCHANGE_RATES = {
         "USD_CNY": {"from_currency": "USD", "to_currency": "CNY", "rate": 7.25, "updated_at": "2026-02-17"},
+        "EUR_CNY": {"from_currency": "EUR", "to_currency": "CNY", "rate": 7.85, "updated_at": "2026-02-17"},
     }
-    MOCK_LOGISTICS_TRACKING = {}
-    MOCK_PLATFORM_ORDERS = {}
-    MOCK_CUSTOMS_DECLARATIONS = {}
+    MOCK_LOGISTICS_TRACKING = {
+        "SF1234567890123": {"tracking_no": "SF1234567890123", "status": "in_transit", "carrier": "SF Express", "estimated_delivery": "2026-02-20", "timeline": [{"time": "2026-02-15 10:00", "status": "已发出", "location": "深圳"}, {"time": "2026-02-16 14:00", "status": "运输中", "location": "广州"}]},
+        "YT9876543210987": {"tracking_no": "YT9876543210987", "status": "delayed", "carrier": "YTO Express", "estimated_delivery": "2026-02-25", "delay_reason": "天气原因", "timeline": [{"time": "2026-02-14 09:00", "status": "已发出", "location": "杭州"}, {"time": "2026-02-15 18:00", "status": "延迟", "location": "上海"}]},
+    }
+    MOCK_PLATFORM_ORDERS = {
+        "AMZ-2026021002": {"order_id": "AMZ-2026021002", "status": "shipped", "platform": "amazon", "amount_usd": 99.99},
+    }
+    MOCK_CUSTOMS_DECLARATIONS = {
+        "CUS2026021501": {"declaration_no": "CUS2026021501", "status": "cleared", "order_id": "AMZ-2026021002"},
+    }
     
     def get_exchange_rate(from_curr: str, to_curr: str) -> Optional[Dict]:
         return MOCK_EXCHANGE_RATES.get(f"{from_curr}_{to_curr}")
@@ -62,38 +70,77 @@ except ImportError:
     def convert_currency(amount: float, from_curr: str, to_curr: str) -> Dict:
         rate = get_exchange_rate(from_curr, to_curr)
         if rate:
-            return {"success": True, "converted_amount": amount * rate["rate"]}
+            return {
+                "success": True,
+                "original_amount": amount,
+                "original_currency": from_curr,
+                "converted_currency": to_curr,
+                "converted_amount": amount * rate["rate"],
+                "rate": rate["rate"]
+            }
         return {"success": False, "error": "Unsupported currency pair"}
     
     def track_logistics(tracking_no: str) -> Optional[Dict]:
-        return None
+        return MOCK_LOGISTICS_TRACKING.get(tracking_no)
     
     def get_platform_order(order_id: str) -> Optional[Dict]:
-        return None
+        return MOCK_PLATFORM_ORDERS.get(order_id)
     
     def get_orders_by_platform(platform: str) -> List:
-        return []
+        if platform:
+            return [order for order in MOCK_PLATFORM_ORDERS.values() if order.get("platform") == platform]
+        return list(MOCK_PLATFORM_ORDERS.values())
     
     def get_orders_by_status(status: str) -> List:
-        return []
+        if status:
+            return [order for order in MOCK_PLATFORM_ORDERS.values() if order.get("status") == status]
+        return list(MOCK_PLATFORM_ORDERS.values())
     
     def sync_platform_orders(platform: str, days: int = 7) -> Dict:
-        return {"platform": platform, "orders": [], "total_orders": 0}
+        orders = get_orders_by_platform(platform) if platform else list(MOCK_PLATFORM_ORDERS.values())
+        return {"platform": platform or "all", "orders": orders, "total_orders": len(orders)}
     
     def get_customs_declaration(declaration_no: str) -> Optional[Dict]:
-        return None
+        return MOCK_CUSTOMS_DECLARATIONS.get(declaration_no)
     
     def get_customs_by_order(order_id: str) -> Optional[Dict]:
+        for decl in MOCK_CUSTOMS_DECLARATIONS.values():
+            if decl.get("order_id") == order_id:
+                return decl
         return None
     
     def get_customs_by_status(status: str) -> List:
-        return []
+        if status:
+            return [decl for decl in MOCK_CUSTOMS_DECLARATIONS.values() if decl.get("status") == status]
+        return list(MOCK_CUSTOMS_DECLARATIONS.values())
     
     def get_logistics_by_status(status: str) -> List:
-        return []
+        if status:
+            return [log for log in MOCK_LOGISTICS_TRACKING.values() if log.get("status") == status]
+        return list(MOCK_LOGISTICS_TRACKING.values())
     
     def get_ecommerce_summary() -> Dict:
-        return {"orders": {}, "logistics": {}, "customs": {}, "exchange_rates": {}}
+        orders = list(MOCK_PLATFORM_ORDERS.values())
+        logistics = list(MOCK_LOGISTICS_TRACKING.values())
+        customs = list(MOCK_CUSTOMS_DECLARATIONS.values())
+        
+        total_amount_usd = sum(order.get("amount_usd", 0) for order in orders)
+        
+        return {
+            "orders": {
+                "total": len(orders),
+                "total_amount_usd": total_amount_usd,
+            },
+            "logistics": {
+                "total": len(logistics),
+            },
+            "customs": {
+                "total": len(customs),
+            },
+            "exchange_rates": {
+                "total": len(MOCK_EXCHANGE_RATES),
+            }
+        }
 
 
 class EcommerceMockServer(BaseToolServer):

@@ -86,11 +86,19 @@ class TestToolRouterIntegration:
     @pytest.mark.asyncio
     async def test_router_call_http_tool(self, router, context):
         """测试路由器调用 HTTP 工具"""
-        result = await router.call_tool(
-            "http_get",
-            {"url": "https://api.example.com/users"},
-            context
-        )
+        # 使用 mock 方式测试，不实际发起网络请求
+        with patch('httpx.AsyncClient') as mock_client:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {"users": []}
+            mock_response.headers = {}
+            mock_client.return_value.__aenter__.return_value.request.return_value = mock_response
+            
+            result = await router.call_tool(
+                "http_get",
+                {"url": "https://api.example.com/users"},
+                context
+            )
         assert result.is_success()
     
     @pytest.mark.asyncio
@@ -351,12 +359,19 @@ class TestEndToEndWorkflow:
         router = full_setup["router"]
         context = ToolContext(task_id="api-db-workflow")
         
-        # 1. 从 API 获取数据
-        api_result = await router.call_tool(
-            "http_get",
-            {"url": "https://api.example.com/users"},
-            context
-        )
+        # 1. 从 API 获取数据 (使用 mock)
+        with patch('httpx.AsyncClient') as mock_client:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_response.json.return_value = {"users": [{"id": 1, "name": "Test"}]}
+            mock_response.headers = {}
+            mock_client.return_value.__aenter__.return_value.request.return_value = mock_response
+            
+            api_result = await router.call_tool(
+                "http_get",
+                {"url": "https://api.example.com/users"},
+                context
+            )
         assert api_result.is_success()
         
         # 2. 写入数据库
