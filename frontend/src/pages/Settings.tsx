@@ -20,7 +20,7 @@ const PROVIDER_INFO: Record<LLMProviderType, { nameKey: string; color: string }>
 };
 
 export function Settings() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [providers, setProviders] = useState<LLMProviderConfig[]>([]);
   const [defaultProvider, setDefaultProvider] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -277,7 +277,7 @@ export function Settings() {
             }`}
           >
             <Zap className="w-3.5 h-3.5" />
-            LLM
+            {t('settings.llmTab')}
           </button>
           <button
             onClick={() => setActiveTab('mcp')}
@@ -288,7 +288,7 @@ export function Settings() {
             }`}
           >
             <Link className="w-3.5 h-3.5" />
-            MCP
+            {t('settings.mcpTab')}
           </button>
           <button
             onClick={() => setActiveTab('providers')}
@@ -299,7 +299,7 @@ export function Settings() {
             }`}
           >
             <Shield className="w-3.5 h-3.5" />
-            Providers
+            {t('settings.providersTab')}
           </button>
           <button
             onClick={() => setActiveTab('notification')}
@@ -310,7 +310,7 @@ export function Settings() {
             }`}
           >
             <Bell className="w-3.5 h-3.5" />
-            {t('settings.notification') || 'Notification'}
+            {t('settings.notificationTab')}
           </button>
         </div>
       </div>
@@ -610,15 +610,15 @@ export function Settings() {
             {/* Input Fields */}
             <div className="space-y-4 mb-5">
               <div>
-                <label className="label">API Type</label>
+                <label className="label">{t('settings.apiType')}</label>
                 <select
                   value={fetchProviderType}
                   onChange={(e) => setFetchProviderType(e.target.value)}
                   className="input"
                 >
-                  <option value="openai">OpenAI Compatible</option>
-                  <option value="deepseek">DeepSeek</option>
-                  <option value="qwen">Tongyi Qwen</option>
+                  <option value="openai">{t('settings.apiTypeOpenAI')}</option>
+                  <option value="deepseek">{t('settings.apiTypeDeepSeek')}</option>
+                  <option value="qwen">{t('settings.apiTypeQwen')}</option>
                 </select>
               </div>
               <div>
@@ -679,13 +679,13 @@ export function Settings() {
 
                 {/* Default Model */}
                 <div className="mb-3">
-                  <label className="label">{t('settings.model')} (Default)</label>
+                  <label className="label">{t('settings.model')} ({t('settings.default')})</label>
                   <select
                     value={defaultModelSelect}
                     onChange={(e) => setDefaultModelSelect(e.target.value)}
                     className="input"
                   >
-                    <option value="">No default</option>
+                    <option value="">{t('settings.noDefault')}</option>
                     {Array.from(selectedModels).map((modelId) => (
                       <option key={modelId} value={modelId}>{modelId}</option>
                     ))}
@@ -769,7 +769,7 @@ export function Settings() {
             <span>🌐</span>
             <span>{t('settings.language')}: </span>
             <span className="text-electric">
-              {t('settings.selectLanguage') === '选择语言' ? '简体中文' : 'English'}
+              {i18n.language === 'zh-CN' ? '简体中文' : 'English'}
             </span>
           </div>
           <p className="text-xs text-gray-400 mt-2">
@@ -787,7 +787,7 @@ export function Settings() {
             <Info className="w-4 h-4 text-gray-500" />
           </div>
           <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
-            About
+            {t('settings.about')}
           </h2>
         </div>
         <div className="grid grid-cols-3 gap-4">
@@ -796,12 +796,12 @@ export function Settings() {
             <div className="font-mono text-sm text-electric">v0.1.0</div>
           </div>
           <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
-            <div className="text-xs text-gray-500 mb-1">Build Date</div>
+            <div className="text-xs text-gray-500 mb-1">{t('settings.buildDate')}</div>
             <div className="font-mono text-sm text-gray-600">2026-02-16</div>
           </div>
           <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">
-            <div className="text-xs text-gray-500 mb-1">Tech Stack</div>
-            <div className="font-mono text-xs text-gray-600">React + TypeScript</div>
+            <div className="text-xs text-gray-500 mb-1">{t('settings.techStack')}</div>
+            <div className="font-mono text-xs text-gray-600">{t('settings.reactTypeScript')}</div>
           </div>
         </div>
       </div>

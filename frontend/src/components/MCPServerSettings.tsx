@@ -108,12 +108,12 @@ function ServerCard({
               <StatusBadge status={server.status} />
               {server.enabled && (
                 <span className="px-2 py-0.5 bg-electric/20 text-electric text-xs rounded font-mono">
-                  ENABLED
+                  {t('mcp.enabled')}
                 </span>
               )}
               {server.tool_count > 0 && (
                 <span className="text-xs text-gray-400">
-                  {server.tool_count} tools
+                  {server.tool_count} {t('mcp.tools')}
                 </span>
               )}
             </div>
@@ -152,7 +152,7 @@ function ServerCard({
           {/* Connected At */}
           {isConnected && server.connected_at && (
             <div className="text-xs text-gray-500">
-              Connected at: {new Date(server.connected_at).toLocaleString()}
+              {t('mcp.connectedAt')}: {new Date(server.connected_at).toLocaleString()}
             </div>
           )}
 
@@ -197,7 +197,7 @@ function ServerCard({
                   className="btn btn-secondary"
                 >
                   <Wrench className="w-4 h-4" />
-                  View Tools
+                  {t('mcp.viewTools')}
                 </button>
               )}
               <button
@@ -207,7 +207,7 @@ function ServerCard({
                 }}
                 className="btn btn-secondary"
               >
-                Edit
+                {t('mcp.edit')}
               </button>
             </div>
             <button
@@ -279,7 +279,7 @@ function ServerModal({
         <div className="space-y-4">
           {/* Name */}
           <div>
-            <label className="label">Server Name</label>
+            <label className="label">{t('mcp.serverName')}</label>
             <input
               type="text"
               value={formData.name}
@@ -292,7 +292,7 @@ function ServerModal({
 
           {/* Command */}
           <div>
-            <label className="label">Command</label>
+            <label className="label">{t('mcp.command')}</label>
             <input
               type="text"
               value={formData.command}
@@ -304,7 +304,7 @@ function ServerModal({
 
           {/* Args */}
           <div>
-            <label className="label">Arguments (one per line)</label>
+            <label className="label">{t('mcp.arguments')}</label>
             <textarea
               value={argsText}
               onChange={(e) => setArgsText(e.target.value)}
@@ -315,7 +315,7 @@ function ServerModal({
 
           {/* Description */}
           <div>
-            <label className="label">Description</label>
+            <label className="label">{t('mcp.description')}</label>
             <input
               type="text"
               value={formData.description}
@@ -328,7 +328,7 @@ function ServerModal({
           {/* Toggles */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 border border-gray-200/50">
-              <span className="text-sm text-gray-600">Enabled</span>
+              <span className="text-sm text-gray-600">{t('mcp.enabled')}</span>
               <button
                 onClick={() => setFormData({ ...formData, enabled: !formData.enabled })}
                 className={`w-11 h-6 rounded-full transition-colors relative ${
@@ -343,7 +343,7 @@ function ServerModal({
               </button>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-white/50 border border-gray-200/50">
-              <span className="text-sm text-gray-600">Auto Connect</span>
+              <span className="text-sm text-gray-600">{t('mcp.autoConnect')}</span>
               <button
                 onClick={() => setFormData({ ...formData, auto_connect: !formData.auto_connect })}
                 className={`w-11 h-6 rounded-full transition-colors relative ${
@@ -362,7 +362,7 @@ function ServerModal({
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">
             <button onClick={onClose} className="btn btn-secondary">
-              Cancel
+              {t('mcp.cancel')}
             </button>
             <button onClick={handleSubmit} disabled={loading} className="btn btn-primary">
               {loading ? (
@@ -400,7 +400,7 @@ function ToolsModal({
             </div>
             <div>
               <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
-                Server Tools
+                {t('mcp.serverTools')}
               </h2>
               <p className="text-xs text-gray-500">{serverName}</p>
             </div>
@@ -415,7 +415,7 @@ function ToolsModal({
 
         <div className="flex-1 overflow-y-auto space-y-3 scrollbar-custom">
           {tools.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">No tools available</div>
+            <div className="text-center py-8 text-gray-500">{t('mcp.noToolsAvailable')}</div>
           ) : (
             tools.map((tool) => (
               <div
@@ -431,7 +431,7 @@ function ToolsModal({
                 <p className="text-xs text-gray-600 mb-3">{tool.description || t('common.noDescription')}</p>
                 {tool.inputSchema && tool.inputSchema.properties && (
                   <div className="text-xs text-gray-500">
-                    <span className="text-gray-400">Parameters:</span>{' '}
+                    <span className="text-gray-400">{t('mcp.parameters')}:</span>{' '}
                     {Object.keys(tool.inputSchema.properties).join(', ')}
                   </div>
                 )}
@@ -496,7 +496,7 @@ export function MCPServerSettings() {
   };
 
   const handleDelete = async (name: string) => {
-    if (!confirm(`Delete server "${name}"?`)) return;
+    if (!confirm(t('mcp.deleteConfirm', { name }))) return;
     
     try {
       setActionLoading(name);
@@ -555,24 +555,24 @@ export function MCPServerSettings() {
           </div>
           <div>
             <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
-              MCP Servers
+              {t('mcp.servers')}
             </h2>
             <p className="text-xs text-gray-500">
-              External MCP Server connections
+              {t('mcp.serverConnections')}
             </p>
           </div>
         </div>
         <div className="flex gap-2">
           <button onClick={loadServers} className="btn btn-secondary">
             <RefreshCw className="w-4 h-4" />
-            Refresh
+            {t('mcp.refresh')}
           </button>
           <button
             onClick={() => setShowAddModal(true)}
             className="btn btn-primary"
           >
             <Plus className="w-4 h-4" />
-            Add Server
+            {t('mcp.addServerBtn')}
           </button>
         </div>
       </div>
@@ -581,16 +581,16 @@ export function MCPServerSettings() {
       {servers.length === 0 ? (
         <div className="card text-center py-12">
           <Server className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 mb-2">No MCP Servers configured</p>
+          <p className="text-gray-500 mb-2">{t('mcp.noServersConfigured')}</p>
           <p className="text-xs text-gray-400 mb-4">
-            Add an external MCP Server to extend functionality
+            {t('mcp.addServerHint')}
           </p>
           <button
             onClick={() => setShowAddModal(true)}
             className="btn btn-primary mx-auto"
           >
             <Plus className="w-4 h-4" />
-            Add Server
+            {t('mcp.addServerBtn')}
           </button>
         </div>
       ) : (
@@ -613,7 +613,7 @@ export function MCPServerSettings() {
       {/* Example Servers Info */}
       <div className="card">
         <h3 className="font-display text-sm font-semibold text-gray-900 mb-3">
-          Example MCP Servers
+          {t('mcp.exampleServers')}
         </h3>
         <div className="space-y-2 text-xs">
           <div className="p-3 rounded-lg bg-white/50 border border-gray-200/50">

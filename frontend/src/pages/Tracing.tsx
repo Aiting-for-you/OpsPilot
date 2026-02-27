@@ -291,7 +291,7 @@ export function Tracing() {
             <h1 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
               {t('tracing.title')}
             </h1>
-            <p className="text-xs text-gray-500">OpenTelemetry · LLM/Agent/Tool traces</p>
+            <p className="text-xs text-gray-500">{t('tracing.openTelemetry')} · {t('tracing.traces')}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -322,11 +322,11 @@ export function Tracing() {
           <div className="stat-value">{spans.find(s => !s.parent_id)?.duration_ms.toFixed(0) || 0}ms</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">LLM Calls</div>
+          <div className="stat-label">{t('tracing.llmCalls')}</div>
           <div className="stat-value">{spans.filter(s => s.name.startsWith('llm.')).length}</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Tool Calls</div>
+          <div className="stat-label">{t('tracing.toolCalls')}</div>
           <div className="stat-value">{spans.filter(s => s.name.startsWith('tool.')).length}</div>
         </div>
       </div>
@@ -340,7 +340,7 @@ export function Tracing() {
               <Activity className="w-4 h-4 text-success" />
             </div>
             <h2 className="font-display text-sm font-semibold text-gray-900 uppercase tracking-wide">
-              Call Chain
+              {t('tracing.callChain')}
             </h2>
           </div>
           <div className="space-y-1">

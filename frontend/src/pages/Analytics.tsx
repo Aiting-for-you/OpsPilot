@@ -279,7 +279,7 @@ export function Analytics() {
       </div>
 
       {/* ============================================
-          Agent Performance & Tool Analytics
+          Performance & Tool Analytics
           ============================================ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Agent Performance */}

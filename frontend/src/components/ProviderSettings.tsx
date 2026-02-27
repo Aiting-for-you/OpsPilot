@@ -115,7 +115,7 @@ export function ProviderSettings() {
   return (
     <Box>
       <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
-        提供者配置
+        {t('settings.provider.title')}
       </Typography>
 
       {error && (
@@ -136,20 +136,20 @@ export function ProviderSettings() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                审批提供者
+                {t('settings.provider.approvalProvider')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                选择用于处理敏感操作审批的服务
+                {t('settings.provider.approvalProviderHint')}
               </Typography>
               
               <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                <InputLabel id="approval-provider-label">当前审批提供者</InputLabel>
+                <InputLabel id="approval-provider-label">{t('settings.provider.currentProvider')}</InputLabel>
                 <Select
                   labelId="approval-provider-label"
                   value={status?.approval_provider || ''}
                   onChange={(e) => handleProviderChange('approval', e.target.value)}
                   disabled={loading}
-                  label="当前审批提供者"
+                  label={t('settings.provider.currentProvider')}
                 >
                   {providers?.approval_providers.map((provider) => (
                     <MenuItem key={provider.name} value={provider.name}>
@@ -158,7 +158,7 @@ export function ProviderSettings() {
                         {provider.name === status?.approval_provider && (
                           <Chip
                             size="small"
-                            label="当前"
+                            label={t('settings.provider.current')}
                             color="primary"
                             sx={{ ml: 1 }}
                           />
@@ -201,20 +201,20 @@ export function ProviderSettings() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                记忆提供者
+                {t('settings.provider.memoryProvider')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                选择用于管理对话记忆的服务
+                {t('settings.provider.memoryProviderHint')}
               </Typography>
               
               <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                <InputLabel id="memory-provider-label">当前记忆提供者</InputLabel>
+                <InputLabel id="memory-provider-label">{t('settings.provider.currentProvider')}</InputLabel>
                 <Select
                   labelId="memory-provider-label"
                   value={status?.memory_provider || ''}
                   onChange={(e) => handleProviderChange('memory', e.target.value)}
                   disabled={loading}
-                  label="当前记忆提供者"
+                  label={t('settings.provider.currentProvider')}
                 >
                   {providers?.memory_providers.map((provider) => (
                     <MenuItem key={provider.name} value={provider.name}>
@@ -223,7 +223,7 @@ export function ProviderSettings() {
                         {provider.name === status?.memory_provider && (
                           <Chip
                             size="small"
-                            label="当前"
+                            label={t('settings.provider.current')}
                             color="primary"
                             sx={{ ml: 1 }}
                           />
@@ -266,20 +266,20 @@ export function ProviderSettings() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                评估提供者
+                {t('settings.provider.evaluationProvider')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                选择用于评估Agent性能的服务
+                {t('settings.provider.evaluationProviderHint')}
               </Typography>
               
               <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                <InputLabel id="evaluation-provider-label">当前评估提供者</InputLabel>
+                <InputLabel id="evaluation-provider-label">{t('settings.provider.currentProvider')}</InputLabel>
                 <Select
                   labelId="evaluation-provider-label"
                   value={status?.evaluation_provider || ''}
                   onChange={(e) => handleProviderChange('evaluation', e.target.value)}
                   disabled={loading}
-                  label="当前评估提供者"
+                  label={t('settings.provider.currentProvider')}
                 >
                   {providers?.evaluation_providers.map((provider) => (
                     <MenuItem key={provider.name} value={provider.name}>
@@ -288,7 +288,7 @@ export function ProviderSettings() {
                         {provider.name === status?.evaluation_provider && (
                           <Chip
                             size="small"
-                            label="当前"
+                            label={t('settings.provider.current')}
                             color="primary"
                             sx={{ ml: 1 }}
                           />
@@ -333,7 +333,7 @@ export function ProviderSettings() {
           onClick={fetchData}
           disabled={loading}
         >
-          刷新状态
+          {t('settings.provider.refreshStatus')}
         </Button>
       </Box>
     </Box>

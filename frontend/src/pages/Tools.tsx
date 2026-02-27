@@ -139,7 +139,7 @@ export function Tools() {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Code className="w-4 h-4 text-gray-500" />
-                    <span className="label mb-0">Input Schema</span>
+                    <span className="label mb-0">{t('tools.inputSchema')}</span>
                   </div>
                   <pre className="code-block max-h-40 text-xs">
                     {JSON.stringify(selectedTool.input_schema, null, 2)}
@@ -204,7 +204,7 @@ export function Tools() {
                     {/* Fallback Mode */}
                     {callToolMutation.data.fallback_mode && (
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">Fallback Mode</span>
+                        <span className="text-xs text-gray-500">{t('tools.fallbackMode')}</span>
                         <span className="font-mono text-xs text-warning">
                           {callToolMutation.data.fallback_mode}
                         </span>

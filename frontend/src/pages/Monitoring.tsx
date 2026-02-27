@@ -90,26 +90,33 @@ const Monitoring: React.FC = () => {
     setError(null);
     try {
       const [usageRes, agentRes, modelRes, obsRes] = await Promise.all([
-        api.get<{success: boolean; data?: any}>('/tokens/usage'),
-        api.get<{success: boolean; data?: any}>('/tokens/by-agent'),
-        api.get<{success: boolean; data?: any}>('/tokens/by-model'),
-        api.get<{success: boolean; data?: any}>('/observability/status'),
+        api.getTokenUsage(),
+        api.getTokenByAgent(),
+        api.getTokenByModel(),
+        api.getObservabilityStatus(),
       ]);
       
-      if (usageRes.data.success) {
-        setTokenUsage(usageRes.data.data.total);
+      if (usageRes.success) {
+        setTokenUsage(usageRes.data.total);
       }
-      if (agentRes.data.success) {
-        setAgentUsage(agentRes.data.data);
+      if (agentRes.success) {
+        setAgentUsage(agentRes.data);
       }
-      if (modelRes.data.success) {
-        setModelUsage(modelRes.data.data);
+      if (modelRes.success) {
+        setModelUsage(modelRes.data);
       }
-      if (obsRes.data.success) {
-        setObservability(obsRes.data.data);
+      if (obsRes.success) {
+        setObservability(obsRes.data);
       }
     } catch (err: any) {
-      setError(err.message || t('monitoring.fetchError'));
+      // 更友好的错误处理
+      let errorMessage = t('monitoring.fetchError');
+      if (err.response?.status === 404) {
+        errorMessage = t('monitoring.apiNotAvailable');
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -118,32 +125,32 @@ const Monitoring: React.FC = () => {
   const handleStudioToggle = async () => {
     try {
       if (observability?.studio.initialized) {
-        await api.post('/observability/studio/stop');
+        await api.stopStudio();
       } else {
-        await api.post('/observability/studio/start');
+        await api.startStudio();
       }
       fetchAllData();
     } catch (err: any) {
-      setError(err.message || '操作失败');
+      setError(err.message || t('monitoring.operationError'));
     }
   };
 
   const handleLangSmithToggle = async () => {
     try {
       if (observability?.langsmith.initialized) {
-        await api.post('/observability/langsmith/stop');
+        await api.stopLangSmith();
       } else {
-        await api.post('/observability/langsmith/start');
+        await api.startLangSmith();
       }
       fetchAllData();
     } catch (err: any) {
-      setError(err.message || '操作失败');
+      setError(err.message || t('monitoring.operationError'));
     }
   };
 
   const handleResetTokens = async () => {
     try {
-      await api.post('/tokens/reset');
+      await api.resetTokenStats();
       fetchAllData();
     } catch (err: any) {
       setError(err.message || t('monitoring.resetError'));
@@ -270,7 +277,7 @@ const Monitoring: React.FC = () => {
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
-                  <Typography variant="h6">AgentScope Studio</Typography>
+                  <Typography variant="h6">{t('monitoring.agentScopeStudio')}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     {t('monitoring.multiAgentPanel')}
                   </Typography>

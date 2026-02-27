@@ -119,7 +119,7 @@ export function Home() {
 
       {/* 底部信息 */}
       <div className="text-center text-sm text-gray-400 py-4">
-        <p>OpsPilot v1.0.0 · {t('home.aiOps')}</p>
+        <p>OpsPilot {t('home.version')} v1.0.0 · {t('home.aiOps')}</p>
       </div>
     </div>
   );
