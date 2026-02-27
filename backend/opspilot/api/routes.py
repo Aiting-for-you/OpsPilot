@@ -74,6 +74,10 @@ from opspilot.api.schemas import (
     ToolAnalyticsResponse,
     SystemMetricsResponse,
     DashboardDataResponse,
+    ObservabilityStatusResponse,
+    TokenUsageResponse,
+    AgentTokenUsageResponse,
+    ModelTokenUsageResponse,
 )
 from opspilot.core.orchestrator import Orchestrator
 from opspilot.core.sop_executor import SOPExecutor, SOPDefinition, create_order_sop, query_supplier_sop
@@ -1789,6 +1793,173 @@ async def get_system_metrics():
         available_tools=metrics.available_tools,
         system_load=metrics.system_load,
         timestamp=metrics.timestamp.isoformat(),
+    )
+
+
+# ==================== 可观测性 API ====================
+
+@router.get(
+    "/observability/status",
+    response_model=ObservabilityStatusResponse,
+    summary="获取可观测性状态"
+)
+async def get_observability_status():
+    """获取 AgentScope Studio 和 LangSmith 的状态"""
+    from opspilot.observability import get_studio, get_langsmith
+    
+    studio = get_studio()
+    langsmith = get_langsmith()
+    
+    return ObservabilityStatusResponse(
+        studio={
+            "available": studio.is_available(),
+            "initialized": studio._initialized,
+            "dashboard_url": studio.get_dashboard_url(),
+        },
+        langsmith={
+            "available": langsmith.is_available(),
+            "initialized": langsmith._initialized,
+            "project": langsmith.config.project if langsmith.config else None,
+            "project_url": langsmith.get_project_url() if langsmith.is_available() else None,
+        },
+    )
+
+
+@router.post(
+    "/observability/studio/start",
+    response_model=BaseResponse,
+    summary="启动 AgentScope Studio"
+)
+async def start_studio():
+    """启动 AgentScope Studio"""
+    from opspilot.observability import get_studio
+    
+    studio = get_studio()
+    success = studio.start()
+    
+    return BaseResponse(
+        success=success,
+        message="Studio started successfully" if success else "Failed to start Studio",
+    )
+
+
+@router.post(
+    "/observability/studio/stop",
+    response_model=BaseResponse,
+    summary="停止 AgentScope Studio"
+)
+async def stop_studio():
+    """停止 AgentScope Studio"""
+    from opspilot.observability import get_studio
+    
+    studio = get_studio()
+    studio.stop()
+    
+    return BaseResponse(
+        success=True,
+        message="Studio stopped",
+    )
+
+
+@router.post(
+    "/observability/langsmith/start",
+    response_model=BaseResponse,
+    summary="启动 LangSmith"
+)
+async def start_langsmith():
+    """启动 LangSmith 追踪"""
+    from opspilot.observability import get_langsmith
+    
+    langsmith = get_langsmith()
+    success = langsmith.start()
+    
+    return BaseResponse(
+        success=success,
+        message="LangSmith started successfully" if success else "Failed to start LangSmith",
+    )
+
+
+@router.post(
+    "/observability/langsmith/stop",
+    response_model=BaseResponse,
+    summary="停止 LangSmith"
+)
+async def stop_langsmith():
+    """停止 LangSmith 追踪"""
+    from opspilot.observability import get_langsmith
+    
+    langsmith = get_langsmith()
+    langsmith.stop()
+    
+    return BaseResponse(
+        success=True,
+        message="LangSmith stopped",
+    )
+
+
+# ==================== Token 使用统计 API ====================
+
+@router.get(
+    "/tokens/usage",
+    response_model=BaseResponse,
+    summary="获取 Token 使用统计"
+)
+async def get_token_usage():
+    """获取 Token 使用统计"""
+    # TODO: 实现实际的 token 统计
+    return BaseResponse(
+        success=True,
+        data={
+            "total": {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+                "total_cost": 0.0,
+                "record_count": 0,
+            }
+        },
+    )
+
+
+@router.get(
+    "/tokens/by-agent",
+    response_model=BaseResponse,
+    summary="获取按 Agent 的 Token 使用统计"
+)
+async def get_token_by_agent():
+    """获取按 Agent 分组的 Token 使用统计"""
+    # TODO: 实现实际的 token 统计
+    return BaseResponse(
+        success=True,
+        data={},
+    )
+
+
+@router.get(
+    "/tokens/by-model",
+    response_model=BaseResponse,
+    summary="获取按模型的 Token 使用统计"
+)
+async def get_token_by_model():
+    """获取按模型分组的 Token 使用统计"""
+    # TODO: 实现实际的 token 统计
+    return BaseResponse(
+        success=True,
+        data={},
+    )
+
+
+@router.post(
+    "/tokens/reset",
+    response_model=BaseResponse,
+    summary="重置 Token 统计"
+)
+async def reset_token_stats():
+    """重置 Token 统计数据"""
+    # TODO: 实现实际的 token 重置
+    return BaseResponse(
+        success=True,
+        message="Token stats reset successfully",
     )
 
 

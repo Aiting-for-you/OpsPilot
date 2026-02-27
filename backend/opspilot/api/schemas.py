@@ -19,6 +19,7 @@ class BaseResponse(BaseModel):
     success: bool = True
     message: str = "操作成功"
     error_code: Optional[str] = None
+    data: Optional[Any] = None
 
 
 # ==================== 任务相关 ====================
@@ -726,5 +727,38 @@ class DashboardDataResponse(BaseModel):
     tool_analytics: List[ToolAnalyticsResponse]
     system_metrics: SystemMetricsResponse
     generated_at: str
+
+
+class ObservabilityStatusResponse(BaseModel):
+    """可观测性状态响应"""
+    studio: dict
+    langsmith: dict
+
+
+class TokenUsageResponse(BaseModel):
+    """Token 使用统计响应"""
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    total_cost: float = 0.0
+    record_count: int = 0
+
+
+class AgentTokenUsageResponse(BaseModel):
+    """按 Agent 的 Token 使用统计"""
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    total_cost: float = 0.0
+    call_count: int = 0
+
+
+class ModelTokenUsageResponse(BaseModel):
+    """按模型的 Token 使用统计"""
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    total_cost: float = 0.0
+    call_count: int = 0
 
 

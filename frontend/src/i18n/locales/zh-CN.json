@@ -625,7 +625,7 @@
     "toolCalls": "工具调用",
     "callChain": "调用链",
     "traces": "LLM/Agent/工具追踪",
-    "openTelemetry": "OpenTelemetry",
+    "openTelemetry": "OpenTelemetry"
   },
   "settings": {
     "title": "设置",

@@ -478,6 +478,99 @@ class ApiService {
     return response.data;
   }
 
+  // ==================== Observability APIs ====================
+
+  async getObservabilityStatus(): Promise<{
+    success: boolean;
+    data: {
+      studio: {
+        available: boolean;
+        initialized: boolean;
+        dashboard_url: string | null;
+      };
+      langsmith: {
+        available: boolean;
+        initialized: boolean;
+        project: string | null;
+        project_url: string | null;
+      };
+    };
+  }> {
+    const response = await this.client.get('/observability/status');
+    return response.data;
+  }
+
+  async startStudio(): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.post('/observability/studio/start');
+    return response.data;
+  }
+
+  async stopStudio(): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.post('/observability/studio/stop');
+    return response.data;
+  }
+
+  async startLangSmith(): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.post('/observability/langsmith/start');
+    return response.data;
+  }
+
+  async stopLangSmith(): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.post('/observability/langsmith/stop');
+    return response.data;
+  }
+
+  // ==================== Token Usage APIs ====================
+
+  async getTokenUsage(): Promise<{
+    success: boolean;
+    data: {
+      total: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+        total_cost: number;
+        record_count: number;
+      };
+    };
+  }> {
+    const response = await this.client.get('/tokens/usage');
+    return response.data;
+  }
+
+  async getTokenByAgent(): Promise<{
+    success: boolean;
+    data: Record<string, {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+      total_cost: number;
+      call_count: number;
+    }>;
+  }> {
+    const response = await this.client.get('/tokens/by-agent');
+    return response.data;
+  }
+
+  async getTokenByModel(): Promise<{
+    success: boolean;
+    data: Record<string, {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+      total_cost: number;
+      call_count: number;
+    }>;
+  }> {
+    const response = await this.client.get('/tokens/by-model');
+    return response.data;
+  }
+
+  async resetTokenStats(): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.post('/tokens/reset');
+    return response.data;
+  }
+
   // ==================== Notification APIs ====================
 
   async getNotificationStatus(): Promise<{
