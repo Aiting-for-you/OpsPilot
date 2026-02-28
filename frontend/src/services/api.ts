@@ -597,6 +597,275 @@ class ApiService {
     const response = await this.client.post('/notification/config', config);
     return response.data;
   }
+
+  // ==================== 数据库信息查询 APIs ====================
+
+  async getDatabaseSummary(): Promise<{
+    success: boolean;
+    total_suppliers: number;
+    total_products: number;
+    total_inventory: number;
+    total_warehouses: number;
+    total_orders: number;
+    total_logistics: number;
+  }> {
+    const response = await this.client.get('/database/summary');
+    return response.data;
+  }
+
+  async getSuppliers(params?: { region?: string; status?: string; limit?: number; offset?: number }): Promise<{
+    success: boolean;
+    suppliers: Array<{
+      supplier_id: string;
+      name: string;
+      short_name?: string;
+      region?: string;
+      province?: string;
+      city?: string;
+      address?: string;
+      rating: number;
+      rating_count: number;
+      main_category?: string;
+      contact?: string;
+      phone?: string;
+      email?: string;
+      payment_terms?: string;
+      min_order_amount: number;
+      delivery_days: number;
+      certifications: string[];
+      status: string;
+      cooperation_years: number;
+    }>;
+    total: number;
+  }> {
+    const response = await this.client.get('/database/suppliers', { params });
+    return response.data;
+  }
+
+  async getProducts(params?: { category?: string; status?: string; limit?: number; offset?: number }): Promise<{
+    success: boolean;
+    products: Array<{
+      sku: string;
+      name: string;
+      category?: string;
+      sub_category?: string;
+      base_price: number;
+      currency: string;
+      unit?: string;
+      specifications: Record<string, any>;
+      description?: string;
+      safety_stock: number;
+      status: string;
+    }>;
+    total: number;
+  }> {
+    const response = await this.client.get('/database/products', { params });
+    return response.data;
+  }
+
+  async getInventory(params?: { warehouse_id?: string; sku?: string; limit?: number; offset?: number }): Promise<{
+    success: boolean;
+    inventory: Array<{
+      sku: string;
+      warehouse_id: string;
+      quantity: number;
+      available: number;
+      reserved: number;
+      location?: string;
+      batch_number?: string;
+      status: string;
+    }>;
+    total: number;
+  }> {
+    const response = await this.client.get('/database/inventory', { params });
+    return response.data;
+  }
+
+  async getWarehouses(params?: { region?: string; status?: string }): Promise<{
+    success: boolean;
+    warehouses: Array<{
+      warehouse_id: string;
+      name: string;
+      region?: string;
+      province?: string;
+      city?: string;
+      address?: string;
+      capacity_sqm?: number;
+      type?: string;
+      manager?: string;
+      phone?: string;
+      status: string;
+    }>;
+    total: number;
+  }> {
+    const response = await this.client.get('/database/warehouses', { params });
+    return response.data;
+  }
+
+  // ==================== Skills 管理 APIs ====================
+
+  async getSkills(params?: { category?: string; enabled?: boolean }): Promise<{
+    success: boolean;
+    skills: Array<{
+      id: string;
+      name: string;
+      description: string;
+      category: string;
+      version: string;
+      enabled: boolean;
+      input_schema: Record<string, any>;
+      output_schema: Record<string, any>;
+      parameters: Array<Record<string, any>>;
+      examples: Array<Record<string, any>>;
+      tags: string[];
+      author?: string;
+      created_at?: string;
+      updated_at?: string;
+    }>;
+    total: number;
+  }> {
+    const response = await this.client.get('/skills', { params });
+    return response.data;
+  }
+
+  async getSkillCategories(): Promise<{
+    success: boolean;
+    categories: Array<{ name: string; count: number }>;
+  }> {
+    const response = await this.client.get('/skills/categories');
+    return response.data;
+  }
+
+  async getSkill(skillId: string): Promise<{
+    success: boolean;
+    skill: {
+      id: string;
+      name: string;
+      description: string;
+      category: string;
+      version: string;
+      enabled: boolean;
+      input_schema: Record<string, any>;
+      output_schema: Record<string, any>;
+      parameters: Array<Record<string, any>>;
+      examples: Array<Record<string, any>>;
+      tags: string[];
+      author?: string;
+      created_at?: string;
+      updated_at?: string;
+    };
+  }> {
+    const response = await this.client.get(`/skills/${skillId}`);
+    return response.data;
+  }
+
+  async createSkill(skill: {
+    name: string;
+    description: string;
+    category: string;
+    version?: string;
+    input_schema?: Record<string, any>;
+    output_schema?: Record<string, any>;
+    parameters?: Array<Record<string, any>>;
+    examples?: Array<Record<string, any>>;
+    tags?: string[];
+    author?: string;
+  }): Promise<{
+    success: boolean;
+    skill: any;
+  }> {
+    const response = await this.client.post('/skills', skill);
+    return response.data;
+  }
+
+  async updateSkill(skillId: string, skill: {
+    name?: string;
+    description?: string;
+    category?: string;
+    version?: string;
+    enabled?: boolean;
+    input_schema?: Record<string, any>;
+    output_schema?: Record<string, any>;
+    parameters?: Array<Record<string, any>>;
+    examples?: Array<Record<string, any>>;
+    tags?: string[];
+  }): Promise<{
+    success: boolean;
+    skill: any;
+  }> {
+    const response = await this.client.put(`/skills/${skillId}`, skill);
+    return response.data;
+  }
+
+  async deleteSkill(skillId: string): Promise<{ success: boolean; message: string }> {
+    const response = await this.client.delete(`/skills/${skillId}`);
+    return response.data;
+  }
+
+  async toggleSkill(skillId: string): Promise<{
+    success: boolean;
+    skill: any;
+  }> {
+    const response = await this.client.post(`/skills/${skillId}/toggle`);
+    return response.data;
+  }
+
+  // ==================== 云端技能市场 APIs ====================
+
+  async getCloudSkills(params?: { 
+    category?: string; 
+    search?: string; 
+    page?: number; 
+    page_size?: number 
+  }): Promise<{
+    success: boolean;
+    skills: Array<{
+      id: string;
+      name: string;
+      description: string;
+      category: string;
+      version: string;
+      author: string;
+      downloads: number;
+      rating: number;
+      tags: string[];
+      created_at?: string;
+    }>;
+    total: number;
+    page: number;
+    page_size: number;
+  }> {
+    const response = await this.client.get('/skills/cloud', { params });
+    return response.data;
+  }
+
+  async getCloudSkillCategories(): Promise<{
+    success: boolean;
+    categories: Array<{ name: string; count: number; downloads: number }>;
+  }> {
+    const response = await this.client.get('/skills/cloud/categories');
+    return response.data;
+  }
+
+  async getCloudSkillDetail(skillId: string): Promise<{
+    success: boolean;
+    skill: any;
+  }> {
+    const response = await this.client.get(`/skills/cloud/${skillId}`);
+    return response.data;
+  }
+
+  async downloadCloudSkill(skillId: string, version?: string): Promise<{
+    success: boolean;
+    skill: any;
+    message: string;
+  }> {
+    const response = await this.client.post('/skills/cloud/download', {
+      skill_id: skillId,
+      version,
+    });
+    return response.data;
+  }
 }
 
 export const api = new ApiService();

@@ -22,6 +22,7 @@ import {
   Home,
   Zap,
   FileText,
+  Package,
 } from 'lucide-react';
 import { LanguageSwitcher } from '../LanguageSwitcher';
 
@@ -45,6 +46,7 @@ const navGroups = [
       { path: '/tools', icon: Wrench, labelKey: 'nav.tools' },
       { path: '/sop', icon: FileText, labelKey: 'nav.sop' },
       { path: '/scheduler', icon: Clock, labelKey: 'nav.scheduler' },
+      { path: '/data-viewer', icon: Database, labelKey: 'nav.dataViewer' },
     ]
   },
   {
@@ -71,6 +73,7 @@ const navGroups = [
     items: [
       { path: '/pricing', icon: DollarSign, labelKey: 'nav.pricing' },
       { path: '/customer-service', icon: MessageSquare, labelKey: 'nav.customerService' },
+      { path: '/skills-manager', icon: Package, labelKey: 'nav.skillsManager' },
     ]
   },
 ];

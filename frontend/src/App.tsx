@@ -16,6 +16,8 @@ import ToolOptimization from './pages/ToolOptimization';
 import MemoryOptimization from './pages/MemoryOptimization';
 import { PricingManagement } from './pages/PricingManagement';
 import { TicketManagement } from './pages/TicketManagement';
+import { DataViewer } from './pages/DataViewer';
+import { SkillsManager } from './pages/SkillsManager';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -48,6 +50,8 @@ function App() {
             <Route path="/pricing" element={<PricingManagement />} />
             <Route path="/customer-service" element={<TicketManagement />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/data-viewer" element={<DataViewer />} />
+            <Route path="/skills-manager" element={<SkillsManager />} />
           </Routes>
         </Layout>
       </BrowserRouter>

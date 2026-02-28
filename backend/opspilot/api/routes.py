@@ -78,6 +78,23 @@ from opspilot.api.schemas import (
     TokenUsageResponse,
     AgentTokenUsageResponse,
     ModelTokenUsageResponse,
+    # 数据库信息相关
+    DatabaseSummaryResponse,
+    SupplierListResponse,
+    ProductListResponse,
+    InventoryListResponse,
+    WarehouseListResponse,
+    # Skills相关
+    SkillDefinition,
+    SkillCreateRequest,
+    SkillUpdateRequest,
+    SkillListResponse,
+    SkillResponse,
+    SkillCategoryResponse,
+    CloudSkillInfo,
+    CloudSkillListResponse,
+    CloudSkillDownloadRequest,
+    CloudSkillDownloadResponse,
 )
 from opspilot.core.orchestrator import Orchestrator
 from opspilot.core.sop_executor import SOPExecutor, SOPDefinition, create_order_sop, query_supplier_sop
@@ -1960,6 +1977,1093 @@ async def reset_token_stats():
     return BaseResponse(
         success=True,
         message="Token stats reset successfully",
+    )
+
+
+# ============================================
+# 数据库信息查询接口
+# ============================================
+
+# 模拟数据存储
+MOCK_SUPPLIERS = [
+    {
+        "supplier_id": "SUP001",
+        "name": "深圳华强电子",
+        "short_name": "华强电子",
+        "region": "华南",
+        "province": "广东",
+        "city": "深圳",
+        "address": "深圳市福田区华强北",
+        "rating": 4.8,
+        "rating_count": 256,
+        "main_category": "电子元器件",
+        "contact": "张经理",
+        "phone": "0755-12345678",
+        "email": "hq@supplier.com",
+        "payment_terms": "月结30天",
+        "min_order_amount": 5000,
+        "delivery_days": 3,
+        "certifications": ["ISO9001", "CE"],
+        "status": "active",
+        "cooperation_years": 5,
+    },
+    {
+        "supplier_id": "SUP002",
+        "name": "上海中芯供应链",
+        "short_name": "中芯供应链",
+        "region": "华东",
+        "province": "上海",
+        "city": "上海",
+        "address": "上海市浦东新区张江高科",
+        "rating": 4.5,
+        "rating_count": 128,
+        "main_category": "芯片",
+        "contact": "李经理",
+        "phone": "021-87654321",
+        "email": "supply@supplier.com",
+        "payment_terms": "月结60天",
+        "min_order_amount": 10000,
+        "delivery_days": 7,
+        "certifications": ["ISO9001", "ISO14001"],
+        "status": "active",
+        "cooperation_years": 3,
+    },
+    {
+        "supplier_id": "SUP003",
+        "name": "北京东方电子",
+        "short_name": "东方电子",
+        "region": "华北",
+        "province": "北京",
+        "city": "北京",
+        "address": "北京市海淀区中关村",
+        "rating": 4.2,
+        "rating_count": 89,
+        "main_category": "传感器",
+        "contact": "王经理",
+        "phone": "010-12345678",
+        "email": "east@supplier.com",
+        "payment_terms": "预付30%+月结70%",
+        "min_order_amount": 8000,
+        "delivery_days": 5,
+        "certifications": ["CE", "RoHS"],
+        "status": "active",
+        "cooperation_years": 2,
+    },
+]
+
+MOCK_PRODUCTS = [
+    {
+        "sku": "SKU001",
+        "name": "电阻 100Ω 0805",
+        "category": "被动元件",
+        "sub_category": "电阻",
+        "base_price": 0.05,
+        "currency": "CNY",
+        "unit": "个",
+        "specifications": {"resistance": "100Ω", "size": "0805", "precision": "1%"},
+        "description": "贴片电阻 100Ω 1% 0805",
+        "safety_stock": 10000,
+        "status": "active",
+    },
+    {
+        "sku": "SKU002",
+        "name": "电容 10μF 0805",
+        "category": "被动元件",
+        "sub_category": "电容",
+        "base_price": 0.08,
+        "currency": "CNY",
+        "unit": "个",
+        "specifications": {"capacitance": "10μF", "size": "0805", "voltage": "25V"},
+        "description": "贴片电容 10μF 25V 0805",
+        "safety_stock": 8000,
+        "status": "active",
+    },
+    {
+        "sku": "SKU003",
+        "name": "STM32F103C8T6",
+        "category": "集成电路",
+        "sub_category": "MCU",
+        "base_price": 12.5,
+        "currency": "CNY",
+        "unit": "个",
+        "specifications": {"core": "ARM Cortex-M3", "flash": "64KB", "ram": "20KB"},
+        "description": "STM32F103C8T6 微控制器",
+        "safety_stock": 500,
+        "status": "active",
+    },
+    {
+        "sku": "SKU004",
+        "name": "ESP32-WROOM-32",
+        "category": "集成电路",
+        "sub_category": "无线通信",
+        "base_price": 18.0,
+        "currency": "CNY",
+        "unit": "个",
+        "specifications": {"wifi": "802.11 b/g/n", "bluetooth": "4.2 BR/LE", "flash": "4MB"},
+        "description": "ESP32 WiFi+蓝牙模块",
+        "safety_stock": 300,
+        "status": "active",
+    },
+    {
+        "sku": "SKU005",
+        "name": "LM358 双运放",
+        "category": "集成电路",
+        "sub_category": "运放",
+        "base_price": 0.6,
+        "currency": "CNY",
+        "unit": "个",
+        "specifications": {"channels": 2, "bandwidth": "700kHz", "voltage": "3V-32V"},
+        "description": "LM358 双运算放大器",
+        "safety_stock": 2000,
+        "status": "active",
+    },
+]
+
+MOCK_INVENTORY = [
+    {"sku": "SKU001", "warehouse_id": "WH001", "quantity": 50000, "available": 45000, "reserved": 5000, "location": "A区-01-01", "batch_number": "B20240101", "status": "normal"},
+    {"sku": "SKU002", "warehouse_id": "WH001", "quantity": 30000, "available": 28000, "reserved": 2000, "location": "A区-01-02", "batch_number": "B20240102", "status": "normal"},
+    {"sku": "SKU003", "warehouse_id": "WH001", "quantity": 2000, "available": 1800, "reserved": 200, "location": "B区-02-01", "batch_number": "B20240103", "status": "normal"},
+    {"sku": "SKU004", "warehouse_id": "WH002", "quantity": 1500, "available": 1500, "reserved": 0, "location": "C区-01-01", "batch_number": "B20240104", "status": "normal"},
+    {"sku": "SKU005", "warehouse_id": "WH001", "quantity": 10000, "available": 9000, "reserved": 1000, "location": "A区-02-01", "batch_number": "B20240105", "status": "normal"},
+]
+
+MOCK_WAREHOUSES = [
+    {
+        "warehouse_id": "WH001",
+        "name": "深圳中心仓",
+        "region": "华南",
+        "province": "广东",
+        "city": "深圳",
+        "address": "深圳市宝安区沙井街道",
+        "capacity_sqm": 5000,
+        "type": "中心仓",
+        "manager": "陈主管",
+        "phone": "0755-11111111",
+        "status": "active",
+    },
+    {
+        "warehouse_id": "WH002",
+        "name": "上海分仓",
+        "region": "华东",
+        "province": "上海",
+        "city": "上海",
+        "address": "上海市嘉定区",
+        "capacity_sqm": 3000,
+        "type": "分仓",
+        "manager": "刘主管",
+        "phone": "021-22222222",
+        "status": "active",
+    },
+    {
+        "warehouse_id": "WH003",
+        "name": "北京分仓",
+        "region": "华北",
+        "province": "北京",
+        "city": "北京",
+        "address": "北京市顺义区",
+        "capacity_sqm": 2000,
+        "type": "分仓",
+        "manager": "赵主管",
+        "phone": "010-33333333",
+        "status": "active",
+    },
+]
+
+# Skills 存储
+MOCK_SKILLS: Dict[str, Dict[str, Any]] = {}
+
+
+@router.get(
+    "/database/summary",
+    response_model=DatabaseSummaryResponse,
+    summary="获取数据库概览",
+    description="获取供应商、商品、库存、仓库等数据概览"
+)
+async def get_database_summary():
+    """获取数据库概览"""
+    return DatabaseSummaryResponse(
+        success=True,
+        message="获取成功",
+        total_suppliers=len(MOCK_SUPPLIERS),
+        total_products=len(MOCK_PRODUCTS),
+        total_inventory=len(MOCK_INVENTORY),
+        total_warehouses=len(MOCK_WAREHOUSES),
+        total_orders=15,
+        total_logistics=8,
+    )
+
+
+@router.get(
+    "/database/suppliers",
+    response_model=SupplierListResponse,
+    summary="获取供应商列表",
+    description="获取所有供应商信息"
+)
+async def get_suppliers(
+    region: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+):
+    """获取供应商列表"""
+    suppliers = MOCK_SUPPLIERS.copy()
+    
+    if region:
+        suppliers = [s for s in suppliers if s.get("region") == region]
+    if status:
+        suppliers = [s for s in suppliers if s.get("status") == status]
+    
+    total = len(suppliers)
+    suppliers = suppliers[offset:offset + limit]
+    
+    return SupplierListResponse(
+        success=True,
+        message="获取成功",
+        suppliers=suppliers,
+        total=total,
+    )
+
+
+@router.get(
+    "/database/suppliers/{supplier_id}",
+    response_model=BaseResponse,
+    summary="获取单个供应商详情",
+    description="获取指定供应商的详细信息"
+)
+async def get_supplier_detail(supplier_id: str):
+    """获取供应商详情"""
+    supplier = next((s for s in MOCK_SUPPLIERS if s["supplier_id"] == supplier_id), None)
+    
+    if not supplier:
+        raise HTTPException(status_code=404, detail=f"供应商不存在: {supplier_id}")
+    
+    return BaseResponse(
+        success=True,
+        message="获取成功",
+        data=supplier,
+    )
+
+
+@router.get(
+    "/database/products",
+    response_model=ProductListResponse,
+    summary="获取商品列表",
+    description="获取所有商品信息"
+)
+async def get_products(
+    category: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+):
+    """获取商品列表"""
+    products = MOCK_PRODUCTS.copy()
+    
+    if category:
+        products = [p for p in products if p.get("category") == category]
+    if status:
+        products = [p for p in products if p.get("status") == status]
+    
+    total = len(products)
+    products = products[offset:offset + limit]
+    
+    return ProductListResponse(
+        success=True,
+        message="获取成功",
+        products=products,
+        total=total,
+    )
+
+
+@router.get(
+    "/database/products/{sku}",
+    response_model=BaseResponse,
+    summary="获取单个商品详情",
+    description="获取指定商品的详细信息"
+)
+async def get_product_detail(sku: str):
+    """获取商品详情"""
+    product = next((p for p in MOCK_PRODUCTS if p["sku"] == sku), None)
+    
+    if not product:
+        raise HTTPException(status_code=404, detail=f"商品不存在: {sku}")
+    
+    return BaseResponse(
+        success=True,
+        message="获取成功",
+        data=product,
+    )
+
+
+@router.get(
+    "/database/inventory",
+    response_model=InventoryListResponse,
+    summary="获取库存列表",
+    description="获取所有库存信息"
+)
+async def get_inventory(
+    warehouse_id: Optional[str] = None,
+    sku: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0,
+):
+    """获取库存列表"""
+    inventory = MOCK_INVENTORY.copy()
+    
+    if warehouse_id:
+        inventory = [i for i in inventory if i.get("warehouse_id") == warehouse_id]
+    if sku:
+        inventory = [i for i in inventory if i.get("sku") == sku]
+    
+    total = len(inventory)
+    inventory = inventory[offset:offset + limit]
+    
+    return InventoryListResponse(
+        success=True,
+        message="获取成功",
+        inventory=inventory,
+        total=total,
+    )
+
+
+@router.get(
+    "/database/warehouses",
+    response_model=WarehouseListResponse,
+    summary="获取仓库列表",
+    description="获取所有仓库信息"
+)
+async def get_warehouses(
+    region: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    """获取仓库列表"""
+    warehouses = MOCK_WAREHOUSES.copy()
+    
+    if region:
+        warehouses = [w for w in warehouses if w.get("region") == region]
+    if status:
+        warehouses = [w for w in warehouses if w.get("status") == status]
+    
+    return WarehouseListResponse(
+        success=True,
+        message="获取成功",
+        warehouses=warehouses,
+        total=len(warehouses),
+    )
+
+
+from opspilot.api.skills_storage import get_skills_storage, SkillsStorage
+
+
+# Skills 存储管理
+def get_skills_storage_dep() -> SkillsStorage:
+    """获取 Skills 存储管理器依赖"""
+    return get_skills_storage()
+
+
+# ============================================
+# Skills 管理接口
+# ============================================
+
+@router.get(
+    "/skills",
+    response_model=SkillListResponse,
+    summary="获取 Skills 列表",
+    description="获取所有已配置的 Skills"
+)
+async def list_skills(
+    category: Optional[str] = None,
+    enabled: Optional[bool] = None,
+    storage: SkillsStorage = Depends(get_skills_storage_dep),
+):
+    """获取 Skills 列表"""
+    skills = list(storage._skills_cache.values())
+    
+    if category:
+        skills = [s for s in skills if s.get("category") == category]
+    if enabled is not None:
+        skills = [s for s in skills if s.get("enabled") == enabled]
+    
+    return SkillListResponse(
+        success=True,
+        message="获取成功",
+        skills=skills,
+        total=len(skills),
+    )
+
+
+@router.get(
+    "/skills/categories",
+    response_model=SkillCategoryResponse,
+    summary="获取 Skill 分类",
+    description="获取所有 Skill 分类及其数量"
+)
+async def get_skill_categories(
+    storage: SkillsStorage = Depends(get_skills_storage_dep),
+):
+    """获取 Skill 分类"""
+    categories = {}
+    for skill in storage._skills_cache.values():
+        cat = skill.get("category", "未分类")
+        if cat not in categories:
+            categories[cat] = {"name": cat, "count": 0}
+        categories[cat]["count"] += 1
+    
+    return SkillCategoryResponse(
+        success=True,
+        message="获取成功",
+        categories=list(categories.values()),
+    )
+
+
+# ==================== 云端技能市场路由（需要在 /skills/{skill_id} 之前）====================
+
+@router.get(
+    "/skills/cloud",
+    response_model=CloudSkillListResponse,
+    summary="获取云端技能市场",
+    description="从云端获取可下载的技能列表"
+)
+async def get_cloud_skills(
+    category: Optional[str] = None,
+    search: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 20,
+):
+    """获取云端技能市场列表"""
+    skills = CLOUD_SKILLS_MARKET.copy()
+    
+    if category:
+        skills = [s for s in skills if s.get("category") == category]
+    
+    if search:
+        search_lower = search.lower()
+        skills = [
+            s for s in skills 
+            if search_lower in s.get("name", "").lower() 
+            or search_lower in s.get("description", "").lower()
+            or any(search_lower in tag.lower() for tag in s.get("tags", []))
+        ]
+    
+    total = len(skills)
+    start = (page - 1) * page_size
+    end = start + page_size
+    skills_page = skills[start:end]
+    
+    return CloudSkillListResponse(
+        success=True,
+        message="获取成功",
+        skills=skills_page,
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get(
+    "/skills/cloud/categories",
+    summary="获取云端技能分类",
+    description="获取云端技能市场的分类信息"
+)
+async def get_cloud_skill_categories():
+    """获取云端技能分类"""
+    categories = {}
+    for skill in CLOUD_SKILLS_MARKET:
+        cat = skill.get("category", "未分类")
+        if cat not in categories:
+            categories[cat] = {"name": cat, "count": 0, "downloads": 0}
+        categories[cat]["count"] += 1
+        categories[cat]["downloads"] += skill.get("downloads", 0)
+    
+    return {
+        "success": True,
+        "message": "获取成功",
+        "categories": list(categories.values()),
+    }
+
+
+@router.get(
+    "/skills/cloud/{skill_id}",
+    response_model=CloudSkillInfo,
+    summary="获取云端技能详情",
+    description="获取指定云端技能的详细信息"
+)
+async def get_cloud_skill_detail(skill_id: str):
+    """获取云端技能详情"""
+    for skill in CLOUD_SKILLS_MARKET:
+        if skill.get("id") == skill_id:
+            return {
+                "success": True,
+                "message": "获取成功",
+                "skill": skill,
+            }
+    
+    raise HTTPException(status_code=404, detail=f"云端技能不存在: {skill_id}")
+
+
+@router.post(
+    "/skills/cloud/download",
+    response_model=CloudSkillDownloadResponse,
+    summary="从云端下载技能",
+    description="从云端市场下载技能到本地"
+)
+async def download_skill_from_cloud(
+    request: CloudSkillDownloadRequest,
+    storage: SkillsStorage = Depends(get_skills_storage_dep),
+):
+    """从云端下载技能"""
+    cloud_skill = None
+    for skill in CLOUD_SKILLS_MARKET:
+        if skill.get("id") == request.skill_id:
+            cloud_skill = skill
+            break
+    
+    if not cloud_skill:
+        raise HTTPException(status_code=404, detail=f"云端技能不存在: {request.skill_id}")
+    
+    # 检查是否已存在
+    if storage.get_skill(request.skill_id):
+        return CloudSkillDownloadResponse(
+            success=False,
+            message="技能已存在，无需重复下载",
+            skill=None,
+        )
+    
+    local_skill = {
+        "id": cloud_skill["id"],
+        "name": cloud_skill["name"],
+        "description": cloud_skill["description"],
+        "category": cloud_skill["category"],
+        "version": request.version or cloud_skill["version"],
+        "author": cloud_skill["author"],
+        "input_schema": cloud_skill.get("input_schema", {}),
+        "output_schema": cloud_skill.get("output_schema", {}),
+        "parameters": cloud_skill.get("parameters", []),
+        "examples": cloud_skill.get("examples", []),
+        "tags": cloud_skill.get("tags", []),
+        "enabled": True,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat(),
+    }
+    
+    # 保存到文件系统
+    storage.save_skill(request.skill_id, local_skill)
+    
+    return CloudSkillDownloadResponse(
+        success=True,
+        message="下载成功",
+        skill=local_skill,
+    )
+
+
+# ==================== 本地 Skills 路由 ====================
+
+@router.get(
+    "/skills/{skill_id}",
+    response_model=SkillResponse,
+    summary="获取单个 Skill",
+    description="获取指定 Skill 的详细信息"
+)
+async def get_skill(
+    skill_id: str,
+    storage: SkillsStorage = Depends(get_skills_storage_dep),
+):
+    """获取 Skill 详情"""
+    skill = storage.get_skill(skill_id)
+    
+    if not skill:
+        raise HTTPException(status_code=404, detail=f"Skill 不存在: {skill_id}")
+    
+    return SkillResponse(
+        success=True,
+        message="获取成功",
+        skill=skill,
+    )
+
+
+@router.post(
+    "/skills",
+    response_model=SkillResponse,
+    summary="创建 Skill",
+    description="创建新的 Skill 定义"
+)
+async def create_skill(
+    request: SkillCreateRequest,
+    storage: SkillsStorage = Depends(get_skills_storage_dep),
+):
+    """创建 Skill"""
+    import uuid
+    from datetime import datetime
+    
+    skill_id = f"skill_{uuid.uuid4().hex[:8]}"
+    now = datetime.now().isoformat()
+    
+    skill = {
+        "id": skill_id,
+        "name": request.name,
+        "description": request.description,
+        "category": request.category,
+        "version": request.version,
+        "enabled": True,
+        "input_schema": request.input_schema,
+        "output_schema": request.output_schema,
+        "parameters": request.parameters,
+        "examples": request.examples,
+        "tags": request.tags,
+        "author": request.author,
+        "created_at": now,
+        "updated_at": now,
+    }
+    
+    # 保存到文件系统
+    storage.save_skill(skill_id, skill)
+    
+    return SkillResponse(
+        success=True,
+        message="创建成功",
+        skill=skill,
+    )
+
+
+@router.put(
+    "/skills/{skill_id}",
+    response_model=SkillResponse,
+    summary="更新 Skill",
+    description="更新指定 Skill 的定义"
+)
+async def update_skill(
+    skill_id: str,
+    request: SkillUpdateRequest,
+    storage: SkillsStorage = Depends(get_skills_storage_dep),
+):
+    """更新 Skill"""
+    skill = storage.get_skill(skill_id)
+    if not skill:
+        raise HTTPException(status_code=404, detail=f"Skill 不存在: {skill_id}")
+    
+    from datetime import datetime
+    
+    # 更新字段
+    update_data = request.model_dump(exclude_unset=True)
+    skill.update(update_data)
+    skill["updated_at"] = datetime.now().isoformat()
+    
+    # 保存到文件系统
+    storage.save_skill(skill_id, skill)
+    
+    return SkillResponse(
+        success=True,
+        message="更新成功",
+        skill=skill,
+    )
+
+
+@router.delete(
+    "/skills/{skill_id}",
+    response_model=BaseResponse,
+    summary="删除 Skill",
+    description="删除指定的 Skill"
+)
+async def delete_skill(
+    skill_id: str,
+    storage: SkillsStorage = Depends(get_skills_storage_dep),
+):
+    """删除 Skill"""
+    skill = storage.get_skill(skill_id)
+    if not skill:
+        raise HTTPException(status_code=404, detail=f"Skill 不存在: {skill_id}")
+    
+    storage.delete_skill(skill_id)
+    
+    return BaseResponse(
+        success=True,
+        message="删除成功",
+    )
+
+
+@router.post(
+    "/skills/{skill_id}/toggle",
+    response_model=SkillResponse,
+    summary="启用/禁用 Skill",
+    description="切换 Skill 的启用状态"
+)
+async def toggle_skill(
+    skill_id: str,
+    storage: SkillsStorage = Depends(get_skills_storage_dep),
+):
+    """切换 Skill 启用状态"""
+    skill = storage.get_skill(skill_id)
+    if not skill:
+        raise HTTPException(status_code=404, detail=f"Skill 不存在: {skill_id}")
+    
+    from datetime import datetime
+    
+    skill["enabled"] = not skill.get("enabled", True)
+    skill["updated_at"] = datetime.now().isoformat()
+    
+    # 保存到文件系统
+    storage.save_skill(skill_id, skill)
+    
+    return SkillResponse(
+        success=True,
+        message=f"Skill 已{'启用' if skill['enabled'] else '禁用'}",
+        skill=skill,
+    )
+
+
+# ============================================
+# 云端 Skills 接口
+# ============================================
+
+# 模拟云端技能市场数据
+CLOUD_SKILLS_MARKET = [
+    {
+        "id": "cloud-skill-001",
+        "name": "电商订单处理",
+        "description": "自动处理电商平台订单，包括订单确认、库存检查、发货处理等流程",
+        "category": "电商",
+        "version": "1.2.0",
+        "author": "OpsPilot Team",
+        "downloads": 1520,
+        "rating": 4.8,
+        "tags": ["电商", "订单", "自动化"],
+        "created_at": "2024-01-15T10:00:00Z",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "order_id": {"type": "string", "description": "订单ID"},
+                "action": {"type": "string", "enum": ["confirm", "cancel", "ship"]}
+            },
+            "required": ["order_id"]
+        },
+        "output_schema": {
+            "type": "object",
+            "properties": {
+                "success": {"type": "boolean"},
+                "message": {"type": "string"}
+            }
+        },
+        "parameters": [
+            {"name": "order_id", "type": "string", "required": True, "description": "订单ID"},
+            {"name": "action", "type": "string", "required": True, "description": "操作类型"}
+        ],
+        "examples": [
+            {"input": {"order_id": "ORD001", "action": "confirm"}, "output": {"success": True}}
+        ],
+        "enabled": True,
+    },
+    {
+        "id": "cloud-skill-002",
+        "name": "物流追踪",
+        "description": "查询物流状态，跟踪包裹运输进度，支持多家快递公司",
+        "category": "物流",
+        "version": "1.0.5",
+        "author": "Logistics Pro",
+        "downloads": 980,
+        "rating": 4.5,
+        "tags": ["物流", "追踪", "快递"],
+        "created_at": "2024-02-20T10:00:00Z",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "tracking_no": {"type": "string", "description": "快递单号"},
+                "carrier": {"type": "string", "description": "快递公司"}
+            },
+            "required": ["tracking_no"]
+        },
+        "output_schema": {
+            "type": "object",
+            "properties": {
+                "status": {"type": "string"},
+                "location": {"type": "string"},
+                "events": {"type": "array"}
+            }
+        },
+        "parameters": [
+            {"name": "tracking_no", "type": "string", "required": True, "description": "快递单号"},
+            {"name": "carrier", "type": "string", "required": False, "description": "快递公司"}
+        ],
+        "examples": [],
+        "enabled": True,
+    },
+    {
+        "id": "cloud-skill-003",
+        "name": "库存预警",
+        "description": "监控商品库存水平，当低于安全库存时自动发送预警通知",
+        "category": "库存",
+        "version": "2.1.0",
+        "author": "Inventory Master",
+        "downloads": 2340,
+        "rating": 4.9,
+        "tags": ["库存", "预警", "监控"],
+        "created_at": "2024-01-05T10:00:00Z",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "sku": {"type": "string", "description": "商品SKU"},
+                "threshold": {"type": "number", "description": "预警阈值"}
+            },
+            "required": ["sku"]
+        },
+        "output_schema": {
+            "type": "object",
+            "properties": {
+                "alert": {"type": "boolean"},
+                "current_stock": {"type": "number"},
+                "recommendation": {"type": "string"}
+            }
+        },
+        "parameters": [
+            {"name": "sku", "type": "string", "required": True, "description": "商品SKU"},
+            {"name": "threshold", "type": "number", "required": False, "description": "预警阈值"}
+        ],
+        "examples": [],
+        "enabled": True,
+    },
+    {
+        "id": "cloud-skill-004",
+        "name": "供应商评估",
+        "description": "基于历史合作数据对供应商进行综合评估，包括价格、质量、交货及时性等维度",
+        "category": "采购",
+        "version": "1.5.2",
+        "author": "Procurement AI",
+        "downloads": 756,
+        "rating": 4.6,
+        "tags": ["供应商", "评估", "采购"],
+        "created_at": "2024-03-01T10:00:00Z",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "supplier_id": {"type": "string", "description": "供应商ID"},
+                "period": {"type": "string", "description": "评估周期"}
+            },
+            "required": ["supplier_id"]
+        },
+        "output_schema": {
+            "type": "object",
+            "properties": {
+                "score": {"type": "number"},
+                "dimensions": {"type": "object"},
+                "recommendation": {"type": "string"}
+            }
+        },
+        "parameters": [
+            {"name": "supplier_id", "type": "string", "required": True, "description": "供应商ID"},
+            {"name": "period", "type": "string", "required": False, "description": "评估周期"}
+        ],
+        "examples": [],
+        "enabled": True,
+    },
+    {
+        "id": "cloud-skill-005",
+        "name": "智能客服回复",
+        "description": "基于AI大模型生成智能客服回复，支持多种场景和问题类型",
+        "category": "客服",
+        "version": "3.0.1",
+        "author": "AI Support",
+        "downloads": 3200,
+        "rating": 4.7,
+        "tags": ["客服", "AI", "回复"],
+        "created_at": "2024-02-10T10:00:00Z",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "客户问题"},
+                "context": {"type": "object", "description": "上下文信息"}
+            },
+            "required": ["query"]
+        },
+        "output_schema": {
+            "type": "object",
+            "properties": {
+                "reply": {"type": "string"},
+                "confidence": {"type": "number"}
+            }
+        },
+        "parameters": [
+            {"name": "query", "type": "string", "required": True, "description": "客户问题"},
+            {"name": "context", "type": "object", "required": False, "description": "上下文信息"}
+        ],
+        "examples": [],
+        "enabled": True,
+    },
+    {
+        "id": "cloud-skill-006",
+        "name": "价格比价",
+        "description": "自动采集多个电商平台的商品价格，进行比价分析",
+        "category": "价格",
+        "version": "1.8.0",
+        "author": "Price Hunter",
+        "downloads": 1890,
+        "rating": 4.4,
+        "tags": ["价格", "比价", "电商"],
+        "created_at": "2024-01-25T10:00:00Z",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "product_name": {"type": "string", "description": "商品名称"},
+                "platforms": {"type": "array", "items": {"type": "string"}}
+            },
+            "required": ["product_name"]
+        },
+        "output_schema": {
+            "type": "object",
+            "properties": {
+                "prices": {"type": "array"},
+                "lowest_price": {"type": "number"},
+                "recommendation": {"type": "string"}
+            }
+        },
+        "parameters": [
+            {"name": "product_name", "type": "string", "required": True, "description": "商品名称"},
+            {"name": "platforms", "type": "array", "required": False, "description": "平台列表"}
+        ],
+        "examples": [],
+        "enabled": True,
+    },
+]
+
+
+@router.get(
+    "/skills/cloud",
+    response_model=CloudSkillListResponse,
+    summary="获取云端技能市场",
+    description="从云端获取可下载的技能列表"
+)
+async def get_cloud_skills(
+    category: Optional[str] = None,
+    search: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 20,
+):
+    """获取云端技能市场列表"""
+    skills = CLOUD_SKILLS_MARKET.copy()
+    
+    # 按分类筛选
+    if category:
+        skills = [s for s in skills if s.get("category") == category]
+    
+    # 按关键词搜索
+    if search:
+        search_lower = search.lower()
+        skills = [
+            s for s in skills 
+            if search_lower in s.get("name", "").lower() 
+            or search_lower in s.get("description", "").lower()
+            or any(search_lower in tag.lower() for tag in s.get("tags", []))
+        ]
+    
+    # 分页
+    total = len(skills)
+    start = (page - 1) * page_size
+    end = start + page_size
+    skills_page = skills[start:end]
+    
+    return CloudSkillListResponse(
+        success=True,
+        message="获取成功",
+        skills=skills_page,
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get(
+    "/skills/cloud/categories",
+    summary="获取云端技能分类",
+    description="获取云端技能市场的分类信息"
+)
+async def get_cloud_skill_categories():
+    """获取云端技能分类"""
+    categories = {}
+    for skill in CLOUD_SKILLS_MARKET:
+        cat = skill.get("category", "未分类")
+        if cat not in categories:
+            categories[cat] = {"name": cat, "count": 0, "downloads": 0}
+        categories[cat]["count"] += 1
+        categories[cat]["downloads"] += skill.get("downloads", 0)
+    
+    return {
+        "success": True,
+        "message": "获取成功",
+        "categories": list(categories.values()),
+    }
+
+
+@router.get(
+    "/skills/cloud/{skill_id}",
+    response_model=CloudSkillInfo,
+    summary="获取云端技能详情",
+    description="获取指定云端技能的详细信息"
+)
+async def get_cloud_skill_detail(skill_id: str):
+    """获取云端技能详情"""
+    for skill in CLOUD_SKILLS_MARKET:
+        if skill.get("id") == skill_id:
+            return {
+                "success": True,
+                "message": "获取成功",
+                "skill": skill,
+            }
+    
+    raise HTTPException(status_code=404, detail=f"云端技能不存在: {skill_id}")
+
+
+@router.post(
+    "/skills/cloud/download",
+    response_model=CloudSkillDownloadResponse,
+    summary="从云端下载技能",
+    description="从云端市场下载技能到本地"
+)
+async def download_skill_from_cloud_2(
+    request: CloudSkillDownloadRequest,
+    storage: SkillsStorage = Depends(get_skills_storage_dep),
+):
+    """从云端下载技能"""
+    # 查找云端技能
+    cloud_skill = None
+    for skill in CLOUD_SKILLS_MARKET:
+        if skill.get("id") == request.skill_id:
+            cloud_skill = skill
+            break
+    
+    if not cloud_skill:
+        raise HTTPException(status_code=404, detail=f"云端技能不存在: {request.skill_id}")
+    
+    # 检查是否已存在
+    if storage.get_skill(request.skill_id):
+        return CloudSkillDownloadResponse(
+            success=False,
+            message="技能已存在，无需重复下载",
+            skill=None,
+        )
+    
+    # 创建本地技能
+    local_skill = {
+        "id": cloud_skill["id"],
+        "name": cloud_skill["name"],
+        "description": cloud_skill["description"],
+        "category": cloud_skill["category"],
+        "version": request.version or cloud_skill["version"],
+        "author": cloud_skill["author"],
+        "input_schema": cloud_skill.get("input_schema", {}),
+        "output_schema": cloud_skill.get("output_schema", {}),
+        "parameters": cloud_skill.get("parameters", []),
+        "examples": cloud_skill.get("examples", []),
+        "tags": cloud_skill.get("tags", []),
+        "enabled": True,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat(),
+    }
+    
+    # 保存到文件系统
+    storage.save_skill(request.skill_id, local_skill)
+    
+    return CloudSkillDownloadResponse(
+        success=True,
+        message=f"成功下载技能: {cloud_skill['name']}",
+        skill=local_skill,
     )
 
 

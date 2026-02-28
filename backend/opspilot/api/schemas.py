@@ -762,3 +762,283 @@ class ModelTokenUsageResponse(BaseModel):
     call_count: int = 0
 
 
+# ============================================
+# 数据库信息查询相关
+# ============================================
+
+class SupplierInfo(BaseModel):
+    """供应商信息"""
+    supplier_id: str
+    name: str
+    short_name: Optional[str] = None
+    region: Optional[str] = None
+    province: Optional[str] = None
+    city: Optional[str] = None
+    address: Optional[str] = None
+    rating: float = 4.0
+    rating_count: int = 0
+    main_category: Optional[str] = None
+    contact: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    payment_terms: Optional[str] = None
+    min_order_amount: float = 0
+    delivery_days: int = 7
+    certifications: List[str] = []
+    status: str = "active"
+    cooperation_years: int = 0
+
+
+class ProductInfo(BaseModel):
+    """商品信息"""
+    sku: str
+    name: str
+    category: Optional[str] = None
+    sub_category: Optional[str] = None
+    base_price: float = 0
+    currency: str = "CNY"
+    unit: Optional[str] = None
+    specifications: Dict[str, Any] = {}
+    description: Optional[str] = None
+    safety_stock: int = 100
+    status: str = "active"
+
+
+class InventoryInfo(BaseModel):
+    """库存信息"""
+    sku: str
+    warehouse_id: str
+    quantity: int = 0
+    available: int = 0
+    reserved: int = 0
+    location: Optional[str] = None
+    batch_number: Optional[str] = None
+    status: str = "normal"
+
+
+class WarehouseInfo(BaseModel):
+    """仓库信息"""
+    warehouse_id: str
+    name: str
+    region: Optional[str] = None
+    province: Optional[str] = None
+    city: Optional[str] = None
+    address: Optional[str] = None
+    capacity_sqm: Optional[float] = None
+    type: Optional[str] = None
+    manager: Optional[str] = None
+    phone: Optional[str] = None
+    status: str = "active"
+
+
+class DatabaseSummaryResponse(BaseResponse):
+    """数据库概览响应"""
+    total_suppliers: int = 0
+    total_products: int = 0
+    total_inventory: int = 0
+    total_warehouses: int = 0
+    total_orders: int = 0
+    total_logistics: int = 0
+
+
+class SupplierListResponse(BaseResponse):
+    """供应商列表响应"""
+    suppliers: List[SupplierInfo] = []
+    total: int = 0
+
+
+class ProductListResponse(BaseResponse):
+    """商品列表响应"""
+    products: List[ProductInfo] = []
+    total: int = 0
+
+
+class InventoryListResponse(BaseResponse):
+    """库存列表响应"""
+    inventory: List[InventoryInfo] = []
+    total: int = 0
+
+
+class WarehouseListResponse(BaseResponse):
+    """仓库列表响应"""
+    warehouses: List[WarehouseInfo] = []
+    total: int = 0
+
+
+# ============================================
+# Skills 管理相关
+# ============================================
+
+class SkillDefinition(BaseModel):
+    """Skill 定义"""
+    id: str
+    name: str
+    description: str
+    category: str
+    version: str = "1.0.0"
+    enabled: bool = True
+    input_schema: Dict[str, Any] = {}
+    output_schema: Dict[str, Any] = {}
+    parameters: List[Dict[str, Any]] = []
+    examples: List[Dict[str, Any]] = []
+    tags: List[str] = []
+    author: Optional[str] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
+class SkillCreateRequest(BaseModel):
+    """创建 Skill 请求"""
+    name: str = Field(..., description="Skill 名称", min_length=1, max_length=100)
+    description: str = Field(..., description="Skill 描述", min_length=1, max_length=500)
+    category: str = Field(..., description="Skill 分类")
+    version: str = Field(default="1.0.0", description="版本号")
+    input_schema: Dict[str, Any] = Field(default_factory=dict, description="输入 Schema")
+    output_schema: Dict[str, Any] = Field(default_factory=dict, description="输出 Schema")
+    parameters: List[Dict[str, Any]] = Field(default_factory=list, description="参数列表")
+    examples: List[Dict[str, Any]] = Field(default_factory=list, description="示例")
+    tags: List[str] = Field(default_factory=list, description="标签")
+    author: Optional[str] = Field(default=None, description="作者")
+
+
+class SkillUpdateRequest(BaseModel):
+    """更新 Skill 请求"""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    version: Optional[str] = None
+    enabled: Optional[bool] = None
+    input_schema: Optional[Dict[str, Any]] = None
+    output_schema: Optional[Dict[str, Any]] = None
+    parameters: Optional[List[Dict[str, Any]]] = None
+    examples: Optional[List[Dict[str, Any]]] = None
+    tags: Optional[List[str]] = None
+
+
+class SkillListResponse(BaseResponse):
+    """Skill 列表响应"""
+    skills: List[SkillDefinition] = []
+    total: int = 0
+
+
+class SkillResponse(BaseResponse):
+    """单个 Skill 响应"""
+    skill: Optional[SkillDefinition] = None
+
+
+class SkillCategoryResponse(BaseResponse):
+    """Skill 分类响应"""
+    categories: List[Dict[str, Any]] = []
+
+
+class CloudSkillInfo(BaseModel):
+    """云端技能信息"""
+    id: str
+    name: str
+    description: str
+    category: str
+    version: str
+    author: str
+    downloads: int
+    rating: float
+    tags: List[str] = []
+    created_at: Optional[str] = None
+
+
+class CloudSkillListResponse(BaseResponse):
+    """云端技能列表响应"""
+    skills: List[CloudSkillInfo] = []
+    total: int = 0
+    page: int = 1
+    page_size: int = 20
+
+
+class CloudSkillDownloadRequest(BaseModel):
+    """从云端下载技能请求"""
+    skill_id: str = Field(..., description="云端技能ID")
+    version: Optional[str] = Field(default=None, description="指定版本，不填则下载最新版本")
+
+
+class CloudSkillDownloadResponse(BaseResponse):
+    """从云端下载技能响应"""
+    skill: Optional[SkillDefinition] = None
+    message: str = "下载成功"
+
+
+# ==================== Anthropic 风格技能包 (Skills) ====================
+
+class SkillPackageInfo(BaseModel):
+    """技能包基本信息"""
+    name: str = Field(..., description="技能包名称（小写字母、数字和连字符）")
+    description: str = Field(..., description="技能包描述，用于触发条件")
+    version: str = Field(default="1.0.0", description="版本号")
+    author: Optional[str] = Field(default=None, description="作者")
+    tags: List[str] = Field(default_factory=list, description="标签")
+    enabled: bool = Field(default=True, description="是否启用")
+
+
+class SkillPackageFile(BaseModel):
+    """技能包文件"""
+    path: str = Field(..., description="文件路径")
+    type: str = Field(..., description="文件类型: SKILL.md, script, reference, asset")
+    content: Optional[str] = Field(default=None, description="文件内容（文本文件）")
+    size: int = Field(default=0, description="文件大小")
+
+
+class SkillPackage(BaseModel):
+    """技能包完整信息"""
+    id: str = Field(..., description="技能包ID")
+    name: str = Field(..., description="技能包名称")
+    description: str = Field(..., description="技能包描述")
+    version: str = Field(default="1.0.0")
+    author: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
+    enabled: bool = True
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    files: List[SkillPackageFile] = Field(default_factory=list)
+    # SKILL.md 内容（用于快速读取）
+    skill_content: Optional[str] = None
+
+
+class SkillPackageListResponse(BaseResponse):
+    """技能包列表响应"""
+    skills: List[SkillPackage] = Field(default_factory=list)
+    total: int = 0
+
+
+class SkillPackageResponse(BaseResponse):
+    """单个技能包响应"""
+    skill: Optional[SkillPackage] = None
+
+
+class SkillPackageCreateRequest(BaseModel):
+    """创建技能包请求"""
+    name: str = Field(..., description="技能包名称")
+    description: str = Field(..., description="技能包描述")
+    version: str = Field(default="1.0.0")
+    author: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
+    skill_content: str = Field(..., description="SKILL.md 内容")
+
+
+class SkillPackageUpdateRequest(BaseModel):
+    """更新技能包请求"""
+    description: Optional[str] = None
+    version: Optional[str] = None
+    author: Optional[str] = None
+    tags: Optional[List[str]] = None
+    skill_content: Optional[str] = None
+    enabled: Optional[bool] = None
+
+
+class SkillPackageInstallRequest(BaseModel):
+    """安装技能包请求（从ZIP或URL）"""
+    source: str = Field(..., description="来源: upload, url")
+    url: Optional[str] = None
+    # base64 编码的 ZIP 内容
+    content: Optional[str] = None
+    # 技能包名称（当 source=upload 时）
+    name: Optional[str] = None
+
+

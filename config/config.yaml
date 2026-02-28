@@ -32,3 +32,10 @@ mcp:
 api:
   host: "0.0.0.0"
   port: 8000
+
+skills:
+  # 技能包存储目录
+  storage_path: "./data/skills"
+  # 技能包市场（可选的远程市场）
+  market_enabled: false
+  market_url: ""

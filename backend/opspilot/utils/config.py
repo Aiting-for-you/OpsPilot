@@ -113,6 +113,13 @@ class APIConfig(BaseModel):
     cors_origins: list = Field(default_factory=lambda: ["*"])
 
 
+class SkillsConfig(BaseModel):
+    """Skills 配置"""
+    storage_path: str = Field(default="./data/skills", description="技能包存储目录")
+    market_enabled: bool = Field(default=False, description="是否启用云端市场")
+    market_url: str = Field(default="", description="云端市场 URL")
+
+
 class Settings(BaseSettings):
     """
     完整配置类
@@ -136,6 +143,7 @@ class Settings(BaseSettings):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     mcp: MCPConfig = Field(default_factory=MCPConfig)
     api: APIConfig = Field(default_factory=APIConfig)
+    skills: SkillsConfig = Field(default_factory=SkillsConfig)
 
 
 # ==================== 配置加载器 ====================
