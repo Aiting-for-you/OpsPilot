@@ -52,12 +52,14 @@ export default {
           900: '#263238',
           950: '#1A252F',
         },
-        
-        // Status Colors
-        success: '#00C853',
-        warning: '#FFAB00',
-        error: '#FF5252',
-        info: '#00B8D4',
+
+        // Additional Colors
+        tertiary: '#f3f4f6',
+        card: '#ffffff',
+        background: '#f9fafb',
+        accent: '#00E5FF',
+        border: '#e5e7eb',
+        'border-light': '#f3f4f6',
       },
       fontFamily: {
         display: ['JetBrains Mono', 'monospace'],

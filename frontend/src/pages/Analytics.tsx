@@ -438,7 +438,7 @@ export function Analytics() {
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-            <span className="text-xs text-gray-600 font-mono">{t('analytics.realtime')}</span>
+            <span className="text-xs text-gray-600 font-mono">{t('analytics.realTime')}</span>
           </div>
         </div>
 

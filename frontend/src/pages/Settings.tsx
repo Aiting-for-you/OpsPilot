@@ -267,7 +267,7 @@ export function Settings() {
         </div>
         
         {/* Tab Buttons */}
-        <div className="flex items-center gap-1 p-1 bg-tertiary rounded-lg border border-border">
+        <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg border border-gray-200">
           <button
             onClick={() => setActiveTab('llm')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-all ${

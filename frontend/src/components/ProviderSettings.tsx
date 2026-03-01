@@ -87,7 +87,7 @@ export function ProviderSettings() {
       });
 
       if (response.data.success) {
-        setSuccess(response.data.message || t('settings.provider.switchSuccess'));
+        setSuccess(response.data.message || t('settings.providers.switchSuccess'));
         // 更新状态
         if (status) {
           setStatus({
@@ -97,7 +97,7 @@ export function ProviderSettings() {
         }
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : t('settings.provider.switchFailed');
+      const message = err instanceof Error ? err.message : t('settings.providers.switchFailed');
       setError(message);
     } finally {
       setLoading(false);
@@ -115,7 +115,7 @@ export function ProviderSettings() {
   return (
     <Box>
       <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
-        {t('settings.provider.title')}
+        {t('settings.providers.title')}
       </Typography>
 
       {error && (
@@ -136,20 +136,20 @@ export function ProviderSettings() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                {t('settings.provider.approvalProvider')}
+                {t('settings.providers.approvalProvider')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {t('settings.provider.approvalProviderHint')}
+                {t('settings.providers.approvalProviderHint')}
               </Typography>
               
               <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                <InputLabel id="approval-provider-label">{t('settings.provider.currentProvider')}</InputLabel>
+                <InputLabel id="approval-provider-label">{t('settings.providers.currentProvider')}</InputLabel>
                 <Select
                   labelId="approval-provider-label"
                   value={status?.approval_provider || ''}
                   onChange={(e) => handleProviderChange('approval', e.target.value)}
                   disabled={loading}
-                  label={t('settings.provider.currentProvider')}
+                  label={t('settings.providers.currentProvider')}
                 >
                   {providers?.approval_providers.map((provider) => (
                     <MenuItem key={provider.name} value={provider.name}>
@@ -158,7 +158,7 @@ export function ProviderSettings() {
                         {provider.name === status?.approval_provider && (
                           <Chip
                             size="small"
-                            label={t('settings.provider.current')}
+                            label={t('settings.providers.current')}
                             color="primary"
                             sx={{ ml: 1 }}
                           />
@@ -201,20 +201,20 @@ export function ProviderSettings() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                {t('settings.provider.memoryProvider')}
+                {t('settings.providers.memoryProvider')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {t('settings.provider.memoryProviderHint')}
+                {t('settings.providers.memoryProviderHint')}
               </Typography>
               
               <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                <InputLabel id="memory-provider-label">{t('settings.provider.currentProvider')}</InputLabel>
+                <InputLabel id="memory-provider-label">{t('settings.providers.currentProvider')}</InputLabel>
                 <Select
                   labelId="memory-provider-label"
                   value={status?.memory_provider || ''}
                   onChange={(e) => handleProviderChange('memory', e.target.value)}
                   disabled={loading}
-                  label={t('settings.provider.currentProvider')}
+                  label={t('settings.providers.currentProvider')}
                 >
                   {providers?.memory_providers.map((provider) => (
                     <MenuItem key={provider.name} value={provider.name}>
@@ -223,7 +223,7 @@ export function ProviderSettings() {
                         {provider.name === status?.memory_provider && (
                           <Chip
                             size="small"
-                            label={t('settings.provider.current')}
+                            label={t('settings.providers.current')}
                             color="primary"
                             sx={{ ml: 1 }}
                           />
@@ -266,20 +266,20 @@ export function ProviderSettings() {
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                {t('settings.provider.evaluationProvider')}
+                {t('settings.providers.evaluationProvider')}
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {t('settings.provider.evaluationProviderHint')}
+                {t('settings.providers.evaluationProviderHint')}
               </Typography>
               
               <FormControl fullWidth variant="outlined" sx={{ mb: 2 }}>
-                <InputLabel id="evaluation-provider-label">{t('settings.provider.currentProvider')}</InputLabel>
+                <InputLabel id="evaluation-provider-label">{t('settings.providers.currentProvider')}</InputLabel>
                 <Select
                   labelId="evaluation-provider-label"
                   value={status?.evaluation_provider || ''}
                   onChange={(e) => handleProviderChange('evaluation', e.target.value)}
                   disabled={loading}
-                  label={t('settings.provider.currentProvider')}
+                  label={t('settings.providers.currentProvider')}
                 >
                   {providers?.evaluation_providers.map((provider) => (
                     <MenuItem key={provider.name} value={provider.name}>
@@ -288,7 +288,7 @@ export function ProviderSettings() {
                         {provider.name === status?.evaluation_provider && (
                           <Chip
                             size="small"
-                            label={t('settings.provider.current')}
+                            label={t('settings.providers.current')}
                             color="primary"
                             sx={{ ml: 1 }}
                           />
@@ -333,7 +333,7 @@ export function ProviderSettings() {
           onClick={fetchData}
           disabled={loading}
         >
-          {t('settings.provider.refreshStatus')}
+          {t('settings.providers.refreshStatus')}
         </Button>
       </Box>
     </Box>

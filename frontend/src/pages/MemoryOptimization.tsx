@@ -321,7 +321,7 @@ const MemoryOptimization: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography color="text.secondary" gutterBottom>
-                  {t('memoryOptimization.patternsExtracted')}
+                  {t('memoryOptimization.extractedPatterns')}
                 </Typography>
                 <Typography variant="h4">{memoryStats.patterns_extracted}</Typography>
               </CardContent>
