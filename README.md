@@ -1,3 +1,8 @@
+<!-- Language Toggle Button -->
+<div align="right">
+  <a href="README.md">🇨🇳 中文</a> | <a href="README_en.md">🇺🇸 English</a>
+</div>
+
 <h1 align="center">OpsPilot</h1>
 
 <p align="center">
